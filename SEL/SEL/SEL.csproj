@@ -1,0 +1,280 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{841ED998-79E1-417D-9874-13E13D934342}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SEL</RootNamespace>
+    <AssemblyName>SEL</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <TargetFrameworkProfile />
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>full</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Deploy|AnyCPU'">
+    <OutputPath>bin\Deploy\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Deploy|x64'">
+    <OutputPath>bin\x64\Deploy\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>shipping.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\MEL\EwE\EwEShell\Includes\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Poly2Tri, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Poly2Tri.1.0.1.0\lib\net35-Client\Poly2Tri.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="API\APIAreaOutputConfiguration.cs" />
+    <Compile Include="API\APIBounds.cs" />
+    <Compile Include="API\APIConfiguredIntensityRoute.cs" />
+    <Compile Include="API\APIConnectorExternalServer.cs" />
+    <Compile Include="API\APIConnector_DebugData.cs" />
+    <Compile Include="API\APIEEZGeometryData.cs" />
+    <Compile Include="API\APIGeometryData.cs" />
+    <Compile Include="API\APIHeatmapBleedConfig.cs" />
+    <Compile Include="API\APIHeatmapOutputSettings.cs" />
+    <Compile Include="API\APIHeatmapSettings.cs" />
+    <Compile Include="API\APIKPIResult.cs" />
+    <Compile Include="API\APIPlayableAreaGeometry.cs" />
+    <Compile Include="API\APIRestrictionTypeException.cs" />
+    <Compile Include="API\APIRiskmapSettings.cs" />
+    <Compile Include="API\APISELRegionSettings.cs" />
+    <Compile Include="API\APIShippingIssue.cs" />
+    <Compile Include="API\APIShippingLaneConnectionPoints.cs" />
+    <Compile Include="API\APIShippingLaneConnections.cs" />
+    <Compile Include="API\APIShippingPortGeometry.cs" />
+    <Compile Include="API\APIShippingLaneGeometry.cs" />
+    <Compile Include="API\APIShippingPortIntensity.cs" />
+    <Compile Include="API\APIShippingRestrictionGeometry.cs" />
+    <Compile Include="API\APIShipRestrictionGroup.cs" />
+    <Compile Include="API\APIShipType.cs" />
+    <Compile Include="API\APIUpdateDescriptor.cs" />
+    <Compile Include="API\EErrorSeverity.cs" />
+    <Compile Include="API\IApiConnector.cs" />
+    <Compile Include="CommandLineArguments.cs" />
+    <Compile Include="EEdgeDirectionality.cs" />
+    <Compile Include="EHeatmapType.cs" />
+    <Compile Include="ELaneEdgeType.cs" />
+    <Compile Include="ERouteDirectionality.cs" />
+    <Compile Include="ErrorReporter.cs" />
+    <Compile Include="EShippingPortType.cs" />
+    <Compile Include="GeometryEdge.cs" />
+    <Compile Include="GeometryEdgeTyped.cs" />
+    <Compile Include="Util\GeometryUtilities.cs" />
+    <Compile Include="GeometryVertex.cs" />
+    <Compile Include="IntensityMapBleedMatrixCollection.cs" />
+    <Compile Include="IntensityMapGraphic.cs" />
+    <Compile Include="IntensityMapGraphicFloat.cs" />
+    <Compile Include="Issues\ShippingIssueManager.cs" />
+    <Compile Include="KPI\KPIBase.cs" />
+    <Compile Include="KPI\KPIInputData.cs" />
+    <Compile Include="KPI\KPIManager.cs" />
+    <Compile Include="KPI\KPIPerLaneGeometryShippingIntensity.cs" />
+    <Compile Include="KPI\KPIShippingIncome.cs" />
+    <Compile Include="KPI\KPIShippingIntensity.cs" />
+    <Compile Include="KPI\KPIPerPortTravelEfficiency.cs" />
+    <Compile Include="KPI\KPIShippingRisk.cs" />
+    <Compile Include="LaneEdge.cs" />
+    <Compile Include="LaneEdgeString.cs" />
+    <Compile Include="PortIntensities\PortIntensityBase.cs" />
+    <Compile Include="PortIntensities\PortIntensityInterpolated.cs" />
+    <Compile Include="PortIntensities\PortIntensityProviderBase.cs" />
+    <Compile Include="PortIntensities\PortIntensityProviderDefinedPort.cs" />
+    <Compile Include="PortIntensities\PortIntensityProviderMaintenance.cs" />
+    <Compile Include="PortIntensities\PortIntensitySparse.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="LaneVertex.cs" />
+    <Compile Include="RasterizerLib\Clipper.cs" />
+    <Compile Include="RasterizerLib\Geometry.cs" />
+    <Compile Include="RasterizerLib\PolygonRasterizer.cs" />
+    <Compile Include="RasterizerLib\RasterizerSurface.cs" />
+    <Compile Include="RasterizerLib\Rect.cs" />
+    <Compile Include="RasterOutputConfig.cs" />
+    <Compile Include="RasterOutputInstance.cs" />
+    <Compile Include="RasterOutputManager.cs" />
+    <Compile Include="RestrictionEdge.cs" />
+    <Compile Include="RestrictionGeometryType.cs" />
+    <Compile Include="RestrictionGeometryTypeManager.cs" />
+    <Compile Include="RestrictionMesh.cs" />
+    <Compile Include="Route.cs" />
+    <Compile Include="RouteFinder.cs" />
+    <Compile Include="RELSupport.cs" />
+    <Compile Include="RouteIntensity.cs" />
+    <Compile Include="RouteIntensityManager.cs" />
+    <Compile Include="RouteManager.cs" />
+    <Compile Include="Routing\EShipRoutingType.cs" />
+    <Compile Include="Routing\RoutingComponentBase.cs" />
+    <Compile Include="Routing\RoutingComponentMaintenance.cs" />
+    <Compile Include="Routing\RoutingComponentRegularShipping.cs" />
+    <Compile Include="Routing\RoutingEntry.cs" />
+    <Compile Include="SELConfig.cs" />
+    <Compile Include="SEL_debug.cs" />
+    <Compile Include="ShippingModel.cs" />
+    <Compile Include="ShippingPort.cs" />
+    <Compile Include="ShippingPortManager.cs" />
+    <Compile Include="ShipRestrictionGroup.cs" />
+    <Compile Include="ShipType.cs" />
+    <Compile Include="ShipTypeManager.cs" />
+    <Compile Include="SpatialMapping\AABB.cs" />
+    <Compile Include="SpatialMapping\EIntersectResult.cs" />
+    <Compile Include="SpatialMapping\IQuadTreeNode.cs" />
+    <Compile Include="SpatialMapping\QuadTree.cs" />
+    <Compile Include="SpatialMapping\QuadTreeEntity.cs" />
+    <Compile Include="SpatialMapping\QuadTreeEntityIterator.cs" />
+    <Compile Include="SpatialMapping\QuadTreeNode.cs" />
+    <Compile Include="SpatialMapping\IQuadTreeNodeSelector.cs" />
+    <Compile Include="SpatialMapping\QuadTreeNodeIterator.cs" />
+    <Compile Include="SpatialMapping\QuadTreeNodeSelectorAABB.cs" />
+    <Compile Include="SpatialMapping\QuadTreeNodeSelectorAll.cs" />
+    <Compile Include="SpatialMapping\QuadTreeSpatialQueryResult.cs" />
+    <Compile Include="SpatialMapping\QuadTreeValueIterator.cs" />
+    <Compile Include="SpatialMapping\SpatialQueryAABB.cs" />
+    <Compile Include="Util\IValueMapping.cs" />
+    <Compile Include="Util\InterpolatedValueMapping.cs" />
+    <Compile Include="Util\LineClipping.cs" />
+    <Compile Include="Util\MathProvider.cs" />
+    <Compile Include="Util\MathProviderFactory.cs" />
+    <Compile Include="Util\MathProviderFloat.cs" />
+    <Compile Include="Util\MathProviderInt.cs" />
+    <Compile Include="Util\PerformanceTimer.cs" />
+    <Compile Include="RasterizerLib\Rasterizer.cs" />
+    <Compile Include="Util\SparseValueMapping.cs" />
+    <Compile Include="Vector2D.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+    <None Include="SEL_config.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.5.2">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.5.2 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="shipping.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\MSWSupport\MSWSupport.csproj">
+      <Project>{226d974a-e5ae-40e7-92c9-625a1d67b9d4}</Project>
+      <Name>MSWSupport</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\SELRELBridge\SELRELBridge.csproj">
+      <Project>{7c5cfa74-3307-4e16-8b0c-d4229bedfd6d}</Project>
+      <Name>SELRELBridge</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>echo copy "$(ProjectDir)SEL_config.json" "$(TargetDir)SEL_config.json"
+copy "$(ProjectDir)SEL_config.json" "$(TargetDir)SEL_config.json" /Y
+
+if $(ConfigurationName) == Deploy (
+  echo copy "$(TargetDir)$(TargetFileName)" "$(SolutionDir)/../../../Server/dev/simulations/SEL/$(TargetFileName)"
+  copy "$(TargetDir)$(TargetFileName)" "$(SolutionDir)/../../../Server/dev/simulations/SEL/$(TargetFileName)" /y
+)</PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>"$(SolutionDir)SubWCRev.exe" $(ProjectDir). $(ProjectDir)Properties\AssemblyInfo_template.cs $(ProjectDir)Properties\AssemblyInfo.cs</PreBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

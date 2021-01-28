@@ -1,0 +1,127 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{D9F762B4-17A8-4B48-B14D-FFB20ECF75AD}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>REL</RootNamespace>
+    <AssemblyName>REL</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>REL.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="Debug_MarinResponse.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="packages.config" />
+    <None Include="REL_Config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="API\APIUtils.cs" />
+    <Compile Include="API\MarinAPIDate.cs" />
+    <Compile Include="API\MarinAPIGeometry.cs" />
+    <Compile Include="API\MarinAPIInput.cs" />
+    <Compile Include="API\MarinAPIPoint.cs" />
+    <Compile Include="API\MarinAPIProcessResponse.cs" />
+    <Compile Include="API\MarinAPIResponseGeometryData.cs" />
+    <Compile Include="API\MarinAPIResponseShipCollisionData.cs" />
+    <Compile Include="API\MSPAPIDate.cs" />
+    <Compile Include="API\MSPAPIExternalServer.cs" />
+    <Compile Include="API\MSPAPIGeometry.cs" />
+    <Compile Include="API\MSPAPIMarinGridCoordinate.cs" />
+    <Compile Include="API\MSPAPIRELConfig.cs" />
+    <Compile Include="API\MSPAPIRouteGraphEdge.cs" />
+    <Compile Include="API\MSPAPIRouteGraphIntensity.cs" />
+    <Compile Include="API\MSPAPIRouteGraphPoint.cs" />
+    <Compile Include="API\IMarinAPIConnector.cs" />
+    <Compile Include="API\IMSPAPIConnector.cs" />
+    <Compile Include="API\MSPAPIDebug.cs" />
+    <Compile Include="API\MarinAPIConnectorDebug.cs" />
+    <Compile Include="Bounds2D.cs" />
+    <Compile Include="CommandLineArguments.cs" />
+    <Compile Include="CoordinateSystemWKT.cs" />
+    <Compile Include="API\MarinAPILink.cs" />
+    <Compile Include="API\MarinAPITraffic.cs" />
+    <Compile Include="GridHeatmapRenderer.cs" />
+    <Compile Include="HeatmapCoordinateConverter.cs" />
+    <Compile Include="HeatmapDataGrid.cs" />
+    <Compile Include="MarinGridDefinition.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="RELConfig.cs" />
+    <Compile Include="RiskModel.cs" />
+    <Compile Include="Vector2D.cs" />
+    <Compile Include="JsonConverterVector2D.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\MEL\EwE\EwEShell\Includes\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="ProjNET, Version=2.0.0.0, Culture=neutral, PublicKeyToken=a1f5bdcd9c6f5740, processorArchitecture=MSIL">
+      <HintPath>..\packages\ProjNET.2.0.0\lib\netstandard2.0\ProjNET.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.4.0\lib\netstandard2.0\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Drawing.Common, Version=4.0.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Drawing.Common.5.0.0\lib\net461\System.Drawing.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.4.5.3\lib\netstandard2.0\System.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.5.2\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\MSWSupport\MSWSupport.csproj">
+      <Project>{226d974a-e5ae-40e7-92c9-625a1d67b9d4}</Project>
+      <Name>MSWSupport</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\SELRELBridge\SELRELBridge.csproj">
+      <Project>{7c5cfa74-3307-4e16-8b0c-d4229bedfd6d}</Project>
+      <Name>SELRELBridge</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="grid_digitwin_250x300_5000.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="REL.ico" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
