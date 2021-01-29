@@ -1,5 +1,5 @@
 {
-	"api_root": "http://localhost/dev/1/",
+	"api_root": "http://localhost/1/",
 	"route_finder_parallel_tasks": 6,
 	"create_edge_map": true, 
 	"edge_map_resolution": 16384,
