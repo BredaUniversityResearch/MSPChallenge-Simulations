@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -119,7 +120,7 @@ namespace MEL
 
 			NameValueCollection postValues = new NameValueCollection(1);
 			postValues.Add("game_month", month.ToString());
-			if (HttpGet("/api/mel/GetFishing/", postValues, out Fishing[] result))
+			if (HttpGet("/api/mel/GetFishing", postValues, out Fishing[] result))
 			{
 				return result;
 			}
@@ -127,16 +128,17 @@ namespace MEL
 			return new Fishing[0];
 		}
 
-		public void SubmitKpi(string kpiName, double kpiValue, string kpiUnits)
+		public void SubmitKpi(string kpiName, int kpiMonth, double kpiValue, string kpiUnits)
 		{
 			NameValueCollection values = new NameValueCollection
 			{
 				{ "name" , kpiName },
-				{ "value" , kpiValue.ToString() },
+				{ "month", kpiMonth.ToString(CultureInfo.InvariantCulture) },
+				{ "value" , kpiValue.ToString(CultureInfo.InvariantCulture) },
 				{ "type" , "ECOLOGY" },
 				{ "unit" , kpiUnits }
 			};
-			HttpSet("/api/kpi/post", values);
+			HttpGet("/api/kpi/post", values, out int _);
 		}
 
 		public void NotifyTickDone()

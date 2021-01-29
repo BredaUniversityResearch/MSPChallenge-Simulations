@@ -16,7 +16,7 @@ namespace SEL.KPI
 
 				if (intensity > 0.0f)
 				{
-					SubmitData($"ShippingIncome_{port.PortName}", (int)intensity, "ship calls", port.OwningCountryId);
+					SubmitData($"ShippingIncome_{port.PortName}", data.month, (int)intensity, "ship calls", port.OwningCountryId);
 				}
 			}
 		}

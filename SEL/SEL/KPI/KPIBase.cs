@@ -16,9 +16,9 @@ namespace SEL.KPI
 
 		public abstract void Calculate(KPIInputData data);
 
-		protected void SubmitData(string kpiName, int kpiValue, string kpiUnit, int country = -1)
+		protected void SubmitData(string kpiName, int kpiMonth, int kpiValue, string kpiUnit, int country = -1)
 		{
-			kpiManager.QueueKPIResultValue(kpiName, kpiValue, "SHIPPING", kpiUnit, country);
+			kpiManager.QueueKPIResultValue(kpiName, kpiMonth, kpiValue, "SHIPPING", kpiUnit, country);
 		}
 	}
 }

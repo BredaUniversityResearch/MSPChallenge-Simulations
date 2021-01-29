@@ -61,7 +61,7 @@ namespace MEL
 			return m_FishingValues;
 		}
 
-		public void SubmitKpi(string kpiName, double kpiValue, string kpiUnits)
+		public void SubmitKpi(string kpiName, int kpiMonth, double kpiValue, string kpiUnits)
 		{
 			//Nothing
 		}

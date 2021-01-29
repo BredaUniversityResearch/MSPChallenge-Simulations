@@ -41,12 +41,15 @@ namespace MEL
 				{
 				case "polygon":
 					rawData = Rasterizer.RasterizePolygons(g, 1.0, 1, MEL.x_res, MEL.y_res, new Rect(mel.x_min, mel.y_min, mel.x_max, mel.y_max));
+					IsLoadedCorrectly = g.Count > 0;
 					break;
 				case "line":
 					rawData = Rasterizer.RasterizeLines(g, 1.0, 1, MEL.x_res, MEL.y_res, new Rect(mel.x_min, mel.y_min, mel.x_max, mel.y_max));
+					IsLoadedCorrectly = g.Count > 0;
 					break;
 				case "point":
 					rawData = Rasterizer.RasterizePoints(g, 1.0, MEL.x_res, MEL.y_res, new Rect(mel.x_min, mel.y_min, mel.x_max, mel.y_max));
+					IsLoadedCorrectly = g.Count > 0;
 					break;
 				case "raster":
 					try
@@ -54,7 +57,7 @@ namespace MEL
 						rawData = mel.ApiConnector.GetRasterLayerByName(name);
 						if (rawData == null)
 						{
-							throw new Exception("Got null raw data from API");
+							throw new Exception("Got null raw data from API. This can happen when this layer is an output from a different simulation.");
 						}
 
 						IsLoadedCorrectly = true;

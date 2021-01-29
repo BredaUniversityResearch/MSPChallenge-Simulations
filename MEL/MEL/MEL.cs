@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
+using System.Threading.Tasks;
 using EwEShell;
 using MSWSupport;
 using Newtonsoft.Json;
@@ -22,7 +23,7 @@ namespace MEL
 	{
 		public const int TICK_DELAY_MS = 100;   //in ms
 
-		private static string ApiBaseURL = "http://localhost/dev/1/"; //Default to localhost.
+		private static string ApiBaseURL = "http://localhost/1/"; //Default to localhost.
 
 		private int lastupdatedmonth = -2;
 
@@ -41,7 +42,7 @@ namespace MEL
 		public static int x_res;
 		public static int y_res;
 
-		private List<Thread> threads = new List<Thread>();
+		private List<Task> backgroundTasks = new List<Task>();
 
 		private cEwEShell shell;
 		private List<cPressure> pressures = new List<cPressure>();
@@ -87,12 +88,12 @@ namespace MEL
 
 			InitPressureLayers();
 
-			WaitForThreads();
+			WaitForAllBackgroundTasks();
 			RasterizeLayers();
 
 			UpdateFishing();
 
-			WaitForThreads();
+			WaitForAllBackgroundTasks();
 
 			//Start values for fishing intensity as returned by EwEShell.
 			List<cScalar> initialFishingValues = new List<cScalar>();
@@ -125,8 +126,6 @@ namespace MEL
 				Console.ForegroundColor = orgColor;
 			}
 		}
-
-		#region Initialize
 
 		/// <summary>
 		/// load the config file from the server
@@ -168,11 +167,11 @@ namespace MEL
 							layers.Add(rasterizedLayer);
 						}
 
-						Thread t = new Thread(() => LoadThreaded(rasterizedLayer));
-						threads.Add(t);
-						t.Start();
-
-						pressureLayers[pressure.name].Add(rasterizedLayer, layerData.influence);
+						AddBackgroundTask(() =>
+						{
+							LoadThreaded(rasterizedLayer);
+							pressureLayers[pressure.name].Add(rasterizedLayer, layerData.influence);
+						});
 					}
 				}
 
@@ -192,7 +191,6 @@ namespace MEL
 		{
 			rasterizedLayer.GetLayerDataAndRasterize(this);
 		}
-		#endregion
 
 		private void WaitForAPIAccess()
 		{
@@ -209,7 +207,6 @@ namespace MEL
 			}
 		}
 
-		#region Tick
 		/// <summary>
 		/// Update tick for MEL, runs once per second
 		/// </summary>
@@ -229,16 +226,16 @@ namespace MEL
 
 			Console.WriteLine("Executing month: " + lastupdatedmonth);
 
-			WaitForThreads();
+			WaitForAllBackgroundTasks();
 
-			//Console.WriteLine("all threads are cleared");
+			//Console.WriteLine("all backgroundTasks are cleared");
 
 			//update pressure layers where needed
 			UpdatePressureLayers();
 
 			//Console.WriteLine("updated pressure layers");
 
-			WaitForThreads();
+			WaitForAllBackgroundTasks();
 
 			UpdateFishing();
 			RasterizeLayers();
@@ -247,9 +244,9 @@ namespace MEL
 			shell.Tick(pressures, outputs);
 
 			StoreTick();
-			SubmitCurrentKPIValues();
+			SubmitCurrentKPIValues(lastupdatedmonth);
 
-			WaitForThreads();
+			WaitForAllBackgroundTasks();
 			TickDone();
 
 			watch.Stop();
@@ -289,9 +286,7 @@ namespace MEL
 							{
 								updated.Add(layerEntry.RasterizedLayer);
 								//layer has changed, update it
-								Thread t = new Thread(() => LoadThreaded(layerEntry.RasterizedLayer));
-								threads.Add(t);
-								t.Start();
+								AddBackgroundTask(() => LoadThreaded(layerEntry.RasterizedLayer));
 							}
 						}
 					}
@@ -315,11 +310,11 @@ namespace MEL
 			}
 		}
 
-		private void SubmitCurrentKPIValues()
+		private void SubmitCurrentKPIValues(int currentMonth)
 		{
 			foreach (cGrid outcome in outputs)
 			{
-				ApiConnector.SubmitKpi(outcome.Name, outcome.Mean, outcome.Units);
+				ApiConnector.SubmitKpi(outcome.Name, currentMonth, outcome.Mean, outcome.Units);
 			}
 		}
 
@@ -327,9 +322,6 @@ namespace MEL
 		{
 			ApiConnector.NotifyTickDone();
 		}
-		#endregion
-
-		#region Internal
 
 		private void StoreTick()
 		{
@@ -372,32 +364,21 @@ namespace MEL
 			//Console.WriteLine("RasterizeLayers: " + watch.ElapsedMilliseconds);
 		}
 
-		/// <summary>
-		/// Wait for all threads to be finished until moving on
-		/// </summary>
-		private void WaitForThreads()
+		private void AddBackgroundTask(Action task)
 		{
-			if (threads.Count == 0) return;
-
-			bool isReady = true;
-
-			while (isReady)
-			{
-				isReady = false;
-				for (int i = 0; i < threads.Count; i++)
-				{
-					if (threads[i].IsAlive)
-					{
-						isReady = true;
-						break;
-					}
-				}
-			}
-
-			threads.Clear();
+			Task t = new Task(task);
+			t.Start();
+			backgroundTasks.Add(t);
 		}
-		#endregion
 
+		private void WaitForAllBackgroundTasks()
+		{
+			while (backgroundTasks.Count > 0)
+			{
+				backgroundTasks[0].Wait();
+				backgroundTasks.RemoveAt(0);
+			}
+		}
 
 		public static string ConvertLayerName(string name)
 		{

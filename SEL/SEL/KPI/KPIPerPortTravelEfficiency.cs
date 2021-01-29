@@ -43,7 +43,7 @@ namespace SEL.KPI
 				if (portRoutes > 0)
 				{
 					float kpiPortEfficiency = portEfficiency / (float)portRoutes;
-					SubmitData(string.Format("ShippingRouteEfficiency_{0}", port.PortName), (int)(kpiPortEfficiency * 100.0f), "%", port.OwningCountryId);
+					SubmitData(string.Format("ShippingRouteEfficiency_{0}", port.PortName), data.month, (int)(kpiPortEfficiency * 100.0f), "%", port.OwningCountryId);
 				}
 			}
 		}

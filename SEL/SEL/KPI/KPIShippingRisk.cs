@@ -19,7 +19,7 @@ namespace SEL.KPI
 				}
 			}
 
-			SubmitData("ShippingRisk", kpiResultValue, "");
+			SubmitData("ShippingRisk", data.month, kpiResultValue, "");
 		}
 	}
 }

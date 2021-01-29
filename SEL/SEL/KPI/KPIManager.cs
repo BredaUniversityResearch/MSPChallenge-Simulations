@@ -38,11 +38,12 @@ namespace SEL.KPI
 			}
 		}
 
-		public void QueueKPIResultValue(string kpiName, int kpiValue, string kpiCategory, string kpiUnit, int country = -1)
+		public void QueueKPIResultValue(string kpiName, int kpiMonth, int kpiValue, string kpiCategory, string kpiUnit, int country = -1)
 		{
 			APIKPIResult result = new APIKPIResult
 			{
 				name = kpiName,
+				month = kpiMonth,
 				value = kpiValue,
 				type = kpiCategory,
 				unit = kpiUnit,

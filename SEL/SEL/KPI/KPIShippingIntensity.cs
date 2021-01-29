@@ -16,7 +16,7 @@
 				}
 			}
 
-			SubmitData("ShippingIntensity", (int)shippingIntensity, "ship calls");
+			SubmitData("ShippingIntensity", data.month, (int)shippingIntensity, "ship calls");
 		}
 	}
 }

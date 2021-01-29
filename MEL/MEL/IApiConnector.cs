@@ -19,7 +19,7 @@ namespace MEL
 		string GetMelConfigAsString();
 		string[] GetUpdatedLayers();
 		Fishing[] GetFishingValuesForMonth(int month);
-		void SubmitKpi(string kpiName, double kpiValue, string kpiUnits);
+		void SubmitKpi(string kpiName, int kpiMonth, double kpiValue, string kpiUnits);
 		void NotifyTickDone();
 
 		double[,] GetRasterLayerByName(string layerName);
