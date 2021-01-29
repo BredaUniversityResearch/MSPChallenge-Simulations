@@ -2,7 +2,7 @@
 	"available_simulations": [
 		{
 			"simulation_name": "CEL",
-			"relative_exe_path": "../../../../CEL/CEL/CEL/bin/release/CEL.exe"
+			"relative_exe_path": "../../../../CEL/CEL/bin/release/CEL.exe"
 		},
 		{
 			"simulation_name": "MEL",

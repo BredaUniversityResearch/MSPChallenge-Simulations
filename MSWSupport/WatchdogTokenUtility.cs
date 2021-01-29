@@ -1,8 +1,5 @@
-﻿using System.Collections.Specialized;
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Net;
-using System.Text;
-using Newtonsoft.Json;
 
 namespace MSWSupport
 {
@@ -16,9 +13,12 @@ namespace MSWSupport
 
 		public static string GetWatchdogTokenForServerAtAddress(string serverBaseAddress)
 		{
-			APIRequest.Perform(serverBaseAddress, "/api/simulations/GetWatchdogTokenForServer", null, null,
-				out WatchdogTokenResponse response);
-			return response.watchdog_token;
+			if (APIRequest.Perform(serverBaseAddress, "/api/simulations/GetWatchdogTokenForServer", null, null,
+				out WatchdogTokenResponse response))
+			{
+				return response.watchdog_token;
+			}
+			return String.Empty;
 		}
 	}
 }

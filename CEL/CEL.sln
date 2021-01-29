@@ -5,9 +5,7 @@ VisualStudioVersion = 16.0.30406.217
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CEL", "CEL\CEL.csproj", "{5A99F502-4686-4155-8E11-A2B8A72DC55A}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1A79CE15-6096-4C0F-B915-74FB2846F944}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSWSupport", "..\..\MSWSupport\MSWSupport.csproj", "{226D974A-E5AE-40E7-92C9-625A1D67B9D4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSWSupport", "..\MSWSupport\MSWSupport.csproj", "{226D974A-E5AE-40E7-92C9-625A1D67B9D4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
