@@ -6,7 +6,7 @@
 		},
 		{
 			"simulation_name": "MEL",
-			"relative_exe_path": "../../../../MEL/MEL/MEL/bin/release/MEL.exe"
+			"relative_exe_path": "../../../../MEL/MEL/bin/release/MEL.exe"
 		},
 		{
 			"simulation_name": "SEL",

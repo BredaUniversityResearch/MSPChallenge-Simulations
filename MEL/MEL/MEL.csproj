@@ -55,9 +55,9 @@
     <ApplicationIcon>ecology.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b9a188c8922137c6, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\EwE\EwEShell\Includes\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -91,6 +91,7 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="config\North Sea model for MSP.eiixml" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.6">
@@ -105,17 +106,17 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\MSWSupport\MSWSupport.csproj">
+    <Content Include="ecology.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\MSWSupport\MSWSupport.csproj">
       <Project>{226d974a-e5ae-40e7-92c9-625a1d67b9d4}</Project>
       <Name>MSWSupport</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\EwE\EwEShell\EwEShell.vbproj">
+    <ProjectReference Include="..\EwE\EwEShell\EwEShell.vbproj">
       <Project>{ddc5d15f-63f4-4b9d-ad24-a69d1d91c243}</Project>
       <Name>EwEShell</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="ecology.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
