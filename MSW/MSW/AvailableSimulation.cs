@@ -7,6 +7,8 @@ namespace MSW
 {
 	public class AvailableSimulation
 	{
+		public const string LatestVersionName = "Latest";
+
 		private class SimulationVersion
 		{
 			public string ExePath;
@@ -34,7 +36,7 @@ namespace MSW
 				ConsoleLogger.Warning("relative_exe_path should be be configured with a " + versionFolderPattern + " expression. Current path is defined as " + 
 				                      m_config.RelativeExePath + " for simulation with name " + m_config.SimulationName);
 				ConsoleLogger.Warning("Using this as a single version registration for specified simulation");
-				m_availableVersions.Add(new SimulationVersion {ExePath = relativeExePath, Version = "Latest"});
+				m_availableVersions.Add(new SimulationVersion {ExePath = relativeExePath, Version = "AutoRegisteredVersion"});
 			}
 			else
 			{
@@ -85,10 +87,13 @@ namespace MSW
 
 		public string GetExecutablePathForVersion(string a_requestedVersion)
 		{
-			SimulationVersion version = m_availableVersions.Find(obj => obj.Version == a_requestedVersion);
+			SimulationVersion version = m_availableVersions.Find(obj => obj.Version.Equals(a_requestedVersion, StringComparison.InvariantCultureIgnoreCase));
 			if (version == null)
 			{
-				ConsoleLogger.Warning("Requested simulation version \"" + a_requestedVersion + "\" for simulation type \"" + SimulationType + "\" which is not known. Falling back to latest version available");
+				if (!a_requestedVersion.Equals(LatestVersionName, StringComparison.InvariantCultureIgnoreCase))
+				{
+					ConsoleLogger.Warning("Requested simulation version \"" + a_requestedVersion + "\" for simulation type \"" + SimulationType + "\" which is not known. Falling back to latest version available");
+				}
 				return GetExecutablePathForVersion(m_availableVersions[m_availableVersions.Count - 1].Version);
 			}
 
@@ -103,7 +108,7 @@ namespace MSW
 		public bool HasVersionAvailable(string a_simulationRequestSimulationVersion)
 		{
 			//If no version is explicitly specified fall back to the latest version.
-			if (string.IsNullOrEmpty(a_simulationRequestSimulationVersion) || a_simulationRequestSimulationVersion == "Latest")
+			if (string.IsNullOrEmpty(a_simulationRequestSimulationVersion) || a_simulationRequestSimulationVersion.Equals(LatestVersionName, StringComparison.InvariantCultureIgnoreCase))
 			{
 				return true;
 			}
