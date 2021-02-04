@@ -80,7 +80,17 @@ namespace SEL
 				Rasterizer.RasterizeMeshRescaleToBounds(mesh, rasterizerBounds, rasterOutputResolution, mesh.m_rasterSpaceTriangulatedMesh);
 				List<DelaunayTriangle> worldSpaceTriangles = new List<DelaunayTriangle>(mesh.m_rasterSpaceTriangulatedMesh.Count);
 				Rasterizer.RasterizeMesh(mesh, worldSpaceTriangles);
-				mesh.SetWorldSpaceTriangulatedMesh(worldSpaceTriangles);
+
+				try
+				{
+					mesh.SetWorldSpaceTriangulatedMesh(worldSpaceTriangles);
+				}
+				catch (GeometryOutOfBoundsException ex)
+				{
+					ErrorReporter.ReportError(EErrorSeverity.Error,
+						$"Failure importing rasterized restriction meshes into spatial data tree. Geometry ID: {mesh.m_geometryId} on Layer ID: {mesh.m_layerId} has parts of geometry that fall outside of the playable bounds");
+					ErrorReporter.ReportError(EErrorSeverity.Error, $"Exception message: {ex.Message}");
+				}
 			}
 		}
 
@@ -128,32 +138,45 @@ namespace SEL
 
 				LaneEdgeString edgeString = new LaneEdgeString(geometry.geometry_id);
 				LaneVertex lastVertex = null;
-				for (int i = 0; i < geometry.geometry.Length; ++i)
+				try
 				{
-					int vertexIndex = (reverseOrder) ? geometry.geometry.Length - i - 1 : i;
-
-					double[] point = geometry.geometry[vertexIndex];
-					Vector2D newPoint = new Vector2D(point[0], point[1]);
-					if (lastVertex != null)
+					for (int i = 0; i < geometry.geometry.Length; ++i)
 					{
-						double distance = (lastVertex.position - newPoint).Magnitude();
-						if (distance > regionSettings.shipping_lane_point_merge_distance || i == geometry.geometry.Length - 1)
+						int vertexIndex = (reverseOrder) ? geometry.geometry.Length - i - 1 : i;
+
+						double[] point = geometry.geometry[vertexIndex];
+						Vector2D newPoint = new Vector2D(point[0], point[1]);
+						if (lastVertex != null)
 						{
-							LaneVertex newVertex = CreateLaneVertex(newPoint.x, newPoint.y, geometry.geometry_id);
-							int subdivisionPoints = (int)Math.Floor(distance / regionSettings.shipping_lane_subdivide_distance); 
-							CreateSubdividedEdge(lastVertex, newVertex, edgeString, allowedShipTypes, ELaneEdgeType.Persistent, subdivisionPoints, directionality, laneWidth);
-							lastVertex = newVertex;
+							double distance = (lastVertex.position - newPoint).Magnitude();
+							if (distance > regionSettings.shipping_lane_point_merge_distance ||
+							    i == geometry.geometry.Length - 1)
+							{
+								LaneVertex newVertex = CreateLaneVertex(newPoint.x, newPoint.y, geometry.geometry_id);
+								int subdivisionPoints =
+									(int) Math.Floor(distance / regionSettings.shipping_lane_subdivide_distance);
+								CreateSubdividedEdge(lastVertex, newVertex, edgeString, allowedShipTypes,
+									ELaneEdgeType.Persistent, subdivisionPoints, directionality, laneWidth);
+								lastVertex = newVertex;
+							}
+							else
+							{
+								//Merge the two vertices by just not updating the 'last vertex' we have now. 
+							}
 						}
 						else
 						{
-							//Merge the two vertices by just not updating the 'last vertex' we have now. 
+							lastVertex = CreateLaneVertex(newPoint.x, newPoint.y, geometry.geometry_id);
 						}
 					}
-					else
-					{
-						lastVertex = CreateLaneVertex(newPoint.x, newPoint.y, geometry.geometry_id);
-					}
 				}
+				catch (GeometryOutOfBoundsException ex)
+				{
+					ErrorReporter.ReportError(EErrorSeverity.Error,
+						$"Failure during importing of shipping lanes. Geometry ID: {geometry.geometry_id} has geometry parts outside of the playable area");
+					ErrorReporter.ReportError(EErrorSeverity.Error, $"Exception message: {ex.Message}");
+				}
+
 				m_laneEdgeStrings.Add(edgeString);
 			}
 		}
@@ -555,7 +578,7 @@ namespace SEL
 				{
 					m_restrictionMeshes.Insert(restrictionMesh.m_bounds, restrictionMesh);
 				}
-				catch (ArgumentException ex)
+				catch (GeometryOutOfBoundsException ex)
 				{
 					ErrorReporter.ReportError(EErrorSeverity.Error, $"Failure during importing restriction geometry. Geometry ID: {restrictionMesh.m_geometryId}, Layer ID: {restrictionMesh.m_layerId}");
 					ErrorReporter.ReportError(EErrorSeverity.Error, "Exception text " + ex.Message);
@@ -572,7 +595,16 @@ namespace SEL
 						AABB instanceBounds = instance.CalculateBounds();
 						if (m_restrictionEdges.GetRootBounds().IntersectTest(instanceBounds) != EIntersectResult.NoIntersection)
 						{
-							m_restrictionEdges.Insert(instanceBounds, instance);
+							try
+							{
+								m_restrictionEdges.Insert(instanceBounds, instance);
+							}
+							catch (GeometryOutOfBoundsException ex)
+							{
+								ErrorReporter.ReportError(EErrorSeverity.Error,
+									$"Failure during import of restriction geometry. Geometry ID: {restriction.geometry_id}, on layer ID : {restriction.layer_id} has parts outside of the playable bounds");
+								ErrorReporter.ReportError(EErrorSeverity.Error, "Exception text " + ex.Message);
+							}
 						}
 					}
 

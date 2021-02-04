@@ -143,6 +143,7 @@
     <Compile Include="EShippingPortType.cs" />
     <Compile Include="GeometryEdge.cs" />
     <Compile Include="GeometryEdgeTyped.cs" />
+    <Compile Include="SpatialMapping\GeometryOutOfBoundsException.cs" />
     <Compile Include="Util\GeometryUtilities.cs" />
     <Compile Include="GeometryVertex.cs" />
     <Compile Include="IntensityMapBleedMatrixCollection.cs" />

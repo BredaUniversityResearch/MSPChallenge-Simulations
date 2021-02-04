@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace SEL.SpatialMapping
 {
@@ -21,7 +20,7 @@ namespace SEL.SpatialMapping
 			}
 			else
 			{
-				throw new ArgumentException("Found geometry outside of the playable area, this is not supported. Please check that all geometry that is used in SEL is contained inside the playable area.");
+				throw new GeometryOutOfBoundsException("Found geometry outside of the playable area, this is not supported. Please check that all geometry that is used in SEL is contained inside the playable area.");
 			}
 		}
 
