@@ -80,23 +80,15 @@ namespace MSW
 				if (!string.IsNullOrEmpty(requiredSimulations))
 				{
 					string decoded = WebUtility.UrlDecode(requiredSimulations);
-					JArray simulationRequests = JArray.Parse(decoded);
+					JObject simulationRequests = JObject.Parse(decoded);
 					requestedSimulations = new RequestData.SimulationRequest[simulationRequests.Count];
 
 					int requestIndex = 0;
-					foreach (var arrayToken in simulationRequests)
+					foreach (var value in simulationRequests)
 					{
-						if (arrayToken is JProperty value)
-						{
-							requestedSimulations[requestIndex].SimulationType = value.Name;
-							requestedSimulations[requestIndex].SimulationVersion = value.Value.ToString();
-							++requestIndex;
-						}
-						else
-						{
-							ConsoleLogger.Warning(
-								$"Got value in Simulations Request that is not a property. Full string: {decoded}");
-						}
+						requestedSimulations[requestIndex].SimulationType = value.Key;
+						requestedSimulations[requestIndex].SimulationVersion = value.Value.ToString();
+						++requestIndex;
 					}
 				}
 				else
