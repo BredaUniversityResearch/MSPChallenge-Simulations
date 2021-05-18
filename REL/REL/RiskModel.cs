@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using MSWSupport;
 using Newtonsoft.Json;
@@ -50,12 +51,15 @@ namespace REL
 
 		public void Run()
 		{
-			m_relServerConfig = m_mspApiConnector.GetConfiguration();
-
 			while (true)
 			{
 				if (m_tokenHandler.CheckApiAccessWithLatestReceivedToken())
 				{
+					if (m_relServerConfig == null)
+					{
+						m_relServerConfig = m_mspApiConnector.GetConfiguration();
+					}
+
 					m_selBridge.PumpReceivedMessages(ProcessReceivedMessages);
 				}
 				else
@@ -101,9 +105,11 @@ namespace REL
 			MSPAPIGeometry[] geometry = m_mspApiConnector.GetGeometry();
 			MSPAPIDate date = m_mspApiConnector.GetDateForSimulatedMonth(a_inputData.m_simulatedMonth);
 
-			MarinAPIPoint[] marinPoints = TransformPoints(a_inputData.m_routeGraphPoints);
-			MarinAPILink[] marinEdges = TransformEdges(a_inputData.m_routeGraphEdges);
-			MarinAPITraffic[] marinTraffic = TransformIntensities(a_inputData.m_routeGraphIntensities);
+			RouteSimplifier simplifier = new RouteSimplifier(a_inputData.m_routeGraphPoints, a_inputData.m_routeGraphEdges, a_inputData.m_routeGraphIntensities);
+
+			MarinAPIPoint[] marinPoints = TransformPoints(simplifier.SimplifiedVertices);
+			MarinAPILink[] marinEdges = TransformEdges(simplifier.SimplifiedEdges);
+			MarinAPITraffic[] marinTraffic = TransformIntensities(simplifier.SimplifiedIntensities);
 			MarinAPIGeometry[] marinGeometry = TransformGeometry(geometry);
 			MarinAPIInput input = new MarinAPIInput
 			{
@@ -143,11 +149,34 @@ namespace REL
 					link_id = (ushort)a_edges[i].edge_id,
 					point_id_start = (ushort)a_edges[i].from_vertex_id,
 					point_id_end = (ushort)a_edges[i].to_vertex_id,
-					link_width = a_edges[i].edge_width
+					link_width = a_edges[i].edge_width,
+					link_crosses_geometry_types = ConvertMSPToMarinGeometryTypes(a_edges[i].link_crosses_msp_layers)
 				};
 			}
 
 			return result;
+		}
+
+		private int[] ConvertMSPToMarinGeometryTypes(APIGeometryType[] a_linkCrossesMspTypes)
+		{
+			if (a_linkCrossesMspTypes == null || a_linkCrossesMspTypes.Length == 0)
+			{
+				return null;
+			}
+
+			HashSet<int> result = new HashSet<int>(a_linkCrossesMspTypes.Length);
+			for (int i = 0; i < a_linkCrossesMspTypes.Length; ++i)
+			{
+				int marinGeometryType = ConvertLayerTypeFromMSPToMarin(a_linkCrossesMspTypes[i]);
+				result.Add(marinGeometryType); 
+			}
+
+			return result.ToArray();
+		}
+
+		private int ConvertLayerTypeFromMSPToMarin(APIGeometryType a_mspLayerType)
+		{
+			return a_mspLayerType.layer_id > 0 ? 1 : -1; //TODO: Fix 
 		}
 
 		private MarinAPITraffic[] TransformIntensities(APIRouteGraphEdgeIntensity[] a_intensities)

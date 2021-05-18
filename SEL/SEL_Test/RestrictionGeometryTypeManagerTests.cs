@@ -21,12 +21,12 @@ namespace SEL_Test
 			RestrictionGeometryTypeManager manager = new RestrictionGeometryTypeManager();
 			manager.ImportGeometryTypes(apiData);
 
-			RestrictionGeometryType singleTargetType = new RestrictionGeometryType(new[] {0, 1, 2}, 1.0f);
+			RestrictionGeometryType singleTargetType = new RestrictionGeometryType(new[] {0, 1, 2}, 1.0f, new []{ new GeometryType(12, 0) });
 			RestrictionGeometryType singleType = manager.GetAllowedShipMask(12, new[] { 0 });
 			Assert.IsTrue(singleType.GetAllowedShipTypeMask() == singleTargetType.GetAllowedShipTypeMask());
 
 			RestrictionGeometryType compoundTargetType =
-				new RestrictionGeometryType(new[] {0, 1, 2 }, 1.0f);
+				new RestrictionGeometryType(new[] {0, 1, 2 }, 1.0f, new [] { new GeometryType(12, 0) });
 			RestrictionGeometryType compoundType = manager.GetAllowedShipMask(12, new[] {0, 1, 2, 3});
 			Assert.IsTrue(compoundType.GetAllowedShipTypeMask() == compoundTargetType.GetAllowedShipTypeMask());
 		}
@@ -82,6 +82,23 @@ namespace SEL_Test
 
 			RestrictionGeometryType singleType = manager.GetAllowedShipMask(12, new[] { 0 });
 			Assert.IsTrue(singleType.GetShipCostMultiplier(101) == 2.0f);
+		}
+
+		[TestMethod]
+		public void VerifyLayerComposition()
+		{
+			APIRestrictionTypeException[] apiData = {
+				new APIRestrictionTypeException { layer_id = 12, layer_type_id = 0, allowed_ship_type_ids = new[] { 100, 101 }, cost_multipliers = new[] { 1.0f, 1.0f }},
+				new APIRestrictionTypeException { layer_id = 13, layer_type_id = 0, allowed_ship_type_ids = new[] { 101 }, cost_multipliers = new[] { 2.0f }}
+			};
+
+			RestrictionGeometryTypeManager manager = new RestrictionGeometryTypeManager();
+			manager.ImportGeometryTypes(apiData);
+
+			RestrictionGeometryType singleType = manager.GetAllowedShipMask(12, new[] { 0 });
+			Assert.IsTrue(singleType.CrossesGeometryTypes.Length == 1 && singleType.CrossesGeometryTypes[0].LayerId == 12);
+			singleType = manager.GetAllowedShipMask(13, new[] { 0 });
+			Assert.IsTrue(singleType.CrossesGeometryTypes.Length == 1 && singleType.CrossesGeometryTypes[0].LayerId == 13);
 		}
 	}
 }

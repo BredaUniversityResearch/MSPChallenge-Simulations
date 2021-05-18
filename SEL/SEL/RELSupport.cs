@@ -120,7 +120,7 @@ namespace SEL
 				GeometryVertex vertexToPush = (edge.m_from.vertexId == lastVertexId) ? edge.m_to : edge.m_from;
 				routeGraphPoints.Add(new APIRouteGraphVertex(vertexToPush.vertexId, vertexToPush.position.x, vertexToPush.position.y));
 
-				int edgeId = TryAddLaneEdge(lastVertexId, vertexToPush.vertexId, edge.m_laneWidth, routeGraphEdges);
+				int edgeId = TryAddLaneEdge(lastVertexId, vertexToPush.vertexId, edge.m_laneWidth, edge.GetRestrictionLayerComposition(), routeGraphEdges);
 
 				APIRouteGraphEdgeIntensity apiIntensity = new APIRouteGraphEdgeIntensity(edgeId, pathedRoute.ShipTypeInfo.ShipTypeId, intensity);
 				if (routeGraphIntensities.TryGetValue(apiIntensity, out var existingIntensity))
@@ -136,9 +136,21 @@ namespace SEL
 			}
 		}
 
-		private int TryAddLaneEdge(int fromVertexId, int toVertexId, float edgeWidth, HashSet<APIRouteGraphEdge> edges)
+		private int TryAddLaneEdge(int fromVertexId, int toVertexId, float edgeWidth, GeometryType[] edgeCrossesGeometryTypes, HashSet<APIRouteGraphEdge> edges)
 		{
-			APIRouteGraphEdge edge = new APIRouteGraphEdge(edges.Count, fromVertexId, toVertexId, edgeWidth);
+			APIGeometryType[] crossesGeometryTypes = null;
+			if (edgeCrossesGeometryTypes != null)
+			{
+				crossesGeometryTypes = new APIGeometryType[edgeCrossesGeometryTypes.Length];
+				for (int i = 0; i < crossesGeometryTypes.Length; ++i)
+				{
+					crossesGeometryTypes[i] = new APIGeometryType(edgeCrossesGeometryTypes[i].LayerId,
+						edgeCrossesGeometryTypes[i].LayerType);
+				}
+			}
+
+
+			APIRouteGraphEdge edge = new APIRouteGraphEdge(edges.Count, fromVertexId, toVertexId, edgeWidth, crossesGeometryTypes);
 			if (edges.TryGetValue(edge, out APIRouteGraphEdge existingEdge))
 			{
 				return existingEdge.edge_id;

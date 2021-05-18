@@ -53,8 +53,13 @@ namespace MSWSupport
 
 		public bool CheckApiAccessWithLatestReceivedToken()
 		{
-			APIRequest.Perform(m_targetServer, "/api/Security/CheckAccess", m_currentToken, null, out APIAccessResult result);
-			return result.status != APIAccessResult.EResult.Expired;
+			if (APIRequest.Perform(m_targetServer, "/api/Security/CheckAccess", m_currentToken, null,
+				out APIAccessResult result))
+			{
+				return result.status != APIAccessResult.EResult.Expired;
+			}
+
+			return false;
 		}
 
 		private static void BackgroundReadTokens(object tokenHandlerObject)

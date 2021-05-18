@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="API\APIGeometryType.cs" />
     <Compile Include="API\APIRouteGraphEdge.cs" />
     <Compile Include="API\APIRouteGraphEdgeIntensity.cs" />
     <Compile Include="API\APIRouteGraphVertex.cs" />

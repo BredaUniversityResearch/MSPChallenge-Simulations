@@ -17,14 +17,21 @@ namespace MSWSupport
 			public JToken payload = null;
 		};
 
-		public static bool Perform<TTargetType>(string serverUrl, string apiUrl, string currentAccessToken, NameValueCollection postValues, out TTargetType result)
+		public static bool Perform<TTargetType>(string serverUrl, string apiUrl, string currentAccessToken, NameValueCollection postValues, out TTargetType result, JsonSerializer jsonSerializer = null)
 		{
 			bool success = Perform(serverUrl, apiUrl, currentAccessToken, postValues, out JToken jsonResult);
 			if (success)
 			{
 				if (jsonResult != null)
 				{
-					result = jsonResult.ToObject<TTargetType>();
+					if (jsonSerializer != null)
+					{
+						result = jsonResult.ToObject<TTargetType>(jsonSerializer);
+					}
+					else
+					{
+						result = jsonResult.ToObject<TTargetType>();
+					}
 				}
 				else
 				{
@@ -42,7 +49,7 @@ namespace MSWSupport
 		public static bool Perform(string serverUrl, string apiUrl, string currentAccessToken,
 			NameValueCollection postValues)
 		{
-			bool success = Perform(serverUrl, apiUrl, currentAccessToken, postValues, out JToken jsonResult);
+			bool success = Perform(serverUrl, apiUrl, currentAccessToken, postValues, out JToken jsonResult, null);
 			if (success)
 			{
 				if (jsonResult != null && jsonResult.Type != JTokenType.Null)

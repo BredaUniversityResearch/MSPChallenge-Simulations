@@ -143,6 +143,7 @@
     <Compile Include="EShippingPortType.cs" />
     <Compile Include="GeometryEdge.cs" />
     <Compile Include="GeometryEdgeTyped.cs" />
+    <Compile Include="GeometryType.cs" />
     <Compile Include="SpatialMapping\GeometryOutOfBoundsException.cs" />
     <Compile Include="Util\GeometryUtilities.cs" />
     <Compile Include="GeometryVertex.cs" />
@@ -197,7 +198,6 @@
     <Compile Include="ShippingModel.cs" />
     <Compile Include="ShippingPort.cs" />
     <Compile Include="ShippingPortManager.cs" />
-    <Compile Include="ShipRestrictionGroup.cs" />
     <Compile Include="ShipType.cs" />
     <Compile Include="ShipTypeManager.cs" />
     <Compile Include="SpatialMapping\AABB.cs" />

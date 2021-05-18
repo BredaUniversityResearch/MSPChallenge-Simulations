@@ -9,5 +9,6 @@ namespace REL
 		public ushort point_id_start;
 		public ushort point_id_end;
 		public float link_width;
+		public int[] link_crosses_geometry_types;
 	}
 }

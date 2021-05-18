@@ -35,17 +35,19 @@ namespace SEL
 			}
 		}
 
-		public static readonly RestrictionGeometryType DisallowAll = new RestrictionGeometryType(new int[0] { }, 1.0f);
+		public static readonly RestrictionGeometryType DisallowAll = new RestrictionGeometryType(new int[0] { }, 1.0f, new GeometryType[0]);
 
 		public static readonly RestrictionGeometryType AllowAll = new RestrictionGeometryType(new int[31]
-			{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30 }, 1.0f); 
+			{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30 }, 1.0f, new GeometryType[0]); 
 
 		private readonly int[] m_allowedShipTypeIds;
 		private readonly int m_allowedShipTypeMask; // mask & (1 << shipTypeId) != 0 defines what is allowed.
 
 		private readonly float[] m_allowedShipTypeCostMultiplier;
+		private readonly GeometryType[] m_crossesGeometryTypes;
+		public GeometryType[] CrossesGeometryTypes => m_crossesGeometryTypes;
 
-		public RestrictionGeometryType(int[] allowedShipTypeIds, float allowedShipsCostMultiplier)
+		public RestrictionGeometryType(int[] allowedShipTypeIds, float allowedShipsCostMultiplier, GeometryType[] sourceLayers)
 		{
 			float[] costMultiplierPerRestrictionType = new float[allowedShipTypeIds.Length];
 			for (int i = 0; i < costMultiplierPerRestrictionType.Length; ++i)
@@ -56,9 +58,10 @@ namespace SEL
 			m_allowedShipTypeIds = allowedShipTypeIds;
 			m_allowedShipTypeCostMultiplier = costMultiplierPerRestrictionType;
 			m_allowedShipTypeMask = CreateAllowedShipTypeMask(m_allowedShipTypeIds);
+			m_crossesGeometryTypes = sourceLayers;
 		}
 
-		public RestrictionGeometryType(int[] allowedShipTypeIds, float[] allowedShipTypeCostMultiplier)
+		public RestrictionGeometryType(int[] allowedShipTypeIds, float[] allowedShipTypeCostMultiplier, GeometryType[] sourceLayers)
 		{
 			if (allowedShipTypeIds.Length != allowedShipTypeCostMultiplier.Length)
 			{
@@ -68,6 +71,7 @@ namespace SEL
 			m_allowedShipTypeIds = allowedShipTypeIds;
 			m_allowedShipTypeCostMultiplier = allowedShipTypeCostMultiplier;
 			m_allowedShipTypeMask = CreateAllowedShipTypeMask(m_allowedShipTypeIds);
+			m_crossesGeometryTypes = sourceLayers;
 		}
 
 		public int GetAllowedShipTypeMask()
@@ -138,6 +142,7 @@ namespace SEL
 			//Create a compound type by using an intersection of all types. 
 			bool isSettingUpBaseSet = true;
 			Dictionary<int, float> typeMultiplier = new Dictionary<int, float>();
+			HashSet<GeometryType> restrictionCrossesTypes = new HashSet<GeometryType>(32);
 			foreach (RestrictionGeometryType type in restrictionGeometryTypes)
 			{
 				List<int> typesToRemove = new List<int>(typeMultiplier.Keys);
@@ -152,6 +157,11 @@ namespace SEL
 						typeMultiplier[restrictionGroupId] = maxMultiplier;
 						typesToRemove.Remove(restrictionGroupId);
 					}
+				}
+
+				foreach (GeometryType layerId in type.m_crossesGeometryTypes)
+				{
+					restrictionCrossesTypes.Add(layerId);
 				}
 
 				if (!isSettingUpBaseSet)
@@ -180,7 +190,8 @@ namespace SEL
 				allowedShipCostMultiplierArray[entryIndex] = kvp.Value;
 				++entryIndex;
 			}
-			return new RestrictionGeometryType(allowedShipGroupsArray, allowedShipCostMultiplierArray);
+
+			return new RestrictionGeometryType(allowedShipGroupsArray, allowedShipCostMultiplierArray, restrictionCrossesTypes.ToArray());
 		}
 	}
 }

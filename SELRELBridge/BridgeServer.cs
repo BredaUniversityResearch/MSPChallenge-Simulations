@@ -36,6 +36,11 @@ namespace SELRELBridge
 
 		private void OnClientConnectionRequest(IAsyncResult a_ar)
 		{
+			if (m_tcpListener.Server == null || !m_tcpListener.Server.IsBound)
+			{
+				return;
+			}
+
 			Console.WriteLine("SELRELBridge\t| Client connected");
 			if (m_currentConnectedBridge != null)
 			{

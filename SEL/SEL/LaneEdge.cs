@@ -72,7 +72,12 @@ namespace SEL
 				shipTypeIds[i] = allowedShipTypes[i].ShipTypeId;
 			}
 
-			m_restrictionType = new RestrictionGeometryType(shipTypeIds, 1.0f);
+			m_restrictionType = new RestrictionGeometryType(shipTypeIds, 1.0f, new GeometryType[0]);
+		}
+
+		public GeometryType[] GetRestrictionLayerComposition()
+		{
+			return m_restrictionType?.CrossesGeometryTypes;
 		}
 	}
 }

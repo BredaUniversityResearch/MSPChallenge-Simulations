@@ -18,11 +18,11 @@ namespace SEL
 				if (restrictionType.cost_multipliers != null)
 				{
 					newGeometryType = new RestrictionGeometryType(restrictionType.allowed_ship_type_ids,
-						restrictionType.cost_multipliers);
+						restrictionType.cost_multipliers, new []{ new GeometryType(restrictionType.layer_id, restrictionType.layer_type_id) });
 				}
 				else
 				{
-					newGeometryType = new RestrictionGeometryType(restrictionType.allowed_ship_type_ids, 1.0f);
+					newGeometryType = new RestrictionGeometryType(restrictionType.allowed_ship_type_ids, 1.0f, new []{ new GeometryType(restrictionType.layer_id, restrictionType.layer_type_id) });
 				}
 
 				if (m_restrictionTypes.TryGetValue(hash, out var geomType))

@@ -10,20 +10,16 @@ namespace REL.API
 	class MSPAPIExternalServer: IMSPAPIConnector
 	{
 		private string m_currentAccessToken = null;
+		private JsonSerializer m_jsonSerializerSettings = new JsonSerializer();
+
+		public MSPAPIExternalServer()
+		{
+			m_jsonSerializerSettings.Converters.Add(new JsonConverterVector2D());
+		}
 
 		public void UpdateAccessToken(string newAccessToken)
 		{
 			m_currentAccessToken = newAccessToken;
-		}
-
-		private string HttpGet(string a_apiEndPoint, NameValueCollection a_postValues = null)
-		{
-			WebClient webclient = new WebClient();
-			webclient.Headers.Add(MSWConstants.APITokenHeader, m_currentAccessToken);
-			if (a_postValues == null) a_postValues = new NameValueCollection();
-			byte[] response = webclient.UploadValues(RELConfig.Instance.GetAPIRoot() + a_apiEndPoint, a_postValues);
-
-			return Encoding.UTF8.GetString(response);
 		}
 
 		private void HttpSet(string apiEndPoint, NameValueCollection postValues)
@@ -45,34 +41,16 @@ namespace REL.API
 			}
 		}
 
-		private static TResultType DeserializeJson<TResultType>(string a_jsonData)
-		{
-			try
-			{
-				return JsonConvert.DeserializeObject<TResultType>(a_jsonData, APIUtils.AvailableConverters);
-			}
-			catch (JsonSerializationException ex)
-			{
-				Console.WriteLine("Error deserializing JSON String.");
-				Console.WriteLine("Exception: " + ex.Message);
-				Console.WriteLine("InputData: ");
-				Console.WriteLine(a_jsonData);
-				return default;
-			}
-			catch (JsonReaderException ex)
-			{
-				Console.WriteLine("Error deserializing JSON String.");
-				Console.WriteLine("Exception: " + ex.Message);
-				Console.WriteLine("InputData: ");
-				Console.WriteLine(a_jsonData);
-				return default;
-			}
-		}
-
 		private TResultType RequestAndDeserialize<TResultType>(string a_apiEndpoint, NameValueCollection a_postValues = null)
 		{
-			string data = HttpGet(a_apiEndpoint, a_postValues);
-			return DeserializeJson<TResultType>(data);
+			if (APIRequest.Perform(RELConfig.Instance.GetAPIRoot(), a_apiEndpoint, m_currentAccessToken, a_postValues,
+				out TResultType result, m_jsonSerializerSettings))
+			{
+				return result;
+			}
+
+			Console.WriteLine($"API Request to {a_apiEndpoint} failed");
+			return default;
 		}
 
 		public MSPAPIDate GetDateForSimulatedMonth(int a_simulatedMonth)
@@ -99,7 +77,11 @@ namespace REL.API
 			postData.Set("layer_name", a_layerName);
 			postData.Set("raster_bounds", JsonConvert.SerializeObject(a_bounds.ToArray()));
 			postData.Set("image_data", Convert.ToBase64String(a_rasterImageData));
-			HttpSet("/api/layer/UpdateRaster", postData);
+			if (!APIRequest.Perform(RELConfig.Instance.GetAPIRoot(), "/api/layer/UpdateRaster", m_currentAccessToken,
+				postData))
+			{
+				Console.WriteLine("API Request to UpdateRaster failed");
+			}
 		}
 	}
 }

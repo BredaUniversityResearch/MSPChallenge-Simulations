@@ -36,7 +36,7 @@ namespace REL
 			}
 			else if (m_settings.api_root == null)
 			{
-				m_settings.api_root = "http://localhost/dev/1/";
+				m_settings.api_root = "http://localhost/1/";
 				Console.WriteLine("No configured API Endpoint found either in the SEL_Config.json file or on the APIEndpoint commandline argument, using default {0}", m_settings.api_root);
 			}
 		}
