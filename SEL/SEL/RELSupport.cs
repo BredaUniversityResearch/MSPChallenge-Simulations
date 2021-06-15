@@ -41,12 +41,12 @@ namespace SEL
 		{
 			public bool Equals(APIRouteGraphEdge a_x, APIRouteGraphEdge a_y)
 			{
-				return a_x.m_uniqueEdgeHash == a_y.m_uniqueEdgeHash;
+				return a_x.edge_id == a_y.edge_id;
 			}
 
 			public int GetHashCode(APIRouteGraphEdge a_obj)
 			{
-				return a_obj.m_uniqueEdgeHash;
+				return a_obj.edge_id;
 			}
 		}
 
