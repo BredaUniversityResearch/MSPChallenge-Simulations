@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30128.74
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REL", "REL\REL.csproj", "{D9F762B4-17A8-4B48-B14D-FFB20ECF75AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SELRELBridge", "..\SELRELBridge\SELRELBridge.csproj", "{7C5CFA74-3307-4E16-8B0C-D4229BEDFD6D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSWSupport", "..\MSWSupport\MSWSupport.csproj", "{226D974A-E5AE-40E7-92C9-625A1D67B9D4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D9F762B4-17A8-4B48-B14D-FFB20ECF75AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9F762B4-17A8-4B48-B14D-FFB20ECF75AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9F762B4-17A8-4B48-B14D-FFB20ECF75AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9F762B4-17A8-4B48-B14D-FFB20ECF75AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C5CFA74-3307-4E16-8B0C-D4229BEDFD6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C5CFA74-3307-4E16-8B0C-D4229BEDFD6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C5CFA74-3307-4E16-8B0C-D4229BEDFD6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C5CFA74-3307-4E16-8B0C-D4229BEDFD6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{226D974A-E5AE-40E7-92C9-625A1D67B9D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{226D974A-E5AE-40E7-92C9-625A1D67B9D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{226D974A-E5AE-40E7-92C9-625A1D67B9D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{226D974A-E5AE-40E7-92C9-625A1D67B9D4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CBFF1DE2-21A0-4E79-8273-1A439960530D}
+	EndGlobalSection
+EndGlobal
