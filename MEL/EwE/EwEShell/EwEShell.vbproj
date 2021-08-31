@@ -94,15 +94,15 @@
   <ItemGroup>
     <Reference Include="EwECore, Version=6.6.14971.0, Culture=neutral, PublicKeyToken=1d875393b3ebcad0, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\MEL\DLLs\EwECore.dll</HintPath>
+      <HintPath>..\..\DLLs\EwECore.dll</HintPath>
     </Reference>
     <Reference Include="EwEPlugin, Version=6.6.14971.0, Culture=neutral, PublicKeyToken=dd06458997731881, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\MEL\DLLs\EwEPlugin.dll</HintPath>
+      <HintPath>..\..\DLLs\EwEPlugin.dll</HintPath>
     </Reference>
     <Reference Include="EwEUtils, Version=6.6.14971.0, Culture=neutral, PublicKeyToken=dc57e07780e0d694, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\MEL\DLLs\EwEUtils.dll</HintPath>
+      <HintPath>..\..\DLLs\EwEUtils.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=50e4b0ace04e9d3f, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
