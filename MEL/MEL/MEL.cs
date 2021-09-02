@@ -22,6 +22,8 @@ namespace MEL
 	public class MEL
 	{
 		public const int TICK_DELAY_MS = 100;   //in ms
+		private const int NEXT_RASTER_LOAD_WAITING_TIME_SEC = 10;
+		private const int MAX_RASTER_LOAD_ATTEMPTS = 6;
 
 		private static string ApiBaseURL = "http://localhost/1/"; //Default to localhost.
 
@@ -87,8 +89,21 @@ namespace MEL
 			y_max = config.y_max;
 
 			InitPressureLayers();
+			int attempt = 1;
+			while (true || attempt < MAX_RASTER_LOAD_ATTEMPTS)
+			{
+				Console.WriteLine("Start loading pressure layers");
+				LoadPressureLayers();
+				WaitForAllBackgroundTasks();
+				if (AreAllPressureLayersLoaded())
+				{
+					break;
+				}
+				Console.WriteLine("Found unloaded pressure layers, retrying in {0} sec, attempt: {1} of {2}", NEXT_RASTER_LOAD_WAITING_TIME_SEC, attempt, MAX_RASTER_LOAD_ATTEMPTS);
+				Thread.Sleep(TimeSpan.FromSeconds(NEXT_RASTER_LOAD_WAITING_TIME_SEC));
+				++attempt;
+			}
 
-			WaitForAllBackgroundTasks();
 			RasterizeLayers();
 
 			UpdateFishing();
@@ -165,16 +180,31 @@ namespace MEL
 						{
 							rasterizedLayer = new RasterizedLayer(layerData);
 							layers.Add(rasterizedLayer);
-						}
-
-						AddBackgroundTask(() =>
-						{
-							LoadThreaded(rasterizedLayer);
 							pressureLayers[pressure.name].Add(rasterizedLayer, layerData.influence);
-						});
+						}
 					}
 				}
 
+			}
+		}
+
+		public bool AreAllPressureLayersLoaded()
+		{
+			return -1 == layers.FindIndex(x => !x.IsLoadedCorrectly);
+		}
+
+		public void LoadPressureLayers()
+		{
+			foreach (RasterizedLayer rasterizedLayer in layers)
+			{
+				if (rasterizedLayer.IsLoadedCorrectly)
+				{
+					continue;
+				}
+				AddBackgroundTask(() =>
+				{
+					LoadThreaded(rasterizedLayer);
+				});
 			}
 		}
 
