@@ -41,13 +41,6 @@ namespace MEL
 		/// </summary>
 		public void Add(RasterizedLayer rasterizedLayer, float influence)
 		{
-			if (!rasterizedLayer.IsLoadedCorrectly)
-			{
-				Console.WriteLine(
-					$"Tried to add layer {rasterizedLayer.name} to pressure. But this layer failed to load correctly");
-				return;
-			}
-
 			layers.Add(new LayerEntry(rasterizedLayer, influence));
 		}
 
