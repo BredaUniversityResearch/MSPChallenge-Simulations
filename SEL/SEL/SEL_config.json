@@ -1,0 +1,13 @@
+{
+	"api_root": "http://localhost/1/",
+	"route_finder_parallel_tasks": 6,
+	"create_edge_map": true, 
+	"edge_map_resolution": 16384,
+	"create_route_maps": false,
+	"route_map_resolution": 4096,
+	"enable_routefinder_debug": false,
+	"enable_routefinder_debug_failed_routes": true,
+	"routefinder_output_resolution": 4096,
+	"should_output_restriction_maps": false,
+	"ignore_security_tokens": false
+}
