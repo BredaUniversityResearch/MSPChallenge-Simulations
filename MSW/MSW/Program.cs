@@ -8,10 +8,10 @@ namespace MSW
 	{
 		//TODO: add firewall rules on the required ports. 
 		/*INetFwRule firewallRule = (INetFwRule)Activator.CreateInstance(
-    Type.GetTypeFromProgID("HNetCfg.FWRule"));
+	Type.GetTypeFromProgID("HNetCfg.FWRule"));
 firewallRule.Action = NET_FW_ACTION_.NET_FW_ACTION_ALLOW;
 firewallRule.Description = "Enables eATM REST Web Service adapter       
-    traffic.";
+	traffic.";
 firewallRule.Direction = NET_FW_RULE_DIRECTION_.NET_FW_RULE_DIR_IN;
 firewallRule.Enabled = true;
 firewallRule.InterfaceTypes = "All";
@@ -19,11 +19,15 @@ firewallRule.Name = "MyPort";
 firewallRule.Protocol = (int)NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_TCP;
 firewallRule.LocalPorts = "9600";  
 INetFwPolicy2 firewallPolicy = (INetFwPolicy2)Activator.CreateInstance(
-    Type.GetTypeFromProgID("HNetCfg.FwPolicy2"));
+	Type.GetTypeFromProgID("HNetCfg.FwPolicy2"));
 firewallPolicy.Rules.Add(firewallRule);*/
 
 		private const long TickTimeMs = 50;
+		private const long ServerTickTimeMs = 4000;
+		private const long ServerToLocalTickTimeMsFactor = ServerTickTimeMs / TickTimeMs;
 
+		private static long m_tickCountDown = 0;
+		
 		static void Main(string[] a_args)
 		{
 			Console.WriteLine("Starting MSP2050 Simulation Watchdog...");
@@ -36,12 +40,19 @@ firewallPolicy.Rules.Add(firewallRule);*/
 			{
 				stopwatch.Restart();
 				watchdog.Tick();
+				if (m_tickCountDown == 0)
+				{
+					m_tickCountDown = ServerToLocalTickTimeMsFactor;
+					watchdog.ServerTick();
+				}
 
 				long timeToSleep = TickTimeMs - stopwatch.ElapsedMilliseconds;
 				if (timeToSleep > 0)
 				{
 					Thread.Sleep((int)timeToSleep);
 				}
+
+				m_tickCountDown--;
 			}
 		}
 	}
