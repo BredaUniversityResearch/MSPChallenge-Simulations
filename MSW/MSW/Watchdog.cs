@@ -112,13 +112,12 @@ namespace MSW
 
 			public void Tick()
 			{
-				Task.Run(RequestTick);
-			}
-
-			private void RequestTick()
-			{
-				Console.WriteLine("Watchdog server tick on session token {0}", m_currentAccessToken.GetTokenAsString());
-				APIRequest.Perform(ServerApiRoot, "/api/game/Tick", m_currentAccessToken.GetTokenAsString(), null);
+				Task.Run(
+					() => {
+						Console.WriteLine("Watchdog server tick on session token {0}", m_currentAccessToken.GetTokenAsString());
+						APIRequest.Perform(ServerApiRoot, "/api/game/Tick", m_currentAccessToken.GetTokenAsString(), null); 
+					}
+				);
 			}
 
 			private void CheckTokenTask()

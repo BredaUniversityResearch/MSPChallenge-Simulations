@@ -24,35 +24,34 @@ firewallPolicy.Rules.Add(firewallRule);*/
 
 		private const long TickTimeMs = 50;
 		private const long ServerTickTimeMs = 4000;
-		private const long ServerToLocalTickTimeMsFactor = ServerTickTimeMs / TickTimeMs;
-
-		private static long m_tickCountDown = 0;
 		
 		static void Main(string[] a_args)
 		{
 			Console.WriteLine("Starting MSP2050 Simulation Watchdog...");
 
 			Watchdog watchdog = new Watchdog();
-			Stopwatch stopwatch = new Stopwatch();
+			Stopwatch localTickStopwatch = new Stopwatch();
+			Stopwatch serverTickStopwatch = new Stopwatch();
 			Console.WriteLine("Watchdog started successfully, waiting for requests...");
 
 			while (true)
 			{
-				stopwatch.Restart();
+				localTickStopwatch.Restart();
 				watchdog.Tick();
-				if (m_tickCountDown == 0)
+
+				long serverTickTimeRemainingMs = ServerTickTimeMs - serverTickStopwatch.ElapsedMilliseconds;
+				if (!serverTickStopwatch.IsRunning || serverTickTimeRemainingMs < 0)
 				{
-					m_tickCountDown = ServerToLocalTickTimeMsFactor;
+					serverTickStopwatch.Restart();
 					watchdog.ServerTick();
 				}
 
-				long timeToSleep = TickTimeMs - stopwatch.ElapsedMilliseconds;
+				long localTickTimeRemainingMs = TickTimeMs - localTickStopwatch.ElapsedMilliseconds;
+				long timeToSleep = Math.Min(localTickTimeRemainingMs, serverTickTimeRemainingMs);
 				if (timeToSleep > 0)
 				{
 					Thread.Sleep((int)timeToSleep);
 				}
-
-				m_tickCountDown--;
 			}
 		}
 	}
