@@ -36,8 +36,12 @@ firewallPolicy.Rules.Add(firewallRule);*/
 
 			while (true)
 			{
-				localTickStopwatch.Restart();
-				watchdog.Tick();
+				long localTickTimeRemainingMs = TickTimeMs - localTickStopwatch.ElapsedMilliseconds;
+				if (!localTickStopwatch.IsRunning || localTickTimeRemainingMs < 0)
+				{
+					localTickStopwatch.Restart();
+					watchdog.Tick();
+				}
 
 				long serverTickTimeRemainingMs = ServerTickTimeMs - serverTickStopwatch.ElapsedMilliseconds;
 				if (!serverTickStopwatch.IsRunning || serverTickTimeRemainingMs < 0)
@@ -45,8 +49,7 @@ firewallPolicy.Rules.Add(firewallRule);*/
 					serverTickStopwatch.Restart();
 					watchdog.ServerTick();
 				}
-
-				long localTickTimeRemainingMs = TickTimeMs - localTickStopwatch.ElapsedMilliseconds;
+				
 				long timeToSleep = Math.Min(localTickTimeRemainingMs, serverTickTimeRemainingMs);
 				if (timeToSleep > 0)
 				{
