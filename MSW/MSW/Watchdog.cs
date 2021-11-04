@@ -113,7 +113,8 @@ namespace MSW
 			public void Tick()
 			{
 				Task.Run(
-					() => {
+					() =>
+					{
 						Console.WriteLine("Watchdog server tick on session token {0}", m_currentAccessToken.GetTokenAsString());
 						APIRequest.Perform(ServerApiRoot, "/api/game/Tick", m_currentAccessToken.GetTokenAsString(), null); 
 					}
