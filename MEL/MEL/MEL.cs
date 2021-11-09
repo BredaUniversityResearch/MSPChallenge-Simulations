@@ -179,12 +179,11 @@ namespace MEL
 						if (rasterizedLayer == null)
 						{
 							rasterizedLayer = new RasterizedLayer(layerData);
-							layers.Add(rasterizedLayer);
-							pressureLayers[pressure.name].Add(rasterizedLayer, layerData.influence);
+							layers.Add(rasterizedLayer);							
 						}
+						pressureLayers[pressure.name].Add(rasterizedLayer, layerData.influence);
 					}
 				}
-
 			}
 		}
 
