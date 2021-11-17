@@ -23,21 +23,34 @@ INetFwPolicy2 firewallPolicy = (INetFwPolicy2)Activator.CreateInstance(
 firewallPolicy.Rules.Add(firewallRule);*/
 
 		private const long TickTimeMs = 50;
-
+		private const long ServerTickTimeMs = 4000;
+		
 		static void Main(string[] a_args)
 		{
 			Console.WriteLine("Starting MSP2050 Simulation Watchdog...");
 
 			Watchdog watchdog = new Watchdog();
-			Stopwatch stopwatch = new Stopwatch();
+			Stopwatch localTickStopwatch = new Stopwatch();
+			Stopwatch serverTickStopwatch = new Stopwatch();
 			Console.WriteLine("Watchdog started successfully, waiting for requests...");
 
 			while (true)
 			{
-				stopwatch.Restart();
-				watchdog.Tick();
+				long localTickTimeRemainingMs = TickTimeMs - localTickStopwatch.ElapsedMilliseconds;
+				if (!localTickStopwatch.IsRunning || localTickTimeRemainingMs <= 0)
+				{
+					localTickStopwatch.Restart();
+					watchdog.Tick();
+				}
 
-				long timeToSleep = TickTimeMs - stopwatch.ElapsedMilliseconds;
+				long serverTickTimeRemainingMs = ServerTickTimeMs - serverTickStopwatch.ElapsedMilliseconds;
+				if (!serverTickStopwatch.IsRunning || serverTickTimeRemainingMs <= 0)
+				{
+					serverTickStopwatch.Restart();
+					watchdog.ServerTick();
+				}
+				
+				long timeToSleep = Math.Min(localTickTimeRemainingMs, serverTickTimeRemainingMs);
 				if (timeToSleep > 0)
 				{
 					Thread.Sleep((int)timeToSleep);

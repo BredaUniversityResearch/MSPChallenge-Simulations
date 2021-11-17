@@ -90,7 +90,7 @@ namespace MEL
 
 			InitPressureLayers();
 			int attempt = 1;
-			while (true || attempt < MAX_RASTER_LOAD_ATTEMPTS)
+			while (attempt <= MAX_RASTER_LOAD_ATTEMPTS)
 			{
 				Console.WriteLine("Start loading pressure layers");
 				LoadPressureLayers();
@@ -179,12 +179,11 @@ namespace MEL
 						if (rasterizedLayer == null)
 						{
 							rasterizedLayer = new RasterizedLayer(layerData);
-							layers.Add(rasterizedLayer);
-							pressureLayers[pressure.name].Add(rasterizedLayer, layerData.influence);
+							layers.Add(rasterizedLayer);							
 						}
+						pressureLayers[pressure.name].Add(rasterizedLayer, layerData.influence);
 					}
 				}
-
 			}
 		}
 

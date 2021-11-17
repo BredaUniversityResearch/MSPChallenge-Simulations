@@ -15,7 +15,7 @@ namespace MSW
 	{
 		private class ServerData
 		{
-			private static readonly TimeSpan TokenCheckInterval = new TimeSpan(0, 0, 5);
+			private const long TokenCheckIntervalSec = 5;
 
 			public readonly string ServerApiRoot;
 			public readonly string ServerWatchdogToken;
@@ -99,7 +99,7 @@ namespace MSW
 
 			public void UpdateAccessTokens()
 			{
-				if ((DateTime.Now - m_lastTokenCheckTime) > TokenCheckInterval)
+				if ((DateTime.Now - m_lastTokenCheckTime).TotalSeconds > TokenCheckIntervalSec)
 				{
 					if (m_checkTokenTask == null || m_checkTokenTask.IsCompleted)
 					{
@@ -108,6 +108,17 @@ namespace MSW
 
 					m_lastTokenCheckTime = DateTime.Now;
 				}
+			}
+
+			public void Tick()
+			{
+				Task.Run(
+					() =>
+					{
+						Console.WriteLine("Watchdog server tick on session token {0}", m_currentAccessToken.GetTokenAsString());
+						APIRequest.Perform(ServerApiRoot, "/api/game/Tick", m_currentAccessToken.GetTokenAsString(), null); 
+					}
+				);
 			}
 
 			private void CheckTokenTask()
@@ -213,6 +224,14 @@ namespace MSW
 			UpdateAccessTokensForRunningSimulations();
 
 			StopSimulationsForInactiveSessions();
+		}
+
+		public void ServerTick()
+		{
+			foreach (ServerData data in m_activeServers)
+			{
+				data.Tick();
+			}
 		}
 
 		private void UpdateAccessTokensForRunningSimulations()
