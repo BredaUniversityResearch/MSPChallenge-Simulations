@@ -1,26 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <OutputType>Exe</OutputType>
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
 
     <ItemGroup>
-      <Reference Include="MSWSupport, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-        <HintPath>..\..\DLLs\MSWSupport.dll</HintPath>
-      </Reference>
       <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
         <HintPath>..\..\DLLs\Newtonsoft.Json.dll</HintPath>
       </Reference>
-    </ItemGroup>
-
-    <ItemGroup>
-      <None Update="CEL_config.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
     </ItemGroup>
 
 </Project>

@@ -44,10 +44,9 @@ namespace REL
 		public void WriteImageAsPngToStream(Stream a_targetStream)
 		{
 			int stride = (m_width + 3) & ~0x3; //Round up to a multiple of 4
-			byte[] colourBits = new byte[stride * m_height];
-			GCHandle colourBitsHandle = GCHandle.Alloc(colourBits, GCHandleType.Pinned);
+			int[] colourBits = new int[stride * m_height];
 
-			using (Bitmap image = new Bitmap(m_width, m_height, stride, PixelFormat.Format8bppIndexed, colourBitsHandle.AddrOfPinnedObject()))
+			using (Bitmap image = new Bitmap(m_width, m_height, stride, PixelFormat.Format8bppIndexed, colourBits))
 			{
 				//Build a grayscale colour palette.
 				ColorPalette palette = image.Palette;
@@ -68,11 +67,9 @@ namespace REL
 					}
 				}
 
-				
+
 				image.Save(a_targetStream, ImageFormat.Png);
 			}
-
-			colourBitsHandle.Free();
 		}
 
 		public void PlotLine(Vector2D a_from, Vector2D a_to, float a_value)
