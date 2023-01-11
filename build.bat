@@ -3,8 +3,8 @@ setlocal
 set cwd=%cd%
 set api_version=v1
 set publish_targets[0]=win-x64
-set publish_targets[1]=ubuntu.22.04-x64
-set publish_targets[2]=alpine.3.17-x64
+set publish_targets[1]=alpine.3.17-x64
+rem set publish_targets[2]=ubuntu.22.04-x64
 
 call :build MSWSupport
 copy /y MSWSupport\MSWSupport\bin\Release\net6.0\MSWSupport.dll DLLs\
