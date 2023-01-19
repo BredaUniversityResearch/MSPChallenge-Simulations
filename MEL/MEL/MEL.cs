@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Drawing;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Reflection;
+using Aspose.Drawing;
 using EwEShell;
 using MSWSupport;
 using Newtonsoft.Json;
@@ -15,10 +13,10 @@ namespace MEL
 	/// MEL allows for the EwE simulation to be run within the MSP platform.
 	///
 	/// The purpose of this MEL class is to bootstrap EwE to the configured server.
-	/// After this is successfully done, it will request all the required information and perform a first step. 
+	/// After this is successfully done, it will request all the required information and perform a first step.
 	/// After the initial step MEL will periodically query the server through the API to see if it needs to perform another timestep
 	/// </summary>
-	/// 
+	///
 	public class MEL
 	{
 		public const int TICK_DELAY_MS = 100;   //in ms
@@ -61,84 +59,96 @@ namespace MEL
 
 		public MEL()
 		{
-			if (CommandLineArguments.HasOptionValue("APIEndpoint"))
+			try
 			{
-				ApiBaseURL = CommandLineArguments.GetOptionValue("APIEndpoint");
-				Console.WriteLine("Using APIEndpoint {0}", ApiBaseURL);
-			}
-			else
-			{
-				Console.WriteLine("No commandline argument found for APIEndpoint. Using default value {0}", ApiBaseURL);
-			}
+				LoadLicense();
+				if (CommandLineArguments.HasOptionValue("APIEndpoint"))
+				{
+					ApiBaseURL = CommandLineArguments.GetOptionValue("APIEndpoint");
+					Console.WriteLine("Using APIEndpoint {0}", ApiBaseURL);
+				}
+				else
+				{
+					Console.WriteLine("No commandline argument found for APIEndpoint. Using default value {0}",
+						ApiBaseURL);
+				}
 
-			ApiConnector = new ApiMspServer(ApiBaseURL);
-			//ApiConnector = new ApiDebugLocalFiles("BS_Basic");
+				ApiConnector = new ApiMspServer(ApiBaseURL);
+				//ApiConnector = new ApiDebugLocalFiles("BS_Basic");
 
-			shell = new cEwEShell();
+				shell = new cEwEShell();
 
-			tokenHandler = new APITokenHandler(ApiConnector, CommandLineArguments.GetOptionValue(CommandLineArguments.MSWPipeName), "MEL", ApiBaseURL);
+				tokenHandler = new APITokenHandler(ApiConnector,
+					CommandLineArguments.GetOptionValue(CommandLineArguments.MSWPipeName), "MEL", ApiBaseURL);
 
-			WaitForAPIAccess();
+				WaitForAPIAccess();
 
-			LoadConfig();
+				LoadConfig();
 
-			x_min = config.x_min;
-			y_min = config.y_min;
+				x_min = config.x_min;
+				y_min = config.y_min;
 
-			x_max = config.x_max;
-			y_max = config.y_max;
+				x_max = config.x_max;
+				y_max = config.y_max;
 
-			InitPressureLayers();
-			int attempt = 1;
-			while (attempt <= MAX_RASTER_LOAD_ATTEMPTS)
-			{
-				Console.WriteLine("Start loading pressure layers");
-				LoadPressureLayers();
+				InitPressureLayers();
+				int attempt = 1;
+				while (attempt <= MAX_RASTER_LOAD_ATTEMPTS)
+				{
+					Console.WriteLine("Start loading pressure layers");
+					LoadPressureLayers();
+					WaitForAllBackgroundTasks();
+					if (AreAllPressureLayersLoaded())
+					{
+						break;
+					}
+					Console.WriteLine("Found unloaded pressure layers, retrying in {0} sec, attempt: {1} of {2}",
+						NEXT_RASTER_LOAD_WAITING_TIME_SEC, attempt, MAX_RASTER_LOAD_ATTEMPTS);
+					Thread.Sleep(TimeSpan.FromSeconds(NEXT_RASTER_LOAD_WAITING_TIME_SEC));
+					++attempt;
+				}
+
+				RasterizeLayers();
+
+				UpdateFishing();
+
 				WaitForAllBackgroundTasks();
-				if (AreAllPressureLayersLoaded())
+
+				//Start values for fishing intensity as returned by EwEShell.
+				List<cScalar> initialFishingValues = new List<cScalar>();
+
+				if (shell.Configuration(configstring, initialFishingValues))
 				{
-					break;
+					foreach (cScalar fish in initialFishingValues)
+					{
+						Console.WriteLine("Initialized fishing values for {0} to {1}", fish.Name, fish.Value);
+
+						pressures.Add(new cPressure(fish.Name, fish.Value));
+						cfishingpressures.Add(new cPressure(fish.Name, fish.Value));
+					}
+					ApiConnector.SetInitialFishingValues(initialFishingValues);
+
+					// Dump game version for testing purposes
+					Console.WriteLine("Loaded EwE model '{0}', {1}, {2}", shell.CurrentGame.Version,
+						shell.CurrentGame.Author, shell.CurrentGame.Contact);
+
+					//eweshell initialised fine
+					shell.Startup();
+
+					Console.WriteLine("Startup done");
 				}
-				Console.WriteLine("Found unloaded pressure layers, retrying in {0} sec, attempt: {1} of {2}", NEXT_RASTER_LOAD_WAITING_TIME_SEC, attempt, MAX_RASTER_LOAD_ATTEMPTS);
-				Thread.Sleep(TimeSpan.FromSeconds(NEXT_RASTER_LOAD_WAITING_TIME_SEC));
-				++attempt;
-			}
-
-			RasterizeLayers();
-
-			UpdateFishing();
-
-			WaitForAllBackgroundTasks();
-
-			//Start values for fishing intensity as returned by EwEShell.
-			List<cScalar> initialFishingValues = new List<cScalar>();
-
-			if (shell.Configuration(configstring, initialFishingValues))
-			{
-				foreach (cScalar fish in initialFishingValues)
+				else
 				{
-					Console.WriteLine("Initialized fishing values for {0} to {1}", fish.Name, fish.Value);
-
-					pressures.Add(new cPressure(fish.Name, fish.Value));
-					cfishingpressures.Add(new cPressure(fish.Name, fish.Value));
+					//something went wrong here
+					ConsoleColor orgColor = Console.ForegroundColor;
+					Console.ForegroundColor = ConsoleColor.Red;
+					Console.WriteLine("EwE Startup failed");
+					Console.ForegroundColor = orgColor;
 				}
-				ApiConnector.SetInitialFishingValues(initialFishingValues);
-
-				// Dump game version for testing purposes
-				Console.WriteLine("Loaded EwE model '{0}', {1}, {2}", shell.CurrentGame.Version, shell.CurrentGame.Author, shell.CurrentGame.Contact);
-
-				//eweshell initialised fine
-				shell.Startup();
-
-				Console.WriteLine("Startup done");
 			}
-			else
+			catch (Exception e)
 			{
-				//something went wrong here
-				ConsoleColor orgColor = Console.ForegroundColor;
-				Console.ForegroundColor = ConsoleColor.Red;
-				Console.WriteLine("EwE Startup failed");
-				Console.ForegroundColor = orgColor;
+				Console.WriteLine(e.Message + "\n" + e.StackTrace);
 			}
 		}
 
@@ -179,7 +189,7 @@ namespace MEL
 						if (rasterizedLayer == null)
 						{
 							rasterizedLayer = new RasterizedLayer(layerData);
-							layers.Add(rasterizedLayer);							
+							layers.Add(rasterizedLayer);
 						}
 						pressureLayers[pressure.name].Add(rasterizedLayer, layerData.influence);
 					}
@@ -412,6 +422,30 @@ namespace MEL
 		public static string ConvertLayerName(string name)
 		{
 			return "mel_" + name.Replace(' ', '_');
+		}
+
+		static void LoadLicense()
+		{
+			License license = new();
+			const string licenseFilename = "Aspose.Drawing.NET.lic";
+			if (File.Exists(licenseFilename)) // load from working dir
+			{
+				license.SetLicense(licenseFilename);
+				return;
+			}
+
+			// load from shared development folder
+			var appName = Assembly.GetExecutingAssembly().GetName().Name;
+			DirectoryInfo? dir = new(Environment.CurrentDirectory);
+			if (dir == null)
+			{
+				throw new Exception("Could not retrieve current dir");
+			}
+			while (dir.Name != appName) {
+				dir = Directory.GetParent(dir.FullName);
+			}
+			var licensePath = Path.GetFullPath(Path.Combine(dir.ToString(), @"..\..\" + licenseFilename));
+			license.SetLicense(licensePath);
 		}
 	}
 }

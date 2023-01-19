@@ -22,10 +22,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Aspose.Drawing" Version="22.12.0" />
-    </ItemGroup>
-
-    <ItemGroup>
       <None Update="North Sea model for MSP.eiixml">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
@@ -47,6 +43,10 @@
       <None Update="Baltic sea model for MSP.eiixml">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Aspose.Drawing" Version="22.12.0" />
     </ItemGroup>
 
 </Project>
