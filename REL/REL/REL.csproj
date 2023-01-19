@@ -25,6 +25,7 @@
 
     <ItemGroup>
       <PackageReference Include="Aspose.Drawing" Version="22.12.0" />
+      <PackageReference Include="System.Security.Permissions" Version="7.0.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -36,5 +37,13 @@
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
     </ItemGroup>
+
+    <Target Name="ChangeAliasesOfStrongNameAssemblies" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences">
+      <ItemGroup>
+        <ReferencePath Condition="'%(FileName)' == 'Aspose.Drawing'">
+          <Aliases>AsposeDrawing</Aliases>
+        </ReferencePath>
+      </ItemGroup>
+    </Target>
 
 </Project>

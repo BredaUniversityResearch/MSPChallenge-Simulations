@@ -1,8 +1,7 @@
-﻿using System;
+﻿extern alias AsposeDrawing;
 using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Runtime.InteropServices;
+using AsposeDrawing::System.Drawing.Imaging;
+using Bitmap = AsposeDrawing::System.Drawing.Bitmap;
 
 namespace REL
 {
