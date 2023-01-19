@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net;
+﻿using System.Net;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -48,7 +45,7 @@ namespace MSW
 		private List<RequestData> m_pendingRequests = new List<RequestData>();
 		private AvailableSimulation[] m_availableSimulations = null;
 
-		public RestEndpointUpdateState(AvailableSimulation[] a_availableSimulations) 
+		public RestEndpointUpdateState(AvailableSimulation[] a_availableSimulations)
 			: base("UpdateState")
 		{
 			m_availableSimulations = a_availableSimulations;
@@ -69,7 +66,7 @@ namespace MSW
 			bool result = false;
 			string requestErrorMessage = "";
 
-			if (a_postValues.TryGetValue("game_session_api", out string gameSession) && 
+			if (a_postValues.TryGetValue("game_session_api", out string gameSession) &&
 				a_postValues.TryGetValue("game_session_token", out string gameSessionToken) &&
 				a_postValues.TryGetValue("game_state", out string gameState) &&
 				a_postValues.TryGetValue("required_simulations", out string requiredSimulations) &&
@@ -98,7 +95,7 @@ namespace MSW
 
 				if (Enum.TryParse(gameState, true, out EGameState parsedGameState))
 				{
-					RequestData data = new RequestData(gameSession, gameSessionToken, parsedGameState, requestedSimulations, 
+					RequestData data = new RequestData(gameSession, gameSessionToken, parsedGameState, requestedSimulations,
 						JsonConvert.DeserializeObject<ApiAccessToken>(apiAccessToken), JsonConvert.DeserializeObject<ApiAccessToken>(apiAccessRenewToken));
 					if (CheckRequest(data, out requestErrorMessage))
 					{

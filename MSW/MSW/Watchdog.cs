@@ -110,17 +110,6 @@ namespace MSW
 				}
 			}
 
-			public void Tick()
-			{
-				Task.Run(
-					() =>
-					{
-						Console.WriteLine("Watchdog server tick on session token {0}", m_currentAccessToken.GetTokenAsString());
-						APIRequest.Perform(ServerApiRoot, "/api/game/Tick", m_currentAccessToken.GetTokenAsString(), null); 
-					}
-				);
-			}
-
 			private void CheckTokenTask()
 			{
 				foreach (RunningSimulation simulation in RunningSimulations)
@@ -224,14 +213,6 @@ namespace MSW
 			UpdateAccessTokensForRunningSimulations();
 
 			StopSimulationsForInactiveSessions();
-		}
-
-		public void ServerTick()
-		{
-			foreach (ServerData data in m_activeServers)
-			{
-				data.Tick();
-			}
 		}
 
 		private void UpdateAccessTokensForRunningSimulations()
