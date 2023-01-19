@@ -25,7 +25,8 @@ namespace SELRELBridge
 		{
 			m_watchdogToken = a_watchdogToken;
 
-			m_broadcastSendClient.Ttl = 0; //Ensure multicast does not leave the local machine.
+			// note Marin: this causes "Invalid argument" socket exception on Unix...
+			//m_broadcastSendClient.Ttl = 0; //Ensure multicast does not leave the local machine.
 			m_broadcastSendClient.JoinMulticastGroup(MSWBridgeConstants.DiscoveryMulticastAddress);
 			m_broadcastThread = new Thread(DoBackgroundBroadcastWork);
 			m_broadcastThread.Start();
