@@ -1,14 +1,8 @@
 ﻿using SEL.API;
 using SEL.SpatialMapping;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Drawing.Text;
 using System.Globalization;
 using System.Numerics;
-using System.Threading;
-using System.Threading.Tasks;
 using Poly2Tri.Triangulation.Delaunay;
 using SEL.Issues;
 using SEL.RasterizerLib;
@@ -17,7 +11,7 @@ using SEL.Routing;
 namespace SEL
 {
 	/// <summary>
-	/// Manager class that holds all the information required for routing. 
+	/// Manager class that holds all the information required for routing.
 	/// Contains references to all the vertices, edges and available routes from port to port.
 	/// Also is responsible for (re)generating implicit edges and the routes.
 	/// </summary>
@@ -161,7 +155,7 @@ namespace SEL
 							}
 							else
 							{
-								//Merge the two vertices by just not updating the 'last vertex' we have now. 
+								//Merge the two vertices by just not updating the 'last vertex' we have now.
 							}
 						}
 						else
@@ -241,7 +235,7 @@ namespace SEL
 			for (int fromVertexId = 0; fromVertexId < m_lanePoints.Count; ++fromVertexId)
 			{
 				LaneVertex fromVertex = m_lanePoints[fromVertexId];
-				//Connect all vertices that are at almost the same locations. 
+				//Connect all vertices that are at almost the same locations.
 				MergeToNearbyVertices(fromVertex, 50.0);
 
 				//Now find the closest vertex in a couple of directions and connect with those.
@@ -253,7 +247,7 @@ namespace SEL
 					double directionY = Math.Sin((double)i * directionalSliceSizeInRadians);
 
 					LaneVertex foundVertex = FindClosestVertexInDirection(fromVertex, new Vector2D(directionX, directionY), directionalSliceAngleLimit, maxImplicitEdgeDistance);
-					
+
 					if (foundVertex != null)
 					{
 						if (FindEdge(fromVertex, foundVertex) == null)
@@ -314,7 +308,7 @@ namespace SEL
 			QuadTreeSpatialQueryResult<RestrictionMesh> meshResults = m_restrictionMeshes.Query(query);
 
 			HashSet<RestrictionGeometryType> compoundTypeList = new HashSet<RestrictionGeometryType>(RestrictionGeometryType.EqualityComparer.Instance);
-			Dictionary<RestrictionMesh, float> intersectionSegmentSizes = new Dictionary<RestrictionMesh, float>(); 
+			Dictionary<RestrictionMesh, float> intersectionSegmentSizes = new Dictionary<RestrictionMesh, float>();
 
 			int remainingShipRestrictionMask = 0x7fffffff;
 			foreach (RestrictionEdge restrictionEdge in results)
@@ -569,7 +563,7 @@ namespace SEL
 
 				if (restriction.geometry.Length == 1)
 				{
-					restriction.geometry = GeometryUtilities.CreateSquareGeometryDataCenteredAt(new Vector2D(restriction.geometry[0][0], restriction.geometry[0][1]), 
+					restriction.geometry = GeometryUtilities.CreateSquareGeometryDataCenteredAt(new Vector2D(restriction.geometry[0][0], restriction.geometry[0][1]),
 						new Vector2D(restrictionPointSize * 0.5, restrictionPointSize * 0.5));
 				}
 

@@ -1,7 +1,4 @@
-﻿using SEL.API;
-using System;
-using System.Drawing;
-using System.IO;
+﻿using System.Drawing;
 using SEL.SpatialMapping;
 using SEL.Util;
 

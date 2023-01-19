@@ -1,8 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿extern alias AsposeDrawing;
+using AsposeDrawing::System.Drawing.Imaging;
+using Bitmap = AsposeDrawing::System.Drawing.Bitmap;
+using Graphics = AsposeDrawing::System.Drawing.Graphics;
+using Pen = AsposeDrawing::System.Drawing.Pen;
+using Font = AsposeDrawing::System.Drawing.Font;
+using SolidBrush = AsposeDrawing::System.Drawing.SolidBrush;
+using FontFamily = AsposeDrawing::System.Drawing.FontFamily;
+
 using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
 
 namespace SEL
 {

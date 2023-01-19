@@ -1,11 +1,13 @@
-﻿using SEL.API;
+﻿extern alias AsposeDrawing;
+using AsposeDrawing::System.Drawing.Imaging;
+using Bitmap = AsposeDrawing::System.Drawing.Bitmap;
+using Graphics = AsposeDrawing::System.Drawing.Graphics;
+using Drawing2D = AsposeDrawing::System.Drawing.Drawing2D;
+using GraphicsUnit = AsposeDrawing::System.Drawing.GraphicsUnit;
+using System.Drawing;
+using SEL.API;
 using SEL.SpatialMapping;
 using SEL.Util;
-using System;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Runtime.InteropServices;
 
 namespace SEL
 {
@@ -273,7 +275,7 @@ namespace SEL
 			int stride = (Width + 3) & ~0x3; //Round up to a multiple of 4
 			int[] colourBits = new int[stride * Height];
 
-			using (Bitmap image = new Bitmap(Width, Height, stride, PixelFormat.Format8bppIndexed, colourBits))
+			using (Bitmap image = new (Width, Height, stride, PixelFormat.Format8bppIndexed, colourBits))
 			{
 				//Build a grayscale colour palette.
 				ColorPalette palette = image.Palette;
@@ -296,7 +298,7 @@ namespace SEL
 				if (outputConfig.m_outputResolutionX != -1 && outputConfig.m_outputResolutionY != -1)
 				{
 					//need to resize to output_size_x & y
-					using (Bitmap resizedImage = new Bitmap(outputConfig.m_outputResolutionX, outputConfig.m_outputResolutionY, PixelFormat.Format32bppArgb))
+					using (Bitmap resizedImage = new (outputConfig.m_outputResolutionX, outputConfig.m_outputResolutionY, PixelFormat.Format32bppArgb))
 					{
 						using (Graphics resizedGraphic = Graphics.FromImage(resizedImage))
 						{
@@ -311,7 +313,7 @@ namespace SEL
 							Size sourceSize = deltaSizeMax - deltaSizeMin;
 							Rectangle sourceRect = new Rectangle(new Point(transformedMin.X, deltaSizeMin.Height), sourceSize);
 
-							resizedGraphic.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBilinear;
+							resizedGraphic.InterpolationMode = Drawing2D.InterpolationMode.HighQualityBilinear;
 							resizedGraphic.DrawImage(image,
 								new Rectangle(0, 0, outputConfig.m_outputResolutionX, outputConfig.m_outputResolutionY), sourceRect,
 								GraphicsUnit.Pixel);

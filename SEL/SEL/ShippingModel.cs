@@ -2,10 +2,6 @@
 using SEL.KPI;
 using SEL.Issues;
 using SEL.Util;
-using SELRELBridge;
-using System;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using MSWSupport;
 
 namespace SEL
@@ -48,7 +44,6 @@ namespace SEL
 			{
 				m_apiTokenHandler = new APITokenHandler(m_apiConnector, pipeHandle, "SEL", SELConfig.Instance.GetAPIRoot());
 			}
-
 			m_relSupport = new RELSupport(watchdogToken);
 			m_errorReporter = new ErrorReporter(m_apiConnector);
 			m_KPIManager = new KPIManager(m_apiConnector);
@@ -189,6 +184,7 @@ namespace SEL
 		{
 			if (SELConfig.Instance.ShouldIgnoreApiSecurity() || m_apiConnector.CheckApiAccess())
 			{
+				Console.WriteLine("Api access granted");
 				m_hadApiAccessLastUpdate = true;
 				if (!m_hasLoadedInitialData)
 				{
@@ -262,7 +258,7 @@ namespace SEL
 			using (new PerformanceTimer("Restrictions Map Rebuild"))
 			{
 				m_rasterOutputManager.UpdateRestrictionMaps(routeManager, m_shipTypeManager);
-			}	
+			}
 
 			using (new PerformanceTimer(string.Format("Build Output Raster for Month {0}", timeMonth)))
 			{
