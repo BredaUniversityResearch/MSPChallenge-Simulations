@@ -90,6 +90,7 @@ if "%publish_targets[1]%" == "" (
 )
 
 mkdir %target_dir% > nul 2> nul
+copy /y %cwd%\Aspose.Drawing.NET.lic %target_dir%
 copy /y %1\bin\%configuration%\net6.0\%target%\publish\* %target_dir%
 SET /a "x+=1"
 goto :publish_targets_loop
