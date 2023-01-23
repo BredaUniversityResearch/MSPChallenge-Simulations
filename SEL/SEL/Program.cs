@@ -1,4 +1,6 @@
-﻿namespace SEL
+﻿using System;
+using System.Threading;
+namespace SEL
 {
 	class Program
 	{
@@ -6,8 +8,7 @@
 
 		static void Main(string[] args)
 		{
-            AppContext.SetSwitch("System.Drawing.EnableUnixSupport", true);
-            Console.WriteLine("Starting MSP2050 Shipping EmuLation version {0}", typeof(Program).Assembly.GetName().Version);
+			Console.WriteLine("Starting MSP2050 Shipping EmuLation version {0}", typeof(Program).Assembly.GetName().Version);
 
 			ShippingModel model = new ShippingModel();
 			while (true)

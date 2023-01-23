@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <RootNamespace>EwEShell</RootNamespace>
+        <TargetFramework>net5.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Reference Include="EwECore, Version=6.6.14971.0, Culture=neutral, PublicKeyToken=1d875393b3ebcad0">
+        <HintPath>..\..\DLLs\EwECore.dll</HintPath>
+      </Reference>
+      <Reference Include="EwEPlugin, Version=6.6.14971.0, Culture=neutral, PublicKeyToken=dd06458997731881">
+        <HintPath>..\..\DLLs\EwEPlugin.dll</HintPath>
+      </Reference>
+      <Reference Include="EwEUtils, Version=6.6.14971.0, Culture=neutral, PublicKeyToken=dc57e07780e0d694">
+        <HintPath>..\..\DLLs\EwEUtils.dll</HintPath>
+      </Reference>
+      <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
+        <HintPath>..\..\DLLs\Newtonsoft.Json.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="System.Drawing.Common" Version="5.0.3" />
+    </ItemGroup>
+
+</Project>

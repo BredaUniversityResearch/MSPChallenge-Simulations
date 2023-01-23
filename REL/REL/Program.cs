@@ -1,4 +1,5 @@
-﻿namespace REL
+﻿using System;
+namespace REL
 {
 	static class Program
 	{

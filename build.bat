@@ -5,6 +5,7 @@
 )
 
 set cwd=%cd%
+set donetversion=net5.0
 if "%configuration%" == "" (
     set configuration=Release
 )
@@ -26,10 +27,10 @@ if "%output_path:~0,2%" == ".." (
 echo using output path: %output_path%
 
 call :build MSWSupport
-copy /y MSWSupport\MSWSupport\bin\%configuration%\net6.0\MSWSupport.dll DLLs\
+copy /y MSWSupport\MSWSupport\bin\%configuration%\%donetversion%\MSWSupport.dll DLLs\
 
 call :build SELRELBridge
-copy /y SELRELBridge\SELRELBridge\bin\%configuration%\net6.0\SELRELBridge.dll DLLs\
+copy /y SELRELBridge\SELRELBridge\bin\%configuration%\%donetversion%\SELRELBridge.dll DLLs\
 
 rmdir /q /s "%output_path%" > nul 2> nul
 
@@ -90,7 +91,6 @@ if "%publish_targets[1]%" == "" (
 )
 
 mkdir %target_dir% > nul 2> nul
-copy /y %cwd%\Aspose.Drawing.NET.lic %target_dir%
-copy /y %1\bin\%configuration%\net6.0\%target%\publish\* %target_dir%
+copy /y %1\bin\%configuration%\%donetversion%\%target%\publish\* %target_dir%
 SET /a "x+=1"
 goto :publish_targets_loop

@@ -1,8 +1,10 @@
-﻿using SEL.API;
+﻿using System;
+using SEL.API;
 using SEL.SpatialMapping;
 using SEL.Util;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Runtime.InteropServices;
 
 namespace SEL
