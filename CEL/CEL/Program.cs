@@ -9,19 +9,12 @@ class Program
 
     static void Main(string[] args)
     {
-        try
+        Console.WriteLine("Starting CEL");
+        EnergyDistribution distribution = new EnergyDistribution();
+        while (true)
         {
-            Console.WriteLine("Starting CEL");
-            EnergyDistribution distribution = new EnergyDistribution();
-            while (true)
-            {
-                distribution.Tick();
-                Thread.Sleep(TICKRATE);
-            }
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e.Message + "\n" + e.StackTrace);
+            distribution.Tick();
+            Thread.Sleep(TICKRATE);
         }
     }
 }

@@ -270,16 +270,11 @@ namespace SEL
 
 		public override void SaveFile(Stream targetStream, RasterOutputConfig outputConfig, IValueMapper<int, float> valueMapper)
 		{
-            Bitmap image = new Bitmap(100, 100);
-            Graphics g = Graphics.FromImage(image);
-            g.Clear(Color.Red);
-            image.Save("Test.png");
-
             int stride = (Width + 3) & ~0x3; //Round up to a multiple of 4
 			byte[] colourBits = new byte[stride * Height];
 			GCHandle colourBitsHandle = GCHandle.Alloc(colourBits, GCHandleType.Pinned);
 
-			using (image = new Bitmap(Width, Height, stride, PixelFormat.Format8bppIndexed, colourBitsHandle.AddrOfPinnedObject()))
+			using (Bitmap image = new Bitmap(Width, Height, stride, PixelFormat.Format8bppIndexed, colourBitsHandle.AddrOfPinnedObject()))
 			{
 				//Build a grayscale colour palette.
 				ColorPalette palette = image.Palette;

@@ -61,95 +61,88 @@ namespace MEL
 
 		public MEL()
 		{
-			try
+			if (CommandLineArguments.HasOptionValue("APIEndpoint"))
 			{
-				if (CommandLineArguments.HasOptionValue("APIEndpoint"))
-				{
-					ApiBaseURL = CommandLineArguments.GetOptionValue("APIEndpoint");
-					Console.WriteLine("Using APIEndpoint {0}", ApiBaseURL);
-				}
-				else
-				{
-					Console.WriteLine("No commandline argument found for APIEndpoint. Using default value {0}",
-						ApiBaseURL);
-				}
-
-				ApiConnector = new ApiMspServer(ApiBaseURL);
-				//ApiConnector = new ApiDebugLocalFiles("BS_Basic");
-
-				shell = new cEwEShell();
-
-				tokenHandler = new APITokenHandler(ApiConnector,
-					CommandLineArguments.GetOptionValue(CommandLineArguments.MSWPipeName), "MEL", ApiBaseURL);
-
-				WaitForAPIAccess();
-
-				LoadConfig();
-
-				x_min = config.x_min;
-				y_min = config.y_min;
-
-				x_max = config.x_max;
-				y_max = config.y_max;
-
-				InitPressureLayers();
-				int attempt = 1;
-				while (attempt <= MAX_RASTER_LOAD_ATTEMPTS)
-				{
-					Console.WriteLine("Start loading pressure layers");
-					LoadPressureLayers();
-					WaitForAllBackgroundTasks();
-					if (AreAllPressureLayersLoaded())
-					{
-						break;
-					}
-					Console.WriteLine("Found unloaded pressure layers, retrying in {0} sec, attempt: {1} of {2}",
-						NEXT_RASTER_LOAD_WAITING_TIME_SEC, attempt, MAX_RASTER_LOAD_ATTEMPTS);
-					Thread.Sleep(TimeSpan.FromSeconds(NEXT_RASTER_LOAD_WAITING_TIME_SEC));
-					++attempt;
-				}
-
-				RasterizeLayers();
-
-				UpdateFishing();
-
-				WaitForAllBackgroundTasks();
-
-				//Start values for fishing intensity as returned by EwEShell.
-				List<cScalar> initialFishingValues = new List<cScalar>();
-
-				if (shell.Configuration(configstring, initialFishingValues))
-				{
-					foreach (cScalar fish in initialFishingValues)
-					{
-						Console.WriteLine("Initialized fishing values for {0} to {1}", fish.Name, fish.Value);
-
-						pressures.Add(new cPressure(fish.Name, fish.Value));
-						cfishingpressures.Add(new cPressure(fish.Name, fish.Value));
-					}
-					ApiConnector.SetInitialFishingValues(initialFishingValues);
-
-					// Dump game version for testing purposes
-					Console.WriteLine("Loaded EwE model '{0}', {1}, {2}", shell.CurrentGame.Version,
-						shell.CurrentGame.Author, shell.CurrentGame.Contact);
-
-					//eweshell initialised fine
-					shell.Startup();
-
-					Console.WriteLine("Startup done");
-				}
-				else
-				{
-					//something went wrong here
-					ConsoleColor orgColor = Console.ForegroundColor;
-					Console.ForegroundColor = ConsoleColor.Red;
-					Console.WriteLine("EwE Startup failed");
-					Console.ForegroundColor = orgColor;
-				}
+				ApiBaseURL = CommandLineArguments.GetOptionValue("APIEndpoint");
+				Console.WriteLine("Using APIEndpoint {0}", ApiBaseURL);
 			}
-			catch (Exception e)
+			else
 			{
-				Console.WriteLine(e.Message + "\n" + e.StackTrace);
+				Console.WriteLine("No commandline argument found for APIEndpoint. Using default value {0}",
+					ApiBaseURL);
+			}
+
+			ApiConnector = new ApiMspServer(ApiBaseURL);
+			//ApiConnector = new ApiDebugLocalFiles("BS_Basic");
+
+			shell = new cEwEShell();
+
+			tokenHandler = new APITokenHandler(ApiConnector,
+				CommandLineArguments.GetOptionValue(CommandLineArguments.MSWPipeName), "MEL", ApiBaseURL);
+
+			WaitForAPIAccess();
+
+			LoadConfig();
+
+			x_min = config.x_min;
+			y_min = config.y_min;
+
+			x_max = config.x_max;
+			y_max = config.y_max;
+
+			InitPressureLayers();
+			int attempt = 1;
+			while (attempt <= MAX_RASTER_LOAD_ATTEMPTS)
+			{
+				Console.WriteLine("Start loading pressure layers");
+				LoadPressureLayers();
+				WaitForAllBackgroundTasks();
+				if (AreAllPressureLayersLoaded())
+				{
+					break;
+				}
+				Console.WriteLine("Found unloaded pressure layers, retrying in {0} sec, attempt: {1} of {2}",
+					NEXT_RASTER_LOAD_WAITING_TIME_SEC, attempt, MAX_RASTER_LOAD_ATTEMPTS);
+				Thread.Sleep(TimeSpan.FromSeconds(NEXT_RASTER_LOAD_WAITING_TIME_SEC));
+				++attempt;
+			}
+
+			RasterizeLayers();
+
+			UpdateFishing();
+
+			WaitForAllBackgroundTasks();
+
+			//Start values for fishing intensity as returned by EwEShell.
+			List<cScalar> initialFishingValues = new List<cScalar>();
+
+			if (shell.Configuration(configstring, initialFishingValues))
+			{
+				foreach (cScalar fish in initialFishingValues)
+				{
+					Console.WriteLine("Initialized fishing values for {0} to {1}", fish.Name, fish.Value);
+
+					pressures.Add(new cPressure(fish.Name, fish.Value));
+					cfishingpressures.Add(new cPressure(fish.Name, fish.Value));
+				}
+				ApiConnector.SetInitialFishingValues(initialFishingValues);
+
+				// Dump game version for testing purposes
+				Console.WriteLine("Loaded EwE model '{0}', {1}, {2}", shell.CurrentGame.Version,
+					shell.CurrentGame.Author, shell.CurrentGame.Contact);
+
+				//eweshell initialised fine
+				shell.Startup();
+
+				Console.WriteLine("Startup done");
+			}
+			else
+			{
+				//something went wrong here
+				ConsoleColor orgColor = Console.ForegroundColor;
+				Console.ForegroundColor = ConsoleColor.Red;
+				Console.WriteLine("EwE Startup failed");
+				Console.ForegroundColor = orgColor;
 			}
 		}
 

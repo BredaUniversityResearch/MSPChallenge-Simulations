@@ -186,7 +186,6 @@ namespace SEL
 		{
 			if (SELConfig.Instance.ShouldIgnoreApiSecurity() || m_apiConnector.CheckApiAccess())
 			{
-				Console.WriteLine("Api access granted");
 				m_hadApiAccessLastUpdate = true;
 				if (!m_hasLoadedInitialData)
 				{

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+
 /// <summary>
 /// Utility class which contains information passed in the commandline.
 /// This should allow us to run with commandlines such as "SomeFlag OptionA ValueA FlagB" which toggles SomeFlag and FlagB on and sets OptionA to ValueA
