@@ -1,8 +1,11 @@
-﻿using SEL.API;
+﻿using System;
+using SEL.API;
 using SEL.SpatialMapping;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Numerics;
+using System.Threading.Tasks;
 using Poly2Tri.Triangulation.Delaunay;
 using SEL.Issues;
 using SEL.RasterizerLib;

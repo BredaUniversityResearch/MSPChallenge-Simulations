@@ -1,7 +1,8 @@
-﻿extern alias AsposeDrawing;
+﻿using System;
 using System.Drawing;
-using AsposeDrawing::System.Drawing.Imaging;
-using Bitmap = AsposeDrawing::System.Drawing.Bitmap;
+using System.Drawing.Imaging;
+using System.IO;
+using System.Runtime.InteropServices;
 
 namespace REL
 {
@@ -43,9 +44,10 @@ namespace REL
 		public void WriteImageAsPngToStream(Stream a_targetStream)
 		{
 			int stride = (m_width + 3) & ~0x3; //Round up to a multiple of 4
-			int[] colourBits = new int[stride * m_height];
+			byte[] colourBits = new byte[stride * m_height];
+			GCHandle colourBitsHandle = GCHandle.Alloc(colourBits, GCHandleType.Pinned);
 
-			using (Bitmap image = new Bitmap(m_width, m_height, stride, PixelFormat.Format8bppIndexed, colourBits))
+			using (Bitmap image = new(m_width, m_height, stride, PixelFormat.Format8bppIndexed, colourBitsHandle.AddrOfPinnedObject()))
 			{
 				//Build a grayscale colour palette.
 				ColorPalette palette = image.Palette;
@@ -69,6 +71,8 @@ namespace REL
 
 				image.Save(a_targetStream, ImageFormat.Png);
 			}
+
+			colourBitsHandle.Free();
 		}
 
 		public void PlotLine(Vector2D a_from, Vector2D a_to, float a_value)

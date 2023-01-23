@@ -1,7 +1,9 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
-using System.Reflection;
-using Aspose.Drawing;
+using System.Threading;
+using System.Threading.Tasks;
 using EwEShell;
 using MSWSupport;
 using Newtonsoft.Json;
@@ -21,7 +23,7 @@ namespace MEL
 	{
 		public const int TICK_DELAY_MS = 100;   //in ms
 		private const int NEXT_RASTER_LOAD_WAITING_TIME_SEC = 10;
-		private const int MAX_RASTER_LOAD_ATTEMPTS = 6;
+		private const int MAX_RASTER_LOAD_ATTEMPTS = 20;
 
 		private static string ApiBaseURL = "http://localhost/1/"; //Default to localhost.
 
@@ -61,7 +63,6 @@ namespace MEL
 		{
 			try
 			{
-				LoadLicense();
 				if (CommandLineArguments.HasOptionValue("APIEndpoint"))
 				{
 					ApiBaseURL = CommandLineArguments.GetOptionValue("APIEndpoint");
@@ -422,30 +423,6 @@ namespace MEL
 		public static string ConvertLayerName(string name)
 		{
 			return "mel_" + name.Replace(' ', '_');
-		}
-
-		static void LoadLicense()
-		{
-			License license = new();
-			const string licenseFilename = "Aspose.Drawing.NET.lic";
-			if (File.Exists(licenseFilename)) // load from working dir
-			{
-				license.SetLicense(licenseFilename);
-				return;
-			}
-
-			// load from shared development folder
-			var appName = Assembly.GetExecutingAssembly().GetName().Name;
-			DirectoryInfo? dir = new(Environment.CurrentDirectory);
-			if (dir == null)
-			{
-				throw new Exception("Could not retrieve current dir");
-			}
-			while (dir.Name != appName) {
-				dir = Directory.GetParent(dir.FullName);
-			}
-			var licensePath = Path.GetFullPath(Path.Combine(dir.ToString(), @"..\..\" + licenseFilename));
-			license.SetLicense(licensePath);
 		}
 	}
 }
