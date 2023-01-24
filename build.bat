@@ -35,7 +35,7 @@ copy /y SELRELBridge\SELRELBridge\bin\%configuration%\%donetversion%\SELRELBridg
 call :build EwEShell
 copy /y EwEShell\EwEShell\bin\%configuration%\%donetversion%\EwEShell.dll DLLs\
 
-rmdir /q /s "%output_path%" > nul 2> nul
+rmdir /q /s "%output_path%\%api_version%" > nul 2> nul
 
 call :publish CEL %api_version%\
 call :publish MEL %api_version%\
