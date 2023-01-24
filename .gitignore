@@ -79,4 +79,5 @@ crashlytics-build.properties
 # output of build/publish
 DLLs/MSWSupport.dll
 DLLs/SELRELBridge.dll
+DLLs/EwEShell.dll
 output/

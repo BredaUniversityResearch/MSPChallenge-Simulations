@@ -32,6 +32,9 @@ copy /y MSWSupport\MSWSupport\bin\%configuration%\%donetversion%\MSWSupport.dll 
 call :build SELRELBridge
 copy /y SELRELBridge\SELRELBridge\bin\%configuration%\%donetversion%\SELRELBridge.dll DLLs\
 
+call :build EwEShell
+copy /y EwEShell\EwEShell\bin\%configuration%\%donetversion%\EwEShell.dll DLLs\
+
 rmdir /q /s "%output_path%" > nul 2> nul
 
 call :publish CEL %api_version%\
