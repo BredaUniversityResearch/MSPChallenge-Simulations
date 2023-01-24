@@ -90,7 +90,7 @@ dotnet publish -c %configuration% -r %target% --self-contained
 if "%publish_targets[1]%" == "" (
     set target_dir=%output_path%\%api_version%\
 ) else (
-    set target_dir=%output_path%\%target%\%api_version%\
+    set target_dir=%output_path%\%api_version%\%target%\
 )
 
 mkdir %target_dir% > nul 2> nul
