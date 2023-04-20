@@ -3,6 +3,6 @@
 	public static class MSWConstants
 	{
 		public const string MSWPipeCommandLineArgument = "MSWPipe";
-		public const string APITokenHeader = "MSPAPIToken";
+		public const string APITokenHeader = "Msp-Api-Token";
 	}
 }
