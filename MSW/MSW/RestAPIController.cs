@@ -8,20 +8,22 @@ namespace MSW
 {
 	class RestApiController: IDisposable
 	{
-		private const string PrefixHost = "http://+:45000/";
-		private const string ApiUriIdentifier = "Watchdog/";
+		public const int DEFAULT_PORT = 45000;
+		private const string DEFAULT_SCHEME = "http://";
+		private const string API_URI_IDENTIFIER = "Watchdog/";
 
 		private HttpListener m_updateGameStateListener = null;
 		private Thread m_backgroundProcessThread = null;
 
 		private List<RestEndpoint> m_endpoints = new List<RestEndpoint>();
 
-		public RestApiController()
+		public RestApiController(int a_port = DEFAULT_PORT)
 		{
 			m_updateGameStateListener = new HttpListener();
-			m_updateGameStateListener.Prefixes.Add(PrefixHost + ApiUriIdentifier);
+			var prefixHost = DEFAULT_SCHEME + "+:" + a_port + "/";
+			m_updateGameStateListener.Prefixes.Add(prefixHost + API_URI_IDENTIFIER);
 			m_updateGameStateListener.Start();
-			Console.WriteLine("Starting REST API at " + PrefixHost + ApiUriIdentifier);
+			Console.WriteLine("Starting REST API at " + prefixHost + API_URI_IDENTIFIER);
 
 			m_backgroundProcessThread = new Thread(StartHandlingRequestsBackground);
 			m_backgroundProcessThread.Start();
@@ -56,10 +58,10 @@ namespace MSW
 		private RestEndpoint FindEndpointForUri(Uri a_requestUrl)
 		{
 			RestEndpoint result = null;
-			int identifier = a_requestUrl.AbsoluteUri.IndexOf(ApiUriIdentifier, StringComparison.InvariantCultureIgnoreCase);
+			int identifier = a_requestUrl.AbsoluteUri.IndexOf(API_URI_IDENTIFIER, StringComparison.InvariantCultureIgnoreCase);
 			if (identifier > 0)
 			{
-				string endpoint = a_requestUrl.AbsoluteUri.Substring(identifier + ApiUriIdentifier.Length);
+				string endpoint = a_requestUrl.AbsoluteUri.Substring(identifier + API_URI_IDENTIFIER.Length);
 				foreach (RestEndpoint availableEndpoint in m_endpoints)
 				{
 					if (availableEndpoint.ShouldHandleRequest(endpoint))

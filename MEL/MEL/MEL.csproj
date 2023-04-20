@@ -55,6 +55,18 @@
     <ApplicationIcon>ecology.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="EwECore">
+      <HintPath>..\DLLs\EwECore.dll</HintPath>
+    </Reference>
+    <Reference Include="EwEPlugin">
+      <HintPath>..\DLLs\EwEPlugin.dll</HintPath>
+    </Reference>
+    <Reference Include="EwEShell">
+      <HintPath>..\DLLs\EwEShell.dll</HintPath>
+    </Reference>
+    <Reference Include="EwEUtils">
+      <HintPath>..\DLLs\EwEUtils.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -111,10 +123,6 @@
     <ProjectReference Include="..\..\MSWSupport\MSWSupport.csproj">
       <Project>{226d974a-e5ae-40e7-92c9-625a1d67b9d4}</Project>
       <Name>MSWSupport</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\EwE\EwEShell\EwEShell.vbproj">
-      <Project>{ddc5d15f-63f4-4b9d-ad24-a69d1d91c243}</Project>
-      <Name>EwEShell</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

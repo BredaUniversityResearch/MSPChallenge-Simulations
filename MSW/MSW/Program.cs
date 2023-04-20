@@ -23,39 +23,39 @@ INetFwPolicy2 firewallPolicy = (INetFwPolicy2)Activator.CreateInstance(
 firewallPolicy.Rules.Add(firewallRule);*/
 
 		private const long TickTimeMs = 50;
-		private const long ServerTickTimeMs = 4000;
 		
-		static void Main(string[] a_args)
+		static void Main()
 		{
-			Console.WriteLine("Starting MSP2050 Simulation Watchdog...");
-
-			Watchdog watchdog = new Watchdog();
-			Stopwatch localTickStopwatch = new Stopwatch();
-			Stopwatch serverTickStopwatch = new Stopwatch();
-			Console.WriteLine("Watchdog started successfully, waiting for requests...");
-
-			while (true)
+			try
 			{
-				long localTickTimeRemainingMs = TickTimeMs - localTickStopwatch.ElapsedMilliseconds;
-				if (!localTickStopwatch.IsRunning || localTickTimeRemainingMs <= 0)
-				{
-					localTickStopwatch.Restart();
-					watchdog.Tick();
-				}
+				Console.WriteLine("Starting MSP2050 Simulation Watchdog...");
 
-				long serverTickTimeRemainingMs = ServerTickTimeMs - serverTickStopwatch.ElapsedMilliseconds;
-				if (!serverTickStopwatch.IsRunning || serverTickTimeRemainingMs <= 0)
+				Watchdog watchdog = new Watchdog(int.Parse(CommandLineArgumentsManager.Instance.AutoFill(
+					CommandLineArgumentsManager.CommandLineArgumentName.Port, 
+					RestApiController.DEFAULT_PORT.ToString()
+				)));
+				Stopwatch localTickStopwatch = new Stopwatch();
+				Console.WriteLine("Watchdog started successfully, waiting for requests...");
+
+				while (true)
 				{
-					serverTickStopwatch.Restart();
-					watchdog.ServerTick();
-				}
-				
-				long timeToSleep = Math.Min(localTickTimeRemainingMs, serverTickTimeRemainingMs);
-				if (timeToSleep > 0)
-				{
-					Thread.Sleep((int)timeToSleep);
+					long localTickTimeRemainingMs = TickTimeMs - localTickStopwatch.ElapsedMilliseconds;
+					if (!localTickStopwatch.IsRunning || localTickTimeRemainingMs <= 0)
+					{
+						localTickStopwatch.Restart();
+						watchdog.Tick();
+					}
+					if (localTickTimeRemainingMs > 0)
+					{
+						Thread.Sleep((int)localTickTimeRemainingMs);
+					}
 				}
 			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e.Message + "\n" + e.StackTrace);
+			}
+
 		}
 	}
 }

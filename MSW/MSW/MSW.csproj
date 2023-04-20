@@ -67,6 +67,7 @@
     <Compile Include="ApiWatchdogTokenResponse.cs" />
     <Compile Include="AvailableSimulation.cs" />
     <Compile Include="AvailableSimulationVersion.cs" />
+    <Compile Include="CommandLineArgumentsManager.cs" />
     <Compile Include="ConsoleLogger.cs" />
     <Compile Include="ESimulationRunState.cs" />
     <Compile Include="MSWPipeDebugConnector.cs" />
