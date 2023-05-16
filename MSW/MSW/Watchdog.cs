@@ -184,14 +184,15 @@ namespace MSW
 		private static readonly TimeSpan InactiveSimulationTime = new TimeSpan(72, 0, 0); //Kill simulations after a period of time. Please keep this quite royal since currently restarting MEL is not 100% accurate.
 
 		private List<ServerData> m_activeServers = new List<ServerData>(8);
-		private RestApiController m_restApiController = new RestApiController();
+		private RestApiController m_restApiController;
 		private RestEndpointUpdateState m_updateStateEndpoint;
 		private List<AvailableSimulation> m_availableSimulations = new List<AvailableSimulation>(8);
 
 		private MSWPipeDebugConnector m_debugConnector = null;
 
-		public Watchdog()
+		public Watchdog(int a_restApiPort = RestApiController.DEFAULT_PORT)
 		{
+			m_restApiController = new RestApiController(a_restApiPort);
 			m_debugConnector = new MSWPipeDebugConnector(FindServerSimulationPipeNameByWatchdogToken);
 			foreach (SimulationConfig config in MswConfig.Instance.GetAllSimulationConfig())
 			{

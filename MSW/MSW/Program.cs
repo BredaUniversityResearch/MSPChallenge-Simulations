@@ -24,13 +24,16 @@ firewallPolicy.Rules.Add(firewallRule);*/
 
 		private const long TickTimeMs = 50;
 
-		static void Main(string[] a_args)
+		static void Main()
 		{
 			try
 			{
 				Console.WriteLine("Starting MSP2050 Simulation Watchdog...");
 
-				Watchdog watchdog = new Watchdog();
+				Watchdog watchdog = new Watchdog(int.Parse(CommandLineArgumentsManager.Instance.AutoFill(
+					CommandLineArgumentsManager.CommandLineArgumentName.Port, 
+					RestApiController.DEFAULT_PORT.ToString()
+				)));
 				Stopwatch localTickStopwatch = new Stopwatch();
 				Console.WriteLine("Watchdog started successfully, waiting for requests...");
 

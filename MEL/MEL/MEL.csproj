@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net5.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <Nullable>enable</Nullable>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -10,8 +10,20 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Reference Include="EwEShell, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-        <HintPath>..\..\DLLs\EwEShell.dll</HintPath>
+      <Reference Include="EwECore, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>..\..\DLLs\EwECore.dll</HintPath>
+      </Reference>
+      <Reference Include="EwELicense, Version=6.7.0.18060, Culture=neutral, PublicKeyToken=09f10a09f343821c">
+        <HintPath>..\..\EwEShell\EwECore\Includes\EwELicense.dll</HintPath>
+      </Reference>
+      <Reference Include="EwEMSPLink">
+        <HintPath>..\..\DLLs\EwEMSPLink.dll</HintPath>
+      </Reference>
+      <Reference Include="EwEPlugin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>..\..\DLLs\EwEPlugin.dll</HintPath>
+      </Reference>
+      <Reference Include="EwEUtils, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>..\..\DLLs\EwEUtils.dll</HintPath>
       </Reference>
       <Reference Include="MSWSupport, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
         <HintPath>..\..\DLLs\MSWSupport.dll</HintPath>
@@ -26,15 +38,6 @@
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
       <None Update="North Sea model for MSP DT copy.eiixml">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="EwEUtils.dll">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="EwEPlugin.dll">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="EwECore.dll">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
       <None Update="Clyde model for MSP.eiixml">

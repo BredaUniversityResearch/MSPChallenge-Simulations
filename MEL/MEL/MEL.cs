@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
-using EwEShell;
+using EwEMSPLink;
 using MSWSupport;
 using Newtonsoft.Json;
 
@@ -46,7 +46,7 @@ namespace MEL
 
 		private List<Task> backgroundTasks = new List<Task>();
 
-		private cEwEShell shell;
+		private cEwEMSPLink shell;
 		private List<cPressure> pressures = new List<cPressure>();
 		private List<cPressure> cfishingpressures = new List<cPressure>();
 		public List<cGrid> outputs = new List<cGrid>();
@@ -75,7 +75,7 @@ namespace MEL
 			ApiConnector = new ApiMspServer(ApiBaseURL);
 			//ApiConnector = new ApiDebugLocalFiles("BS_Basic");
 
-			shell = new cEwEShell();
+			shell = new cEwEMSPLink();
 
 			tokenHandler = new APITokenHandler(ApiConnector,
 				CommandLineArguments.GetOptionValue(CommandLineArguments.MSWPipeName), "MEL", ApiBaseURL);
