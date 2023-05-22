@@ -8,14 +8,30 @@ rem   build.bat "publish_targets[0]=alpine.3.17-x64" "configuration=Debug"
 rem * To filter on multiple platforms:
 rem   build.bat "publish_targets[0]=alpine.3.17-x64 publish_targets[1]=win-x64"
 
-set ecopathdir=..\Ecopath6_netstandard
-if not exist "%ecopathdir%" (
-    echo Directory "%ecopathdir%" does not exist. Please checkout the svn repo: https://sources.ecopath.org/svn/Ecopath/branches/Ecopath6_netstandard to "%ecopathdir%"
+set ecopath_dir=..\Ecopath6_netstandard
+set ecopath_source_dir="%ecopath_dir%\Sources"
+if not exist "%ecopath_source_dir%" (
+    echo Directory "%ecopath_source_dir%" does not exist. Please checkout the svn repo: https://sources.ecopath.org/svn/Ecopath/branches/Ecopath6_netstandard to "%ecopath_dir%"
     exit /b 1
 )
-set ewemsplinkdir="%ecopathdir%\Sources\EwECustomPlugins\EwEMSPTools\EwEMSPLink"
-if not exist "%ewemsplinkdir%" (
-    echo Directory "%ewemsplinkdir%" does not exist.
+set ewecore_dir="%ecopath_source_dir%\EwECore"
+if not exist "%ewecore_dir%" (
+    echo Directory "%ewecore_dir%" does not exist.
+    exit /b 1
+)
+set eweutils_dir="%ecopath_source_dir%\EwEUtils"
+if not exist "%eweutils_dir%" (
+    echo Directory "%eweutils_dir%" does not exist.
+    exit /b 1
+)
+set eweplugin_dir="%ecopath_source_dir%\EwEPlugin"
+if not exist "%eweplugin_dir%" (
+    echo Directory "%eweplugin_dir%" does not exist.
+    exit /b 1
+)
+set ewemsplink_dir="%ecopath_source_dir%\EwECustomPlugins\EwEMSPTools\EwEMSPLink"
+if not exist "%ewemsplink_dir%" (
+    echo Directory "%ewemsplink_dir%" does not exist.
     exit /b 1
 )
 
@@ -48,17 +64,27 @@ echo using output path: %output_path%
 
 rmdir /q /s "%output_path%\%api_version%" > nul 2> nul
 
+rem prepare required dlls for MSW
 call :build MSWSupport
 copy /y MSWSupport\MSWSupport\bin\%configuration%\%donetversion%\MSWSupport.dll DLLs\
+rem prepare required dlls for SEL/REL
 call :build SELRELBridge
 copy /y SELRELBridge\SELRELBridge\bin\%configuration%\%donetversion%\SELRELBridge.dll DLLs\
+rem prepare required dlls for MEL
+call :build %ewemsplink_dir%
+copy /y %ewemsplink_dir%\bin\%configuration%\%donetversion%\EwEMSPLink.dll DLLs\
+copy /y %ewemsplink_dir%\bin\%configuration%\%donetversion%\EwECore.dll DLLs\
+copy /y %ewemsplink_dir%\bin\%configuration%\%donetversion%\EwEPlugin.dll DLLs\
+copy /y %ewemsplink_dir%\bin\%configuration%\%donetversion%\EwEUtils.dll DLLs\
+copy /y %ewemsplink_dir%\bin\%configuration%\%donetversion%\EwELicense.dll DLLs\
 
-call :build %ewemsplinkdir%
-copy /y %ewemsplinkdir%\bin\%configuration%\%donetversion%\EwEMSPLink.dll DLLs\
-copy /y %ewemsplinkdir%\bin\%configuration%\%donetversion%\EwECore.dll DLLs\
-copy /y %ewemsplinkdir%\bin\%configuration%\%donetversion%\EwEPlugin.dll DLLs\
-copy /y %ewemsplinkdir%\bin\%configuration%\%donetversion%\EwEUtils.dll DLLs\
-cd %ewemsplinkdir%
+cd %ewecore_dir%
+call :publish .
+cd %eweutils_dir%
+call :publish .
+cd %eweplugin_dir%
+call :publish .
+cd %ewemsplink_dir%
 call :publish .
 
 cd CEL

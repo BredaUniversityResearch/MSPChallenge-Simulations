@@ -10,19 +10,19 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Reference Include="EwECore, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <Reference Include="EwECore">
         <HintPath>..\..\DLLs\EwECore.dll</HintPath>
       </Reference>
-      <Reference Include="EwELicense, Version=6.7.0.18060, Culture=neutral, PublicKeyToken=09f10a09f343821c">
-        <HintPath>..\..\EwEShell\EwECore\Includes\EwELicense.dll</HintPath>
+      <Reference Include="EwELicense">
+        <HintPath>..\..\DLLs\EwELicense.dll</HintPath>
       </Reference>
       <Reference Include="EwEMSPLink">
         <HintPath>..\..\DLLs\EwEMSPLink.dll</HintPath>
       </Reference>
-      <Reference Include="EwEPlugin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <Reference Include="EwEPlugin">
         <HintPath>..\..\DLLs\EwEPlugin.dll</HintPath>
       </Reference>
-      <Reference Include="EwEUtils, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <Reference Include="EwEUtils">
         <HintPath>..\..\DLLs\EwEUtils.dll</HintPath>
       </Reference>
       <Reference Include="MSWSupport, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
