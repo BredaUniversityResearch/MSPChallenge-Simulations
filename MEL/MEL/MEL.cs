@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
-using EwEShell;
+using EwEMSPLink;
 using MSWSupport;
 using Newtonsoft.Json;
 
@@ -15,15 +15,15 @@ namespace MEL
 	/// MEL allows for the EwE simulation to be run within the MSP platform.
 	///
 	/// The purpose of this MEL class is to bootstrap EwE to the configured server.
-	/// After this is successfully done, it will request all the required information and perform a first step. 
+	/// After this is successfully done, it will request all the required information and perform a first step.
 	/// After the initial step MEL will periodically query the server through the API to see if it needs to perform another timestep
 	/// </summary>
-	/// 
+	///
 	public class MEL
 	{
 		public const int TICK_DELAY_MS = 100;   //in ms
 		private const int NEXT_RASTER_LOAD_WAITING_TIME_SEC = 10;
-		private const int MAX_RASTER_LOAD_ATTEMPTS = 6;
+		private const int MAX_RASTER_LOAD_ATTEMPTS = 20;
 
 		private static string ApiBaseURL = "http://localhost/1/"; //Default to localhost.
 
@@ -46,7 +46,7 @@ namespace MEL
 
 		private List<Task> backgroundTasks = new List<Task>();
 
-		private cEwEShell shell;
+		private cEwEMSPLink shell;
 		private List<cPressure> pressures = new List<cPressure>();
 		private List<cPressure> cfishingpressures = new List<cPressure>();
 		public List<cGrid> outputs = new List<cGrid>();
@@ -68,15 +68,17 @@ namespace MEL
 			}
 			else
 			{
-				Console.WriteLine("No commandline argument found for APIEndpoint. Using default value {0}", ApiBaseURL);
+				Console.WriteLine("No commandline argument found for APIEndpoint. Using default value {0}",
+					ApiBaseURL);
 			}
 
 			ApiConnector = new ApiMspServer(ApiBaseURL);
 			//ApiConnector = new ApiDebugLocalFiles("BS_Basic");
 
-			shell = new cEwEShell();
+			shell = new cEwEMSPLink();
 
-			tokenHandler = new APITokenHandler(ApiConnector, CommandLineArguments.GetOptionValue(CommandLineArguments.MSWPipeName), "MEL", ApiBaseURL);
+			tokenHandler = new APITokenHandler(ApiConnector,
+				CommandLineArguments.GetOptionValue(CommandLineArguments.MSWPipeName), "MEL", ApiBaseURL);
 
 			WaitForAPIAccess();
 
@@ -99,7 +101,8 @@ namespace MEL
 				{
 					break;
 				}
-				Console.WriteLine("Found unloaded pressure layers, retrying in {0} sec, attempt: {1} of {2}", NEXT_RASTER_LOAD_WAITING_TIME_SEC, attempt, MAX_RASTER_LOAD_ATTEMPTS);
+				Console.WriteLine("Found unloaded pressure layers, retrying in {0} sec, attempt: {1} of {2}",
+					NEXT_RASTER_LOAD_WAITING_TIME_SEC, attempt, MAX_RASTER_LOAD_ATTEMPTS);
 				Thread.Sleep(TimeSpan.FromSeconds(NEXT_RASTER_LOAD_WAITING_TIME_SEC));
 				++attempt;
 			}
@@ -125,7 +128,8 @@ namespace MEL
 				ApiConnector.SetInitialFishingValues(initialFishingValues);
 
 				// Dump game version for testing purposes
-				Console.WriteLine("Loaded EwE model '{0}', {1}, {2}", shell.CurrentGame.Version, shell.CurrentGame.Author, shell.CurrentGame.Contact);
+				Console.WriteLine("Loaded EwE model '{0}', {1}, {2}", shell.CurrentGame.Version,
+					shell.CurrentGame.Author, shell.CurrentGame.Contact);
 
 				//eweshell initialised fine
 				shell.Startup();
@@ -179,7 +183,7 @@ namespace MEL
 						if (rasterizedLayer == null)
 						{
 							rasterizedLayer = new RasterizedLayer(layerData);
-							layers.Add(rasterizedLayer);							
+							layers.Add(rasterizedLayer);
 						}
 						pressureLayers[pressure.name].Add(rasterizedLayer, layerData.influence);
 					}

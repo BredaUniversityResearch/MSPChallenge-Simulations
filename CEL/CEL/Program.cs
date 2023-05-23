@@ -9,7 +9,7 @@ class Program
 
     static void Main(string[] args)
     {
-		Console.WriteLine("Starting CEL");
+        Console.WriteLine("Starting CEL");
         EnergyDistribution distribution = new EnergyDistribution();
         while (true)
         {

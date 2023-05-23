@@ -76,3 +76,8 @@ crashlytics-build.properties
 # PHPStorm project
 .idea
 
+# output of build/publish
+DLLs/MSWSupport.dll
+DLLs/SELRELBridge.dll
+DLLs/EwE*.dll
+output/

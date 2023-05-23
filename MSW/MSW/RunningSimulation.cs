@@ -25,9 +25,9 @@ namespace MSW
 		{
 			m_pipeName = $"MSW_Pipe_{a_config.SimulationType}_${Guid.NewGuid()}";
 			m_communicationPipeServer = new NamedPipeServerStream(m_pipeName, PipeDirection.Out);
-			
+
 			m_simulationVersion = a_config;
-			m_targetApiEndpoint = a_apiEndpoint; 
+			m_targetApiEndpoint = a_apiEndpoint;
 			m_currentApiAccessToken = a_currentApiAccessToken;
 			StartSimulation();
 		}

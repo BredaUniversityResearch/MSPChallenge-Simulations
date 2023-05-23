@@ -47,7 +47,7 @@ namespace REL
 			byte[] colourBits = new byte[stride * m_height];
 			GCHandle colourBitsHandle = GCHandle.Alloc(colourBits, GCHandleType.Pinned);
 
-			using (Bitmap image = new Bitmap(m_width, m_height, stride, PixelFormat.Format8bppIndexed, colourBitsHandle.AddrOfPinnedObject()))
+			using (Bitmap image = new(m_width, m_height, stride, PixelFormat.Format8bppIndexed, colourBitsHandle.AddrOfPinnedObject()))
 			{
 				//Build a grayscale colour palette.
 				ColorPalette palette = image.Palette;
@@ -68,7 +68,7 @@ namespace REL
 					}
 				}
 
-				
+
 				image.Save(a_targetStream, ImageFormat.Png);
 			}
 
