@@ -115,7 +115,7 @@ if not exist "%1" (
     goto eof
 )
 cd "%1"
-dotnet build -c %configuration%
+dotnet build -c %configuration% -f %donetversion%
 cd "%cwd%"
 exit /b 0
 
