@@ -774,7 +774,7 @@
   <Table Name="EcopathGroupSample" Columns="BiomAcc:System.Single,BiomAccRate:System.Single,Biomass:System.Single,ConsBiom:System.Single,EcoEfficiency:System.Single,GroupID:System.Int64,ImpVar:System.Single,ProdBiom:System.Single,SampleID:System.Int64" Num="0" />
   <Table Name="EcopathGroupTaxon" Columns="EcopathGroupID:System.Int64,PropCatch:System.Single,Proportion:System.Single,TaxonID:System.Int64" Num="0" />
   <Table Name="EcopathModel" Columns="Area:System.Single,Author:System.String,CodeEcobase:System.String,Contact:System.String,Country:System.String,Description:System.String,EcosystemType:System.String,FirstYear:System.Int64,GroupDigits:System.Byte,LastSaved:System.Single,LastSavedVersion:System.String,MaxLat:System.Single,MaxLon:System.Single,MinLat:System.Single,MinLon:System.Single,ModelID:System.Int64,MonetaryUnit:System.String,Name:System.String,NumDigits:System.Int32,NumYears:System.Single,PublicationDOI:System.String,PublicationRef:System.String,PublicationURI:System.String,UnitCurrency:System.Int64,UnitCurrencyCustom:System.String,UnitMonetary:System.String,UnitTime:System.Int64,UnitTimeCustom:System.String" Num="28">
-    <Row>570000,Giovanni Romagnoni,,giovanni.romagnoni@ibv.uio.no,,Simplified North Sea model based on Mackinson and Daskalov 2007 and ICES WGSAM 2015 Keyrun. 
+    <Row>570000,Giovanni Romagnoni,,giovanni.romagnoni@ibv.uio.no,,Simplified North Sea model based on Mackinson and Daskalov 2007 and ICES WGSAM 2015 Keyrun.
 Ecospace based on Romagnoni et al 2015.
 This version: deleted multistanzas. Ecosim: Pretty fit,,1991,0,43152.44,6.6.15161.0,0,0,0,0,1,,North Sea model for MSP,3,23,,,,5,,1,1,</Row>
   </Table>
