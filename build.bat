@@ -66,37 +66,74 @@ rmdir /q /s "%output_path%\%api_version%" > nul 2> nul
 
 rem prepare required dlls for MSW
 call :build MSWSupport
+IF %ERRORLEVEL% NEQ 0 (
+    exit /b %ERRORLEVEL%
+)
 copy /y MSWSupport\MSWSupport\bin\%configuration%\%donetversion%\MSWSupport.dll DLLs\
 rem prepare required dlls for SEL/REL
 call :build SELRELBridge
+IF %ERRORLEVEL% NEQ 0 (
+    exit /b %ERRORLEVEL%
+)
 copy /y SELRELBridge\SELRELBridge\bin\%configuration%\%donetversion%\SELRELBridge.dll DLLs\
-rem prepare required dlls for MEL
+rem build referenced dlls, in right order
+call :build %eweutils_dir%
+call :build %eweplugin_dir%
+call :build %ewecore_dir%
 call :build %ewemsplink_dir%
+rem prepare required dlls for MEL
 copy /y %ewemsplink_dir%\bin\%configuration%\%donetversion%\EwEMSPLink.dll DLLs\
-copy /y %ewemsplink_dir%\bin\%configuration%\%donetversion%\EwECore.dll DLLs\
-copy /y %ewemsplink_dir%\bin\%configuration%\%donetversion%\EwEPlugin.dll DLLs\
-copy /y %ewemsplink_dir%\bin\%configuration%\%donetversion%\EwEUtils.dll DLLs\
 copy /y %ewemsplink_dir%\bin\%configuration%\%donetversion%\EwELicense.dll DLLs\
+copy /y %ewecore_dir%\bin\%configuration%\%donetversion%\EwECore.dll DLLs\
+copy /y %eweplugin_dir%\bin\%configuration%\%donetversion%\EwEPlugin.dll DLLs\
+copy /y %eweutils_dir%\bin\%configuration%\%donetversion%\EwEUtils.dll DLLs\
 
 cd %ewecore_dir%
 call :publish .
+IF %ERRORLEVEL% NEQ 0 (
+    exit /b %ERRORLEVEL%
+)
 cd %eweutils_dir%
 call :publish .
+IF %ERRORLEVEL% NEQ 0 (
+    exit /b %ERRORLEVEL%
+)
 cd %eweplugin_dir%
 call :publish .
+IF %ERRORLEVEL% NEQ 0 (
+    exit /b %ERRORLEVEL%
+)
 cd %ewemsplink_dir%
 call :publish .
+IF %ERRORLEVEL% NEQ 0 (
+    exit /b %ERRORLEVEL%
+)
 
 cd CEL
 call :publish CEL
+IF %ERRORLEVEL% NEQ 0 (
+    exit /b %ERRORLEVEL%
+)
 cd MEL
 call :publish MEL
+IF %ERRORLEVEL% NEQ 0 (
+    exit /b %ERRORLEVEL%
+)
 cd REL
 call :publish REL
+IF %ERRORLEVEL% NEQ 0 (
+    exit /b %ERRORLEVEL%
+)
 cd SEL
 call :publish SEL
+IF %ERRORLEVEL% NEQ 0 (
+    exit /b %ERRORLEVEL%
+)
 cd MSW
 call :publish MSW
+IF %ERRORLEVEL% NEQ 0 (
+    exit /b %ERRORLEVEL%
+)
 
 :eof
 cd "%cwd%"
@@ -116,6 +153,9 @@ if not exist "%1" (
 )
 cd "%1"
 dotnet build -c %configuration% -f %donetversion%
+IF %ERRORLEVEL% NEQ 0 (
+    exit /b %ERRORLEVEL%
+)
 cd "%cwd%"
 exit /b 0
 
@@ -126,12 +166,18 @@ if not exist "%1" (
     goto eof
 )
 call :publish_targets_loop_start %1 %2
+IF %ERRORLEVEL% NEQ 0 (
+    exit /b %ERRORLEVEL%
+)
 cd "%cwd%"
 exit /b 0
 
 :publish_targets_loop_start
 set "x=0"
 call :publish_targets_loop %1 %2
+IF %ERRORLEVEL% NEQ 0 (
+    exit /b %ERRORLEVEL%
+)
 exit /b 0
 
 :publish_targets_loop
@@ -140,6 +186,9 @@ if not defined publish_targets[%x%] exit /b 0
 call set target=%%publish_targets[%x%]%%
 echo Publishing %target%...
 dotnet publish -c %configuration% -r %target% -f %donetversion% --self-contained
+IF %ERRORLEVEL% NEQ 0 (
+    exit /b %ERRORLEVEL%
+)
 if "%publish_targets[1]%" == "" (
     set target_dir=%output_path%\%api_version%\
 ) else (
