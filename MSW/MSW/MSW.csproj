@@ -11,12 +11,10 @@
       <Reference Include="MSWSupport, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
         <HintPath>..\..\DLLs\MSWSupport.dll</HintPath>
       </Reference>
-      <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
-        <HintPath>..\..\DLLs\Newtonsoft.Json.dll</HintPath>
-      </Reference>
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
       <PackageReference Include="System.Security.Permissions" Version="5.0.0" />
     </ItemGroup>
 

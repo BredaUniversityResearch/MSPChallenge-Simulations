@@ -12,9 +12,6 @@
       <Reference Include="MSWSupport, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
         <HintPath>..\..\DLLs\MSWSupport.dll</HintPath>
       </Reference>
-      <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
-        <HintPath>..\..\DLLs\Newtonsoft.Json.dll</HintPath>
-      </Reference>
       <Reference Include="Poly2Tri, Version=1.0.1.0, Culture=neutral, PublicKeyToken=null">
         <HintPath>..\..\DLLs\Poly2Tri.dll</HintPath>
       </Reference>
@@ -24,6 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
       <PackageReference Include="System.Security.Permissions" Version="5.0.0" />
     </ItemGroup>
 
@@ -31,6 +29,10 @@
       <None Update="SEL_config.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ReferencePathWithRefAssemblies Update="C:\Users\marin\.nuget\packages\newtonsoft.json\13.0.3\lib\net6.0\Newtonsoft.Json.dll" />
     </ItemGroup>
 
 </Project>
