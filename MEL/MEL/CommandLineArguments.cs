@@ -9,6 +9,7 @@ public static class CommandLineArguments
 {
 	public const string APIEndpoint = "APIEndpoint";
 	public const string MSWPipeName = "MSWPipe";
+	public const string EWEDumpEnabled = "EWEDumpEnabled";
 
 	private static HashSet<string> ms_ValueOptions = new HashSet<string>(); //The options that should have a value associated with them
 	private static Dictionary<string, string> ms_OptionValueTable = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
@@ -17,6 +18,7 @@ public static class CommandLineArguments
 	{
 		ms_ValueOptions.Add(APIEndpoint);
 		ms_ValueOptions.Add(MSWPipeName);
+		ms_ValueOptions.Add(EWEDumpEnabled);
 
 		ParseCommandLine(ms_OptionValueTable);
 	}

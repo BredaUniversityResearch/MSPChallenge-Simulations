@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using EwEMSPLink;
@@ -53,6 +54,9 @@ namespace MEL
 
 		private APITokenHandler tokenHandler;
 
+		private string dumpDir;
+		private UInt32 nextDumpNo = 1;
+
 		public IApiConnector ApiConnector
 		{
 			get;
@@ -61,6 +65,19 @@ namespace MEL
 
 		public MEL()
 		{
+			/* Create a ConsoleTraceListener and add it to the trace listeners. */
+			var myWriter = new ConsoleTraceListener();
+			Trace.Listeners.Add(myWriter); // this will output all writes to "Debug."
+
+			string? eweDumpEnabledEnvVar = Environment.GetEnvironmentVariable("MSP_MEL_EWE_DUMP_ENABLED");
+			if ((CommandLineArguments.HasOptionValue("EWEDumpEnabled") && CommandLineArguments.GetOptionValue("EWEDumpEnabled") == "1") ||
+				(eweDumpEnabledEnvVar is "1"))
+			{
+				DateTime currentDateTime = DateTime.Now;
+				dumpDir = Directory.GetCurrentDirectory() + "\\mel-ewe-dump\\" + currentDateTime.ToString("yyyyMMddHHmmss") + "\\";
+				Directory.CreateDirectory(dumpDir);
+			}
+
 			if (CommandLineArguments.HasOptionValue("APIEndpoint"))
 			{
 				ApiBaseURL = CommandLineArguments.GetOptionValue("APIEndpoint");
@@ -275,6 +292,13 @@ namespace MEL
 
 			//Start EwE tick
 			shell.Tick(pressures, outputs);
+			if (dumpDir != null)
+			{
+				DateTime currentDateTime = DateTime.Now;
+				File.WriteAllText(dumpDir + currentDateTime.ToString("yyyyMMddHHmmss") + "pressures" + nextDumpNo + ".log", JsonConvert.SerializeObject(pressures));
+				File.WriteAllText(dumpDir + currentDateTime.ToString("yyyyMMddHHmmss") + "outputs" + nextDumpNo + ".log", JsonConvert.SerializeObject(outputs));
+				nextDumpNo++;
+			}
 
 			StoreTick();
 			SubmitCurrentKPIValues(lastupdatedmonth);
