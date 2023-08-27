@@ -1,12 +1,15 @@
 @echo off
-rem examples:
-rem * Just call build.bat to output to subdir .\ouput for all platforms and Release
-rem * To change the output path (Can be a relative starting with .. or a full path):
-rem   build.bat "output_path=..\MSPChallenge-Server\simulations"
-rem * To build with the Debug configuration and only for platform alpine:
-rem   build.bat "publish_targets[0]=alpine.3.17-x64" "configuration=Debug"
-rem * To filter on multiple platforms:
-rem   build.bat "publish_targets[0]=alpine.3.17-x64 publish_targets[1]=win-x64"
+echo Example usage:
+echo * Just call build.bat to output to subdir .\ouput for all platforms and Release
+echo * To change the output path (Can be a relative starting with .. or a full path):
+echo   build.bat "output_path=..\MSPChallenge-Server\simulations"
+echo * To build with the Debug configuration and only for platform alpine:
+echo   build.bat "publish_targets[0]=alpine.3.17-x64" "configuration=Debug"
+echo * To filter on multiple platforms:
+echo   build.bat "publish_targets[0]=alpine.3.17-x64 publish_targets[1]=win-x64"
+echo * To skip the Start? confirmation:
+echo   build.bat "start=Y"
+echo.
 
 set ecopath_dir=..\Ecopath6_netstandard
 set ecopath_source_dir="%ecopath_dir%\Sources"
@@ -59,8 +62,14 @@ if "%output_path%" == "" (
 if "%output_path:~0,2%" == ".." (
     set output_path=%cwd%\%output_path%
 )
-
-echo using output path: %output_path%
+echo Using output path: %output_path%
+echo Start? (Y/N)
+if /i "%start%" neq "Y" (
+    >nul choice /c YN /n
+    if errorlevel 2 (
+        exit /b 0
+    )
+)
 
 rmdir /q /s "%output_path%\%api_version%" > nul 2> nul
 
