@@ -43,6 +43,12 @@
       <None Update="Baltic sea model for MSP.eiixml">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+      <None Update="EasternMed Sea model 5km.eiixml">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="EasternMed Sea model 10km.eiixml">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
