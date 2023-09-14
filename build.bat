@@ -49,7 +49,7 @@ if "%configuration%" == "" (
     set configuration=Release
 )
 if "%api_version%" == "" (
-    set api_version=v1
+    set api_version=1.0.0
 )
 if "%publish_targets[0]%" == "" (
     set publish_targets[0]=alpine.3.17-x64
@@ -199,13 +199,14 @@ IF %ERRORLEVEL% NEQ 0 (
     exit /b %ERRORLEVEL%
 )
 if "%publish_targets[1]%" == "" (
-    set target_dir=%output_path%\%api_version%\
+    set target_dir=%output_path%\
 ) else (
-    set target_dir=%output_path%\%api_version%\%target%\
+    set target_dir=%output_path%\%target%\
 )
 mkdir %target_dir% > nul 2> nul
 echo %cd%
 echo copy /y %1\bin\%configuration%\%donetversion%\%target%\publish\* %target_dir%
 copy /y %1\bin\%configuration%\%donetversion%\%target%\publish\* %target_dir%
+echo %api_version% > %target_dir%\version.txt
 SET /a "x+=1"
 goto :publish_targets_loop
