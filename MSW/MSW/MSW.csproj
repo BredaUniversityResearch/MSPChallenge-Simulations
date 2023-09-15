@@ -19,10 +19,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="MSW_config.json">
+      <None Update="MSWdata\MSW_config.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
-      <None Update="MSW_config.win.json">
+      <None Update="MSWdata\MSW_config.win.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
     </ItemGroup>

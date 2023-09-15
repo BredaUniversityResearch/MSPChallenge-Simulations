@@ -71,8 +71,6 @@ if /i "%start%" neq "Y" (
     )
 )
 
-rmdir /q /s "%output_path%\%api_version%" > nul 2> nul
-
 rem prepare required dlls for MSW
 call :build MSWSupport
 IF %ERRORLEVEL% NEQ 0 (
@@ -207,6 +205,10 @@ mkdir %target_dir% > nul 2> nul
 echo %cd%
 echo copy /y %1\bin\%configuration%\%donetversion%\%target%\publish\* %target_dir%
 copy /y %1\bin\%configuration%\%donetversion%\%target%\publish\* %target_dir%
-echo %api_version% > %target_dir%\version.txt
+if "%1%" NEQ "." (
+    mkdir %target_dir%\%1%data > nul 2> nul
+    copy /y %1\bin\%configuration%\%donetversion%\%target%\publish\%1data\* %target_dir%%1%data
+    echo %api_version% > %target_dir%\%1%data\version.txt
+)
 SET /a "x+=1"
 goto :publish_targets_loop
