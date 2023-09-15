@@ -31,22 +31,22 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="North Sea model for MSP.eiixml">
+      <None Update="MELdata\North Sea model for MSP.eiixml">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
-      <None Update="North Sea model for MSP DT copy.eiixml">
+      <None Update="MELdata\North Sea model for MSP DT copy.eiixml">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
-      <None Update="Clyde model for MSP.eiixml">
+      <None Update="MELdata\Clyde model for MSP.eiixml">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
-      <None Update="Baltic sea model for MSP.eiixml">
+      <None Update="MELdata\Baltic sea model for MSP.eiixml">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
-      <None Update="EasternMed Sea model 5km.eiixml">
+      <None Update="MELdata\EasternMed Sea model 5km.eiixml">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
-      <None Update="EasternMed Sea model 10km.eiixml">
+      <None Update="MELdata\EasternMed Sea model 10km.eiixml">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
     </ItemGroup>
