@@ -24,8 +24,12 @@ namespace SEL.API
 
 		public bool CheckApiAccess()
 		{
-			HttpGet("/api/Security/CheckAccess", null, out APIAccessResult result);
-			return result != null && result.status != APIAccessResult.EResult.Expired;
+			if (HttpGet("/api/game/IsOnline", null, out string result))
+			{
+				return result == "online";
+			}
+
+			return false;
 		}
 
 		public APISELRegionSettings GetSELRegionSettings()

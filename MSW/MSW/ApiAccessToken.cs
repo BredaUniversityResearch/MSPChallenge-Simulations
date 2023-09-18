@@ -6,13 +6,18 @@ namespace MSW
 	public class ApiAccessToken
 	{
 		[JsonProperty]
-		private readonly long token = 0;
+		private string token = "";
 		[JsonProperty]
-		private readonly DateTime valid_until = new DateTime(0);
+		private DateTime valid_until = new DateTime(0);
 
 		public string GetTokenAsString()
 		{
-			return token.ToString();
+			return token;
+		}
+		
+		public void SetToken(string a_token)
+		{
+			token = a_token;
 		}
 	};
 }

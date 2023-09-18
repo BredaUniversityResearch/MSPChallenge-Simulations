@@ -198,7 +198,7 @@ exit /b 0
 if not defined publish_targets[%x%] exit /b 0
 
 call set target=%%publish_targets[%x%]%%
-set target_dir=%output_path%%target%
+set target_dir=%output_path%\%target%
 set source_dir=%1\bin\%configuration%\%donetversion%\%target%\publish
 set target_data_dir=%target_dir%\%1data
 set source_data_dir=%source_dir%\%1data
@@ -245,7 +245,7 @@ exit /b 0
 
 if not defined publish_targets[%x%] exit /b 0
 call set target=%%publish_targets[%x%]%%
-set target_dir=%output_path%%target%\
+set target_dir=%output_path%\%target%\
 echo Removing: %target_dir%
 rmdir /q /s "%target_dir%" > nul 2> nul
 SET /a "x+=1"
@@ -273,7 +273,7 @@ exit /b 0
 
 if not defined publish_targets[%x%] exit /b 0
 call set target=%%publish_targets[%x%]%%
-set target_dir=%output_path%%target%\
+set target_dir=%output_path%\%target%\
 echo %target_dir%
 SET /a "x+=1"
 goto :show_output_targets_loop
