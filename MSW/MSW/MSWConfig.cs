@@ -28,7 +28,7 @@ namespace MSW
 		private MswConfig()
 		{
 			var configFilename = Environment.OSVersion.ToString().StartsWith("Microsoft Windows") ?
-				"MSW_config.win.json" : "MSW_config.json";
+				"MSWdata/MSW_config.win.json" : "MSWdata/MSW_config.json";
 			string configString = File.ReadAllText(configFilename, Encoding.UTF8);
 			m_settings = JsonConvert.DeserializeObject<JsonData>(configString);
 		}

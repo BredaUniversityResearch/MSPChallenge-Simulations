@@ -29,11 +29,18 @@ firewallPolicy.Rules.Add(firewallRule);*/
 			try
 			{
 				Console.WriteLine("Starting MSP2050 Simulation Watchdog...");
-
-				Watchdog watchdog = new Watchdog(int.Parse(CommandLineArgumentsManager.Instance.AutoFill(
-					CommandLineArgumentsManager.CommandLineArgumentName.Port, 
-					RestApiController.DEFAULT_PORT.ToString()
-				)));
+				Watchdog watchdog;
+				try {
+					watchdog = new Watchdog(int.Parse(CommandLineArgumentsManager.Instance.AutoFill(
+						CommandLineArgumentsManager.CommandLineArgumentName.Port, 
+						RestApiController.DEFAULT_PORT.ToString()
+					)));
+				}
+				catch (Exception e)
+				{
+					Console.WriteLine(e);
+					throw;
+				}
 				Stopwatch localTickStopwatch = new Stopwatch();
 				Console.WriteLine("Watchdog started successfully, waiting for requests...");
 
