@@ -52,9 +52,9 @@ namespace MEL
 
 		public bool CheckAPIAccess()
 		{
-			if (HttpGet("/api/security/checkaccess", out APIAccessResult result))
+			if (HttpGet("/api/game/IsOnline", out string result))
 			{
-				return result.status != APIAccessResult.EResult.Expired;
+				return result == "online";
 			}
 
 			return false;

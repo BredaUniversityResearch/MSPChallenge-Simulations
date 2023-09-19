@@ -7,7 +7,7 @@ namespace MSW
 {
 	public class AvailableSimulation
 	{
-		public const string LatestVersionName = "Latest";
+		public const string LatestVersionName = "1.0.0";
 
 		private class SimulationVersion
 		{
@@ -28,39 +28,28 @@ namespace MSW
 
 		private void DiscoverAvailableVersions()
 		{
-			string versionFolderPattern = "[VERSION_FOLDER]";
-			string relativeExePath = m_config.RelativeExePath;
-			int basePathLength = relativeExePath.IndexOf(versionFolderPattern, StringComparison.InvariantCulture);
-			if (basePathLength == -1)
+			string version = LatestVersionName;
+			string versionFile = m_config.SimulationName + @"data\version.txt";
+			if (File.Exists(versionFile))
 			{
-				ConsoleLogger.Warning("relative_exe_path should be be configured with a " + versionFolderPattern + " expression. Current path is defined as " + 
-				                      m_config.RelativeExePath + " for simulation with name " + m_config.SimulationName);
-				ConsoleLogger.Warning("Using this as a single version registration for specified simulation");
-				m_availableVersions.Add(new SimulationVersion {ExePath = relativeExePath, Version = "AutoRegisteredVersion"});
+				string contents = File.ReadAllText(versionFile);
+				Regex reVersion = new Regex("([0-9.]+)");
+				Match reVersionMatch = reVersion.Match(contents);
+				if (reVersionMatch.Success)
+				{
+					version = reVersionMatch.Value;
+				}
+				else
+				{
+					ConsoleLogger.Warning(m_config.SimulationName + @"data\version.txt file found, but version in it seems to be of wrong format. Make sure it's something like 1.0.0");
+				}
 			}
 			else
 			{
-
-				DirectoryInfo baseDirectoryInfo = new DirectoryInfo(relativeExePath.Substring(0, basePathLength));
-				foreach (DirectoryInfo directory in baseDirectoryInfo.EnumerateDirectories())
-				{
-					Regex re = new Regex("^[vV]([0-9.]+)");
-					if (re.IsMatch(directory.Name))
-					{
-						ConsoleLogger.Info("Registered simulation \"" + SimulationType + "\" version \"" +
-						                  directory.Name + "\"");
-						string executable = relativeExePath.Substring(basePathLength + versionFolderPattern.Length + 1);
-						m_availableVersions.Add(new SimulationVersion
-							{ExePath = Path.Combine(directory.FullName, executable), Version = directory.Name});
-					}
-					else
-					{
-						ConsoleLogger.Warning("Found directory with name \"" + directory.Name +
-						                  "\" which does not adhere to the simulation version format ( \"v[0-9.]+\" ) in folder \"" +
-						                  baseDirectoryInfo.FullName + "\". Skipping");
-					}
-				}
+				ConsoleLogger.Warning(m_config.SimulationName + @"data\version.txt file not found, so no version could be determined.");
 			}
+			ConsoleLogger.Info("Registering " + m_config.SimulationName + " version " + version);
+			m_availableVersions.Add(new SimulationVersion {ExePath = m_config.RelativeExePath, Version = version});
 
 			VerifyVersionConfigurations();
 		}

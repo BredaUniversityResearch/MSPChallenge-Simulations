@@ -65,7 +65,7 @@ namespace MSWSupport
 		private static bool Perform(string serverUrl, string apiUrl, string currentAccessToken,
 			NameValueCollection postValues, out JToken responsePayload)
 		{
-			string fullServerUrl = $"{serverUrl}/{apiUrl}";
+			string fullServerUrl = $"{serverUrl}{apiUrl}";
 			if (postValues == null) postValues = new NameValueCollection();
 			string response = null;
 			try
@@ -116,7 +116,7 @@ namespace MSWSupport
 		private static string HttpGet(string fullApiUrl, string currentAccessToken, NameValueCollection values)
 		{
 			WebClient webclient = new WebClient();
-			webclient.Headers.Add(MSWConstants.APITokenHeader, currentAccessToken);
+			webclient.Headers.Add(MSWConstants.APITokenHeader, "Bearer " + currentAccessToken);
 			byte[] response = webclient.UploadValues(fullApiUrl, values);
 
 			return System.Text.Encoding.UTF8.GetString(response);
