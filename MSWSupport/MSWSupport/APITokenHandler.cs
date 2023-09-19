@@ -53,12 +53,11 @@ namespace MSWSupport
 
 		public bool CheckApiAccessWithLatestReceivedToken()
 		{
-			if (APIRequest.Perform(m_targetServer, "/api/Security/CheckAccess", m_currentToken, null,
-				out APIAccessResult result))
+			if (APIRequest.Perform(m_targetServer, "/api/game/IsOnline", m_currentToken, null,
+				    out string result))
 			{
-				return result.status != APIAccessResult.EResult.Expired;
+				return result == "online";
 			}
-
 			return false;
 		}
 
@@ -80,7 +79,7 @@ namespace MSWSupport
 						if (line != null && line.StartsWith(TokenPrelude))
 						{
 							m_currentToken = line.Substring(line.IndexOf('=') + 1);
-							Console.WriteLine("MSWPipe | Received new API token " + m_currentToken);
+							Console.WriteLine("MSWPipe | Received new API token " + m_currentToken.Substring(0, 10) + "...");
 							m_tokenReceiver.UpdateAccessToken(m_currentToken);
 						}
 					} while (!reader.EndOfStream);

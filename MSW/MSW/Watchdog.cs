@@ -15,7 +15,7 @@ namespace MSW
 	{
 		private class ServerData
 		{
-			private const long TokenCheckIntervalSec = 5;
+			private const long TokenCheckIntervalSec = 900;
 
 			public readonly string ServerApiRoot;
 			public readonly string ServerWatchdogToken;
@@ -23,7 +23,7 @@ namespace MSW
 			public List<RunningSimulation> RunningSimulations = new List<RunningSimulation>();
 
 			private ApiAccessToken m_currentAccessToken;
-			private readonly ApiAccessToken m_recoveryToken;
+			private ApiAccessToken m_recoveryToken;
 			private Task m_checkTokenTask = null;
 			private DateTime m_lastTokenCheckTime;
 
@@ -115,69 +115,41 @@ namespace MSW
 				foreach (RunningSimulation simulation in RunningSimulations)
 				{
 					simulation.PingCommunicationPipe();
-				}
-
-				if (APIRequest.Perform(ServerApiRoot, "/api/security/CheckAccess",
-					m_currentAccessToken.GetTokenAsString(), null, out ApiAccessTokenCheckAccessResponse response))
-				{
-					if (response.status == ApiAccessTokenCheckAccessResponse.EResponse.UpForRenewal)
-					{
-						RenewToken(false);
-					}
-					else if (response.status == ApiAccessTokenCheckAccessResponse.EResponse.Expired)
-					{
-						RenewToken(true);
-					}
-				}
+				} 
+				RenewToken();
 			}
 
-			private void RenewToken(bool a_useRecoveryToken)
+			private void RenewToken()
 			{
 				Console.WriteLine("Requesting new access token from server {0}.", ServerApiRoot);
 
 				string tokenToUse = m_currentAccessToken.GetTokenAsString();
 				NameValueCollection postValues = new NameValueCollection(1);
-				if (a_useRecoveryToken)
-				{
-					postValues.Add("expired_token", m_currentAccessToken.GetTokenAsString());
-					tokenToUse = m_recoveryToken.GetTokenAsString();
-				}
+				postValues.Add("api_refresh_token", m_recoveryToken.GetTokenAsString());
+				tokenToUse = m_currentAccessToken.GetTokenAsString();
 
-				bool callSuccess = APIRequest.Perform(ServerApiRoot, "/api/security/RequestToken",
+				bool callSuccess = APIRequest.Perform(ServerApiRoot, "api/User/RequestToken",
 					tokenToUse, postValues,
-					out ApiAccessToken response);
+					out ApiUserRequestTokenResponse response);
 				if (callSuccess == false)
 				{
-					ConsoleLogger.Info("Request to get new token failed. Checking if server has been recreated...");
-					if (!CheckIfTargetServerWatchdogTokenMatches())
-					{
-						ConsoleLogger.Info(
-							$"Watchdog token no longer matches for server {ServerApiRoot}. Server is probably recreated, so stopping all simulations...");
-						CurrentState = EGameState.End;
-					}
+					ConsoleLogger.Info("Request to get new token failed...");
 				}
 				else
 				{
-					m_currentAccessToken = response;
+					m_currentAccessToken.SetToken(response.api_access_token);
 
 					foreach (RunningSimulation sim in RunningSimulations)
 					{
 						sim.SetApiAccessToken(m_currentAccessToken);
 					}
-
 					Console.WriteLine($"Successfully updated access token for server {ServerApiRoot}");
+					
+					m_recoveryToken.SetToken(response.api_refresh_token);
+					Console.WriteLine($"Successfully updated refresh token for server {ServerApiRoot}");
 				}
 
 				m_checkTokenTask = null;
-			}
-
-			private bool CheckIfTargetServerWatchdogTokenMatches()
-			{
-				if (APIRequest.Perform(ServerApiRoot, "/api/simulations/GetWatchdogTokenForServer", m_currentAccessToken.GetTokenAsString(), null, out ApiWatchdogTokenResponse response))
-				{
-					return response.watchdog_token == ServerWatchdogToken;
-				}
-				return false;
 			}
 		}
 

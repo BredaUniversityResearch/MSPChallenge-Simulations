@@ -3,8 +3,9 @@
 namespace MSW
 {
 	[SuppressMessage("ReSharper", "UnusedMember.Global")]
-	class ApiWatchdogTokenResponse
+	class ApiUserRequestTokenResponse
 	{
-		public string watchdog_token = null;
+		public string api_access_token = null;
+		public string api_refresh_token = null;
 	}
 }

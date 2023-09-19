@@ -105,9 +105,9 @@ class EnergyDistribution : ITokenReceiver
 
 	private bool CheckAPIAccess()
 	{
-		APIRequest.Perform(CELConfig.Instance.APIRoot, "/api/security/checkaccess", currentApiAccessToken, null,
-			out APIAccessResult result);
-		return (result != null && result.status != APIAccessResult.EResult.Expired);
+		APIRequest.Perform(CELConfig.Instance.APIRoot, "/api/game/IsOnline", currentApiAccessToken, null,
+			out string result);
+		return (result == "online");
 	}
 
 	bool LoadData()
