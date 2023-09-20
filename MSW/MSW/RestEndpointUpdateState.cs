@@ -13,6 +13,7 @@ namespace MSW
 		Setup,
 		Play,
 		Simulation,
+		Fastforward,
 		Pause,
 		End
 	}
