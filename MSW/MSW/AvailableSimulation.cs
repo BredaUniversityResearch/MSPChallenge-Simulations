@@ -29,7 +29,8 @@ namespace MSW
 		private void DiscoverAvailableVersions()
 		{
 			string version = LatestVersionName;
-			string versionFile = m_config.SimulationName + @"data\version.txt";
+			var separator = Path.DirectorySeparatorChar;
+			string versionFile = m_config.SimulationName + $"data{separator}version.txt";
 			if (File.Exists(versionFile))
 			{
 				string contents = File.ReadAllText(versionFile);
@@ -41,12 +42,12 @@ namespace MSW
 				}
 				else
 				{
-					ConsoleLogger.Warning(m_config.SimulationName + @"data\version.txt file found, but version in it seems to be of wrong format. Make sure it's something like 1.0.0");
+					ConsoleLogger.Warning(m_config.SimulationName + "data/version.txt file found, but version in it seems to be of wrong format. Make sure it's something like 1.0.0");
 				}
 			}
 			else
 			{
-				ConsoleLogger.Warning(m_config.SimulationName + @"data\version.txt file not found, so no version could be determined.");
+				ConsoleLogger.Warning(m_config.SimulationName + "data/version.txt file not found, so no version could be determined.");
 			}
 			ConsoleLogger.Info("Registering " + m_config.SimulationName + " version " + version);
 			m_availableVersions.Add(new SimulationVersion {ExePath = m_config.RelativeExePath, Version = version});
