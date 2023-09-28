@@ -97,6 +97,20 @@ namespace MSW
 				LastStateChangeTime = DateTime.Now;
 			}
 
+			public void SetApiAccessToken(string token)
+			{
+				m_currentAccessToken.SetToken(token);
+				foreach (RunningSimulation sim in RunningSimulations)
+				{
+					sim.SetApiAccessToken(m_currentAccessToken);
+				}
+			}
+
+			public void SetApiRecoveryToken(string token)
+			{
+				m_recoveryToken.SetToken(token);
+			}
+
 			public void UpdateAccessTokens()
 			{
 				if ((DateTime.Now - m_lastTokenCheckTime).TotalSeconds > TokenCheckIntervalSec)
@@ -123,10 +137,9 @@ namespace MSW
 			{
 				Console.WriteLine("Requesting new access token from server {0}.", ServerApiRoot);
 
-				string tokenToUse = m_currentAccessToken.GetTokenAsString();
+				string tokenToUse = m_currentAccessToken.GetTokenAsString(); //although not necessary for this endpoint
 				NameValueCollection postValues = new NameValueCollection(1);
 				postValues.Add("api_refresh_token", m_recoveryToken.GetTokenAsString());
-				tokenToUse = m_currentAccessToken.GetTokenAsString();
 
 				bool callSuccess = APIRequest.Perform(ServerApiRoot, "api/User/RequestToken",
 					tokenToUse, postValues,
@@ -134,18 +147,14 @@ namespace MSW
 				if (callSuccess == false)
 				{
 					ConsoleLogger.Info("Request to get new token failed...");
+					ConsoleLogger.Info("Bearer token: " + tokenToUse);
+					ConsoleLogger.Info("Posted api_refresh_token: " + m_recoveryToken.GetTokenAsString());
 				}
 				else
 				{
-					m_currentAccessToken.SetToken(response.api_access_token);
-
-					foreach (RunningSimulation sim in RunningSimulations)
-					{
-						sim.SetApiAccessToken(m_currentAccessToken);
-					}
+					SetApiAccessToken(response.api_access_token);
 					Console.WriteLine($"Successfully updated access token for server {ServerApiRoot}");
-					
-					m_recoveryToken.SetToken(response.api_refresh_token);
+					SetApiRecoveryToken(response.api_refresh_token);
 					Console.WriteLine($"Successfully updated refresh token for server {ServerApiRoot}");
 				}
 
@@ -242,8 +251,9 @@ namespace MSW
 					m_activeServers.Remove(existingData);
 					Console.WriteLine("Stopped simulation server instance for " + a_request.GameSessionApi);
 				}
-
 				existingData.SetCurrentState(a_request.GameState);
+				existingData.SetApiAccessToken(a_request.AccessToken.GetTokenAsString());
+				existingData.SetApiRecoveryToken(a_request.RecoveryToken.GetTokenAsString());
 			}
 			else
 			{
@@ -268,9 +278,9 @@ namespace MSW
 					m_activeServers.Add(data);
 					data.EnsureSimulationsRunning();
 					data.SetCurrentState(a_request.GameState);
-
+					data.SetApiAccessToken(a_request.AccessToken.GetTokenAsString());
+					data.SetApiRecoveryToken(a_request.RecoveryToken.GetTokenAsString());
 					Console.WriteLine("Created new simulation server instance for " + a_request.GameSessionApi);
-
 				}
 			}
 		}
