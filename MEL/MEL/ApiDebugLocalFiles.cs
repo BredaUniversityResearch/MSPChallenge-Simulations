@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
-using EwEShell;
+using EwEMSPLink;
 using Newtonsoft.Json.Linq;
 
 namespace MEL
@@ -81,7 +80,7 @@ namespace MEL
 			using (Stream fs = File.OpenWrite(Path.Combine(DebugDataFolder, m_ConfigFileName,
 				MEL.ConvertLayerName(layerName) + ".tif")))
 			{
-				rasterImage.Save(fs, ImageFormat.Png);
+				rasterImage.Save(fs, System.Drawing.Imaging.ImageFormat.Png);
 			}
 		}
 

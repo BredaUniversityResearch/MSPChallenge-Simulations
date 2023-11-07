@@ -1,5 +1,4 @@
-﻿using SEL.API;
-using System;
+﻿using System;
 using System.Drawing;
 using System.IO;
 using SEL.SpatialMapping;
@@ -66,7 +65,7 @@ namespace SEL
 
 		public abstract void Clear();
 		protected abstract void RenderLine(Point from, Point to, int intensityValue);
-		
+
 		public void RenderEdge(GeometryEdge edge, int edgeIntensityInShipCalls)
 		{
 			RenderLine(m_rasterBounds.WorldToRasterSpace(edge.m_from.position), m_rasterBounds.WorldToRasterSpace(edge.m_to.position), edgeIntensityInShipCalls);

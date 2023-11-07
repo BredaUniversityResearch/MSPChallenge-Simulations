@@ -15,7 +15,7 @@ namespace MSW
 	{
 		private class ServerData
 		{
-			private const long TokenCheckIntervalSec = 5;
+			private const long TokenCheckIntervalSec = 900;
 
 			public readonly string ServerApiRoot;
 			public readonly string ServerWatchdogToken;
@@ -23,7 +23,7 @@ namespace MSW
 			public List<RunningSimulation> RunningSimulations = new List<RunningSimulation>();
 
 			private ApiAccessToken m_currentAccessToken;
-			private readonly ApiAccessToken m_recoveryToken;
+			private ApiAccessToken m_recoveryToken;
 			private Task m_checkTokenTask = null;
 			private DateTime m_lastTokenCheckTime;
 
@@ -97,6 +97,20 @@ namespace MSW
 				LastStateChangeTime = DateTime.Now;
 			}
 
+			public void SetApiAccessToken(string token)
+			{
+				m_currentAccessToken.SetToken(token);
+				foreach (RunningSimulation sim in RunningSimulations)
+				{
+					sim.SetApiAccessToken(m_currentAccessToken);
+				}
+			}
+
+			public void SetApiRecoveryToken(string token)
+			{
+				m_recoveryToken.SetToken(token);
+			}
+
 			public void UpdateAccessTokens()
 			{
 				if ((DateTime.Now - m_lastTokenCheckTime).TotalSeconds > TokenCheckIntervalSec)
@@ -110,99 +124,56 @@ namespace MSW
 				}
 			}
 
-			public void Tick()
-			{
-				Task.Run(
-					() =>
-					{
-						Console.WriteLine("Watchdog server tick on session token {0}", m_currentAccessToken.GetTokenAsString());
-						APIRequest.Perform(ServerApiRoot, "/api/game/Tick", m_currentAccessToken.GetTokenAsString(), null); 
-					}
-				);
-			}
-
 			private void CheckTokenTask()
 			{
 				foreach (RunningSimulation simulation in RunningSimulations)
 				{
 					simulation.PingCommunicationPipe();
-				}
-
-				if (APIRequest.Perform(ServerApiRoot, "/api/security/CheckAccess",
-					m_currentAccessToken.GetTokenAsString(), null, out ApiAccessTokenCheckAccessResponse response))
-				{
-					if (response.status == ApiAccessTokenCheckAccessResponse.EResponse.UpForRenewal)
-					{
-						RenewToken(false);
-					}
-					else if (response.status == ApiAccessTokenCheckAccessResponse.EResponse.Expired)
-					{
-						RenewToken(true);
-					}
-				}
+				} 
+				RenewToken();
 			}
 
-			private void RenewToken(bool a_useRecoveryToken)
+			private void RenewToken()
 			{
 				Console.WriteLine("Requesting new access token from server {0}.", ServerApiRoot);
 
-				string tokenToUse = m_currentAccessToken.GetTokenAsString();
+				string tokenToUse = m_currentAccessToken.GetTokenAsString(); //although not necessary for this endpoint
 				NameValueCollection postValues = new NameValueCollection(1);
-				if (a_useRecoveryToken)
-				{
-					postValues.Add("expired_token", m_currentAccessToken.GetTokenAsString());
-					tokenToUse = m_recoveryToken.GetTokenAsString();
-				}
+				postValues.Add("api_refresh_token", m_recoveryToken.GetTokenAsString());
 
-				bool callSuccess = APIRequest.Perform(ServerApiRoot, "/api/security/RequestToken",
+				bool callSuccess = APIRequest.Perform(ServerApiRoot, "api/User/RequestToken",
 					tokenToUse, postValues,
-					out ApiAccessToken response);
+					out ApiUserRequestTokenResponse response);
 				if (callSuccess == false)
 				{
-					ConsoleLogger.Info("Request to get new token failed. Checking if server has been recreated...");
-					if (!CheckIfTargetServerWatchdogTokenMatches())
-					{
-						ConsoleLogger.Info(
-							$"Watchdog token no longer matches for server {ServerApiRoot}. Server is probably recreated, so stopping all simulations...");
-						CurrentState = EGameState.End;
-					}
+					ConsoleLogger.Info("Request to get new token failed...");
+					ConsoleLogger.Info("Bearer token: " + tokenToUse);
+					ConsoleLogger.Info("Posted api_refresh_token: " + m_recoveryToken.GetTokenAsString());
 				}
 				else
 				{
-					m_currentAccessToken = response;
-
-					foreach (RunningSimulation sim in RunningSimulations)
-					{
-						sim.SetApiAccessToken(m_currentAccessToken);
-					}
-
+					SetApiAccessToken(response.api_access_token);
 					Console.WriteLine($"Successfully updated access token for server {ServerApiRoot}");
+					SetApiRecoveryToken(response.api_refresh_token);
+					Console.WriteLine($"Successfully updated refresh token for server {ServerApiRoot}");
 				}
 
 				m_checkTokenTask = null;
-			}
-
-			private bool CheckIfTargetServerWatchdogTokenMatches()
-			{
-				if (APIRequest.Perform(ServerApiRoot, "/api/simulations/GetWatchdogTokenForServer", m_currentAccessToken.GetTokenAsString(), null, out ApiWatchdogTokenResponse response))
-				{
-					return response.watchdog_token == ServerWatchdogToken;
-				}
-				return false;
 			}
 		}
 
 		private static readonly TimeSpan InactiveSimulationTime = new TimeSpan(72, 0, 0); //Kill simulations after a period of time. Please keep this quite royal since currently restarting MEL is not 100% accurate.
 
 		private List<ServerData> m_activeServers = new List<ServerData>(8);
-		private RestApiController m_restApiController = new RestApiController();
+		private RestApiController m_restApiController;
 		private RestEndpointUpdateState m_updateStateEndpoint;
 		private List<AvailableSimulation> m_availableSimulations = new List<AvailableSimulation>(8);
 
 		private MSWPipeDebugConnector m_debugConnector = null;
 
-		public Watchdog()
+		public Watchdog(int a_restApiPort = RestApiController.DEFAULT_PORT)
 		{
+			m_restApiController = new RestApiController(a_restApiPort);
 			m_debugConnector = new MSWPipeDebugConnector(FindServerSimulationPipeNameByWatchdogToken);
 			foreach (SimulationConfig config in MswConfig.Instance.GetAllSimulationConfig())
 			{
@@ -224,14 +195,6 @@ namespace MSW
 			UpdateAccessTokensForRunningSimulations();
 
 			StopSimulationsForInactiveSessions();
-		}
-
-		public void ServerTick()
-		{
-			foreach (ServerData data in m_activeServers)
-			{
-				data.Tick();
-			}
 		}
 
 		private void UpdateAccessTokensForRunningSimulations()
@@ -288,8 +251,9 @@ namespace MSW
 					m_activeServers.Remove(existingData);
 					Console.WriteLine("Stopped simulation server instance for " + a_request.GameSessionApi);
 				}
-
 				existingData.SetCurrentState(a_request.GameState);
+				existingData.SetApiAccessToken(a_request.AccessToken.GetTokenAsString());
+				existingData.SetApiRecoveryToken(a_request.RecoveryToken.GetTokenAsString());
 			}
 			else
 			{
@@ -314,9 +278,9 @@ namespace MSW
 					m_activeServers.Add(data);
 					data.EnsureSimulationsRunning();
 					data.SetCurrentState(a_request.GameState);
-
+					data.SetApiAccessToken(a_request.AccessToken.GetTokenAsString());
+					data.SetApiRecoveryToken(a_request.RecoveryToken.GetTokenAsString());
 					Console.WriteLine("Created new simulation server instance for " + a_request.GameSessionApi);
-
 				}
 			}
 		}

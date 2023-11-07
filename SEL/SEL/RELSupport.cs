@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using SEL.API;
 using SELRELBridge;
 using SELRELBridge.API;
 
@@ -73,7 +72,7 @@ namespace SEL
 				}
 				else
 				{
-					ErrorReporter.ReportError(EErrorSeverity.Warning, $"Could not find route for ship type {routeIntensity.ShipTypeId} from {routeIntensity.SourcePort.PortName} to " +
+					ErrorReporter.ReportError(API.EErrorSeverity.Warning, $"Could not find route for ship type {routeIntensity.ShipTypeId} from {routeIntensity.SourcePort.PortName} to " +
 																	  $"{routeIntensity.DestinationPort.PortName}. Routing graph submitted to server will be incomplete.");
 				}
 			}

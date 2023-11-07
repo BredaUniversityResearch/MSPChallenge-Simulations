@@ -1,6 +1,6 @@
-﻿using SEL.SpatialMapping;
-using System;
+﻿using System;
 using System.Drawing;
+using SEL.SpatialMapping;
 using System.Numerics;
 
 namespace SEL.Util
@@ -19,9 +19,9 @@ namespace SEL.Util
 		};
 
 		/// <summary>
-		/// Clips lines via the Cohen Sutherland algorithm and puts the clipped points 
+		/// Clips lines via the Cohen Sutherland algorithm and puts the clipped points
 		/// back into the from and to parameters.
-		/// Returns false when no line needs to be drawn due to it all being out of bounds. 
+		/// Returns false when no line needs to be drawn due to it all being out of bounds.
 		/// </summary>
 		/// <param name="from"></param>
 		/// <param name="to"></param>

@@ -1,7 +1,7 @@
-﻿using SEL.API;
+﻿using System;
+using SEL.API;
 using SEL.SpatialMapping;
 using SEL.Util;
-using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -166,7 +166,7 @@ namespace SEL
 					int currentMaskX = maskX + (kernelX + kernelOffsetX);
 					int currentMaskY = maskY + (kernelY + kernelOffsetY);
 
-					if (currentMaskX >= 0 && currentMaskX < restrictionMask.Width && 
+					if (currentMaskX >= 0 && currentMaskX < restrictionMask.Width &&
 						currentMaskY >= 0 && currentMaskY < restrictionMask.Height)
 					{
 						if (restrictionMask.GetRasterValue(currentMaskX, currentMaskY) != 0)
@@ -209,7 +209,7 @@ namespace SEL
 		}
 
 		/// <summary>
-		/// Will bleed all values that exceed the overflow boundary to nearby cells 
+		/// Will bleed all values that exceed the overflow boundary to nearby cells
 		/// </summary>
 		/// <param name="rasterSizeX"></param>
 		/// <param name="rasterSizeY"></param>
@@ -270,7 +270,7 @@ namespace SEL
 
 		public override void SaveFile(Stream targetStream, RasterOutputConfig outputConfig, IValueMapper<int, float> valueMapper)
 		{
-			int stride = (Width + 3) & ~0x3; //Round up to a multiple of 4
+            int stride = (Width + 3) & ~0x3; //Round up to a multiple of 4
 			byte[] colourBits = new byte[stride * Height];
 			GCHandle colourBitsHandle = GCHandle.Alloc(colourBits, GCHandleType.Pinned);
 
@@ -308,9 +308,9 @@ namespace SEL
 							Size originalSize = new Size(Width, Height);
 							Size deltaSizeMax = originalSize - new Size(transformedMin);
 							Size deltaSizeMin = originalSize - new Size(transformedMax);
-							
+
 							Size sourceSize = deltaSizeMax - deltaSizeMin;
-							Rectangle sourceRect = new Rectangle(new Point(transformedMin.X, deltaSizeMin.Height), sourceSize); 
+							Rectangle sourceRect = new Rectangle(new Point(transformedMin.X, deltaSizeMin.Height), sourceSize);
 
 							resizedGraphic.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBilinear;
 							resizedGraphic.DrawImage(image,

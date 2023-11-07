@@ -6,9 +6,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
-using System.Net;
-using System.Text;
-using EwEShell;
+using EwEMSPLink;
 using MSWSupport;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -54,9 +52,9 @@ namespace MEL
 
 		public bool CheckAPIAccess()
 		{
-			if (HttpGet("/api/security/checkaccess", out APIAccessResult result))
+			if (HttpGet("/api/game/IsOnline", out string result))
 			{
-				return result.status != APIAccessResult.EResult.Expired;
+				return result == "online";
 			}
 
 			return false;
