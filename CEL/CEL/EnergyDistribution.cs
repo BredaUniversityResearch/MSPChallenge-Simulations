@@ -64,7 +64,7 @@ class EnergyDistribution : ITokenReceiver
 				}
 				else
 				{
-					Console.WriteLine("ERROR\t| Energy update failed. Retrying...");
+					ConsoleLogger.Error("Energy update failed. Retrying...");
 					dinic = null;
 				}
 			}
@@ -87,14 +87,14 @@ class EnergyDistribution : ITokenReceiver
 				}
 				else
 				{
-					Console.WriteLine("ERROR\t| Energy update failed. Retrying...");
+					ConsoleLogger.Error("Energy update failed. Retrying...");
 					dinic = null;
 				}
 			}
 			else
 			{
 				//No update is done. Existing data is used for KPIs of new month
-				Console.WriteLine(string.Format("No update required for month {0}\n", month));
+				ConsoleLogger.Info($"No update required for month {month}");
 				SubmitKPIs();
 				lastRunMonth = month;
 				SetLastRunMonth(lastRunMonth);
@@ -119,7 +119,7 @@ class EnergyDistribution : ITokenReceiver
 			if (!APIRequest.Perform(CELConfig.Instance.APIRoot, "/api/cel/GetConnections", currentApiAccessToken, null,
 				out connectionObj))
 			{
-				Console.WriteLine("\t| Data load failed.");
+				ConsoleLogger.Error("Data load failed.");
 				successful = false;
 			}
 		});
@@ -156,7 +156,7 @@ class EnergyDistribution : ITokenReceiver
 
 		Task.WaitAll(task1, task2, task3, task4);
 		if (successful)
-			Console.WriteLine("\t| Data loaded successfully.");
+			ConsoleLogger.Info("Data loaded successfully.");
 		return successful;
 	}
 
@@ -213,12 +213,12 @@ class EnergyDistribution : ITokenReceiver
 		long result = 0;
 		if (dinic.DinicMaxflow(-1, -2, out result))
 		{
-			Console.WriteLine("\t| Total energy sent: " + result.ToString());
+			ConsoleLogger.Info($"Total energy sent: {result.ToString()}");
 			return true;
 		}
 		else
 		{
-			Console.WriteLine("ERROR\t| The energy simulation encountered an error while running. Results were discarded.");
+			ConsoleLogger.Error("The energy simulation encountered an error while running. Results were discarded.");
 			return false;
 		}
 	}

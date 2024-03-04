@@ -40,7 +40,7 @@ namespace SEL
 
 		public static void CreateEdgeMap(RouteManager routeManager, int dimensionsInPixels = 250)
 		{
-			Console.Write("Creating Edge Map...");
+			ConsoleLogger.Info("Creating Edge Map...");
 			DrawParameters parameters = CreateDrawParameters(routeManager.GetVertices(), dimensionsInPixels);
 
 			using (Bitmap debugMap = new Bitmap(dimensionsInPixels, dimensionsInPixels))
@@ -71,7 +71,7 @@ namespace SEL
 				}
 			}
 
-			Console.WriteLine("Done");
+			ConsoleLogger.Info("Finished Edge Map");
 		}
 
 		public static void CreateRouteMap(RouteManager routeManager, int dimensionsInPixels)
@@ -81,7 +81,7 @@ namespace SEL
 			int routeCounter = 0;
 			foreach (Route route in routeManager.GetAvailableRoutes())
 			{
-				Console.Write("Creating Route Map {0} / {1} \r", routeCounter, routeManager.GetAvailableRouteCount());
+				ConsoleLogger.Info($"Creating Route Map {routeCounter} / {routeManager.GetAvailableRouteCount()}");
 				++routeCounter;
 				using (Bitmap debugMap = new Bitmap(dimensionsInPixels, dimensionsInPixels))
 				{
@@ -108,7 +108,7 @@ namespace SEL
 					}
 				}
 			}
-			Console.WriteLine("Creating Route Map Done...");
+			ConsoleLogger.Info("Creating Route Map Done...");
 		}
 
 		public static void CreateRouteQueryDebugMap(LaneVertex from, LaneVertex to, List<LaneVertex> closedVertices, List<LaneEdge> closedEdges, int dimensionsInPixels)

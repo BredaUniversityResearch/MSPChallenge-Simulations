@@ -29,7 +29,7 @@ namespace MEL
 		public void GetLayerDataAndRasterize(MEL mel)
 		{
 			//var watch = System.Diagnostics.Stopwatch.StartNew();
-			Console.WriteLine("Getting: " + name);
+			ConsoleLogger.Info($"Getting: {name}");
 
 			APILayerGeometryData layerGeometryData = mel.ApiConnector.GetLayerData(name, LayerType, constructionOnly);
 
@@ -64,7 +64,7 @@ namespace MEL
 					}
 					catch (Exception e)
 					{
-						Console.WriteLine(name + " could not be loaded. Pressure layers will not be generated accurately! \nException: " + e.Message);
+						ConsoleLogger.Error($"{name} could not be loaded. Pressure layers will not be generated accurately! \nException: {e.Message}");
 					}
 
 					break;
@@ -72,7 +72,7 @@ namespace MEL
 			}
 			else
 			{
-				Console.WriteLine(name + " does not exist or does not have geometry");
+				ConsoleLogger.Warning($"{name} does not exist or does not have geometry");
 			}
 
 			//watch.Stop();

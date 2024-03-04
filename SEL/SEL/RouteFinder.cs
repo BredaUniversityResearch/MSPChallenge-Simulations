@@ -77,7 +77,7 @@ namespace SEL
 			{
 				if ((HeuristicValue.MaxValue - m_gCost) - m_hCost < 0)
 				{
-					Console.WriteLine("FCost overflow! Reduce the cost multiplier in the config files please.");
+					ConsoleLogger.Warning("FCost overflow! Reduce the cost multiplier in the config files please.");
 					m_fCost = HeuristicValue.MaxValue;
 				}
 				else

@@ -69,7 +69,7 @@ namespace MSW
 					RunningSimulation simulation = FindRunningSimulationOfType(simulationType);
 					if (simulation == null)
 					{
-						Console.WriteLine("Starting simulation " + simulationType.GetSimulationTypeAndVersion() + " for " + ServerApiRoot + " on session token " + ServerWatchdogToken);
+						ConsoleLogger.Info($"Starting simulation {simulationType.GetSimulationTypeAndVersion()} for {ServerApiRoot} on session token {ServerWatchdogToken}");
 
 						StartSimulationOfType(simulationType);
 					}
@@ -84,7 +84,7 @@ namespace MSW
 			{
 				foreach (RunningSimulation simulation in RunningSimulations)
 				{
-					Console.WriteLine("Killing simulation " + simulation.SimulationType + " for " + ServerApiRoot);
+					ConsoleLogger.Info($"Killing simulation {simulation.SimulationType} for {ServerApiRoot}");
 					simulation.StopSimulation();
 				}
 
@@ -135,7 +135,7 @@ namespace MSW
 
 			private void RenewToken()
 			{
-				Console.WriteLine("Requesting new access token from server {0}.", ServerApiRoot);
+				ConsoleLogger.Info($"Requesting new access token from server {ServerApiRoot}");
 
 				string tokenToUse = m_currentAccessToken.GetTokenAsString(); //although not necessary for this endpoint
 				NameValueCollection postValues = new NameValueCollection(1);
@@ -153,9 +153,9 @@ namespace MSW
 				else
 				{
 					SetApiAccessToken(response.api_access_token);
-					Console.WriteLine($"Successfully updated access token for server {ServerApiRoot}");
+					ConsoleLogger.Info($"Successfully updated access token for server {ServerApiRoot}");
 					SetApiRecoveryToken(response.api_refresh_token);
-					Console.WriteLine($"Successfully updated refresh token for server {ServerApiRoot}");
+					ConsoleLogger.Info($"Successfully updated refresh token for server {ServerApiRoot}");
 				}
 
 				m_checkTokenTask = null;
@@ -249,7 +249,7 @@ namespace MSW
 				{
 					existingData.StopAllSimulations();
 					m_activeServers.Remove(existingData);
-					Console.WriteLine("Stopped simulation server instance for " + a_request.GameSessionApi);
+					ConsoleLogger.Info($"Stopped simulation server instance for {a_request.GameSessionApi}");
 				}
 				existingData.SetCurrentState(a_request.GameState);
 				existingData.SetApiAccessToken(a_request.AccessToken.GetTokenAsString());
@@ -280,7 +280,7 @@ namespace MSW
 					data.SetCurrentState(a_request.GameState);
 					data.SetApiAccessToken(a_request.AccessToken.GetTokenAsString());
 					data.SetApiRecoveryToken(a_request.RecoveryToken.GetTokenAsString());
-					Console.WriteLine("Created new simulation server instance for " + a_request.GameSessionApi);
+					ConsoleLogger.Info($"Created new simulation server instance for {a_request.GameSessionApi}");
 				}
 			}
 		}

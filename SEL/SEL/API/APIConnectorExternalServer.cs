@@ -199,7 +199,7 @@ namespace SEL.API
 		{
 			if (!APIRequest.Perform(SELConfig.Instance.GetAPIRoot(), apiEndPoint, m_accessToken, postValues))
 			{
-				Console.WriteLine($"APIRequest to {apiEndPoint} failed.");
+				ConsoleLogger.Error($"APIRequest to {apiEndPoint} failed.");
 			}
 		}
 

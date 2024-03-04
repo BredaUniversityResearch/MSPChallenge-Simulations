@@ -44,7 +44,7 @@ namespace MSW
 					{
 						string line = reader.ReadLine();
 						request = JsonConvert.DeserializeObject<PipeRequest>(line);
-						Console.WriteLine($"Got Request. {line}");
+						ConsoleLogger.Info($"Got Request. {line}");
 					}
 
 					if (request != null)
@@ -57,18 +57,18 @@ namespace MSW
 							string responseJson = JsonConvert.SerializeObject(response);
 							writer.WriteLine(responseJson);
 							writer.Flush();
-							Console.WriteLine($"Wrote response. {responseJson}");
+							ConsoleLogger.Info($"Wrote response. {responseJson}");
 						}
 					}
 				}
 				catch (IOException ex)
 				{
-					Console.WriteLine(
+					ConsoleLogger.Error(
 						$"Got debug pipe request, but IO exception occurred during communication. Ex: {ex.Message}");
 				}
 				catch (ObjectDisposedException ex)
 				{
-					Console.WriteLine($"Got Debug pipe request, but pipe was disposed... Ex: {ex.Message}");
+					ConsoleLogger.Error($"Got Debug pipe request, but pipe was disposed... Ex: {ex.Message}");
 				}
 			}
 
