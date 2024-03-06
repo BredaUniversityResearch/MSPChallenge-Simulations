@@ -43,7 +43,7 @@ namespace MSW
 			string executable = Path.GetFullPath(m_simulationVersion.TargetExecutableFullPath);
 			string workingDirectory = Path.GetDirectoryName(executable);
 
-			Console.WriteLine("Arguments: " + arguments.ToString());
+			ConsoleLogger.Info($"Arguments: {arguments.ToString()}");
 
 			ProcessStartInfo startInfo = new ProcessStartInfo(executable, arguments.ToString())
 			{
@@ -60,7 +60,7 @@ namespace MSW
 		{
 			if (m_runningProcess == null || m_runningProcess.HasExited)
 			{
-				Console.WriteLine("Simulation {0} should be running but is not. Restarting...", m_simulationVersion.GetSimulationTypeAndVersion());
+				ConsoleLogger.Info($"Simulation {m_simulationVersion.GetSimulationTypeAndVersion()} should be running but is not. Restarting...");
 				StartSimulation();
 			}
 		}
@@ -93,7 +93,7 @@ namespace MSW
 				}
 				catch (IOException)
 				{
-					Console.WriteLine($"Communication pipe {m_pipeName} reported IO Exception. Did the other application exit?");
+					ConsoleLogger.Error($"Communication pipe {m_pipeName} reported IO Exception. Did the other application exit?");
 					m_communicationPipeServer.Disconnect();
 					m_communicationPipeServer.WaitForConnectionAsync().ContinueWith((a_task) => { OnPipeConnected(); });
 				}
@@ -102,7 +102,7 @@ namespace MSW
 
 		private void OnPipeConnected()
 		{
-			Console.WriteLine("Pipe connected " + m_pipeName);
+			ConsoleLogger.Info("Pipe connected " + m_pipeName);
 			CommunicateUpdatedApiAccessToken();
 		}
 
@@ -125,7 +125,7 @@ namespace MSW
 			}
 			catch (IOException)
 			{
-				Console.WriteLine($"Communication pipe {m_pipeName} reported IO Exception. Did the other application exit?");
+				ConsoleLogger.Error($"Communication pipe {m_pipeName} reported IO Exception. Did the other application exit?");
 				m_communicationPipeServer.Disconnect();
 				m_communicationPipeServer.WaitForConnectionAsync().ContinueWith((a_task) => { OnPipeConnected(); });
 			}

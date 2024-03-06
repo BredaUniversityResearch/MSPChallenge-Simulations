@@ -23,7 +23,7 @@ namespace MSW
 			var prefixHost = DEFAULT_SCHEME + "+:" + a_port + "/";
 			m_updateGameStateListener.Prefixes.Add(prefixHost + API_URI_IDENTIFIER);
 			m_updateGameStateListener.Start();
-			Console.WriteLine("Starting REST API at " + prefixHost + API_URI_IDENTIFIER);
+			ConsoleLogger.Info("Starting REST API at " + prefixHost + API_URI_IDENTIFIER);
 
 			m_backgroundProcessThread = new Thread(StartHandlingRequestsBackground);
 			m_backgroundProcessThread.Start();
@@ -40,7 +40,7 @@ namespace MSW
 
 		private void HandleRequestBackground(HttpListenerContext a_context)
 		{
-			Console.WriteLine("Handling request at " + a_context.Request.Url);
+			ConsoleLogger.Info("Handling request at " + a_context.Request.Url);
 
 			RestEndpoint endpoint = FindEndpointForUri(a_context.Request.Url);
 
@@ -111,7 +111,7 @@ namespace MSW
 
 		public void AddEndpoint(RestEndpoint a_endpoint)
 		{
-			Console.WriteLine("Registered REST Endpoint " + a_endpoint.EndpointIdentifier);
+			ConsoleLogger.Info("Registered REST Endpoint " + a_endpoint.EndpointIdentifier);
 			m_endpoints.Add(a_endpoint);
 		}
 	}

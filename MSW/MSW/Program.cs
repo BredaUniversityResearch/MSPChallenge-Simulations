@@ -26,9 +26,10 @@ firewallPolicy.Rules.Add(firewallRule);*/
 
 		static void Main()
 		{
+			AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 			try
 			{
-				Console.WriteLine("Starting MSP2050 Simulation Watchdog...");
+				ConsoleLogger.Info("Starting MSP2050 Simulation Watchdog...");
 				Watchdog watchdog;
 				try {
 					watchdog = new Watchdog(int.Parse(CommandLineArgumentsManager.Instance.AutoFill(
@@ -38,11 +39,11 @@ firewallPolicy.Rules.Add(firewallRule);*/
 				}
 				catch (Exception e)
 				{
-					Console.WriteLine(e);
+					ConsoleLogger.Error(e.Message);
 					throw;
 				}
 				Stopwatch localTickStopwatch = new Stopwatch();
-				Console.WriteLine("Watchdog started successfully, waiting for requests...");
+				ConsoleLogger.Info("Watchdog started successfully, waiting for requests...");
 
 				while (true)
 				{
@@ -60,9 +61,14 @@ firewallPolicy.Rules.Add(firewallRule);*/
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine(e.Message + "\n" + e.StackTrace);
+				ConsoleLogger.Error(e.Message + "\n" + e.StackTrace);
 			}
 
+		}
+		
+		static void CurrentDomain_UnhandledException(object a_sender, UnhandledExceptionEventArgs a_e)
+		{
+			ConsoleLogger.Error(((Exception) a_e.ExceptionObject).Message);
 		}
 	}
 }
