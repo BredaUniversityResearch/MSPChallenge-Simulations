@@ -18,15 +18,15 @@ namespace MEL
 	/// Will connect to the server passed in the constructor, and route to all the data to proper endpoints.
 	/// Responses are automatically deserialised in the correct data types for use within MEL
 	/// </summary>
-	public class ApiMspServer: IApiConnector
+	public class ApiMspServer: ApiConnectorBase, IApiConnector
 	{
 		[SuppressMessage("ReSharper", "InconsistentNaming")]
+		// ReSharper disable once ClassNeverInstantiated.Local
 		private class APIGetRasterResponse
 		{
 			//public string displayed_bounds;
 			public string image_data = null;
-		};
-
+		}
 
 		[SuppressMessage("ReSharper", "InconsistentNaming")]
 		private class APIInitialFishingValue
@@ -39,37 +39,12 @@ namespace MEL
 				fleet_name = fleetName;
 				fishing_value = fishingValue;
 			}
-		};
+		}
 
-		private readonly string m_ServerUrl;
 		public bool ShouldRasterizeLayers => true;
-		private string m_CurrentAccessToken = "";
 
-		public ApiMspServer(string mspServerAddress)
+		public ApiMspServer(string mspServerAddress) : base(mspServerAddress)
 		{
-			m_ServerUrl = mspServerAddress;
-		}
-
-		public bool CheckAPIAccess()
-		{
-			if (HttpGet("/api/game/IsOnline", out string result))
-			{
-				return result == "online";
-			}
-
-			return false;
-		}
-
-		public int GetCurrentGameMonth(int lastSimulatedMonth)
-		{
-			NameValueCollection postValues = new NameValueCollection(1);
-			postValues.Add("mel_month", lastSimulatedMonth.ToString());
-			if (HttpGet("/api/mel/ShouldUpdate", postValues, out int currentMonth))
-			{
-				return currentMonth;
-			}
-
-			return -100;
 		}
 
 		public void SetInitialFishingValues(List<cScalar> fishingValues)
@@ -88,23 +63,14 @@ namespace MEL
 			HttpSet("/api/mel/InitialFishing", values);
 		}
 
-		public string GetMelConfigAsString()
+		public string? GetMelConfigAsString()
 		{
-			if (HttpGet("/api/mel/config", out JToken result))
-			{
-				return result.ToString();
-			}
-
-			return null;
+			return HttpGet("/api/mel/config", out JToken result) ? result.ToString() : null;
 		}
 
 		public string[] GetUpdatedLayers()
 		{
-			if (HttpGet("/api/mel/Update", out string[] result))
-			{
-				return result;
-			}
-			return new string[0];
+			return HttpGet("/api/mel/Update", out string[] result) ? result : new string[0];
 		}
 
 		public Fishing[] GetFishingValuesForMonth(int month)
@@ -116,20 +82,15 @@ namespace MEL
 				month = -1;
 			}
 
-			NameValueCollection postValues = new NameValueCollection(1);
+			NameValueCollection postValues = new(1);
 			postValues.Add("game_month", month.ToString());
-			if (HttpGet("/api/mel/GetFishing", postValues, out Fishing[] result))
-			{
-				return result;
-			}
+			return HttpGet("/api/mel/GetFishing", postValues, out Fishing[] result) ? result : new Fishing[0];
 
-			return new Fishing[0];
 		}
 
 		public void SubmitKpi(string kpiName, int kpiMonth, double kpiValue, string kpiUnits)
 		{
-			NameValueCollection values = new NameValueCollection
-			{
+			NameValueCollection values = new() {
 				{ "name" , kpiName },
 				{ "month", kpiMonth.ToString(CultureInfo.InvariantCulture) },
 				{ "value" , kpiValue.ToString(CultureInfo.InvariantCulture) },
@@ -144,78 +105,42 @@ namespace MEL
 			HttpSet("/api/mel/TickDone");
 		}
 
-		public double[,] GetRasterLayerByName(string layerName)
+		public double[,]? GetRasterLayerByName(string? layerName)
 		{
-			double[,] result = null;
 			NameValueCollection postData = new NameValueCollection(1);
 			postData.Set("layer_name", layerName);
-			if (HttpGet("/api/layer/GetRaster", postData, out APIGetRasterResponse apiResponse))
-			{
-				byte[] imageBytes = Convert.FromBase64String(apiResponse.image_data);
-				using (Stream stream = new MemoryStream(imageBytes))
-				{
-					using (Bitmap bitmap = new Bitmap(stream))
-					{
-						result = Rasterizer.PNGToArray(bitmap, 1.0f, MEL.x_res, MEL.y_res);
-					}
-				}
-			}
-
-			return result;
+			if (!HttpGet("/api/layer/GetRaster", postData, out APIGetRasterResponse apiResponse))
+				return null;
+			byte[] imageBytes = Convert.FromBase64String(apiResponse.image_data);
+			using Stream stream = new MemoryStream(imageBytes);
+			using Bitmap bitmap = new(stream);
+			return Rasterizer.PNGToArray(bitmap, 1.0f, MEL.x_res, MEL.y_res);
 		}
 
 		public void SubmitRasterLayerData(string layerName, Bitmap rasterImage)
 		{
-			using (MemoryStream stream = new MemoryStream(16384))
-			{
-				rasterImage.Save(stream, ImageFormat.Png);
-
-				NameValueCollection postData = new NameValueCollection(2);
-				postData.Set("layer_name", MEL.ConvertLayerName(layerName));
-				postData.Set("image_data", Convert.ToBase64String(stream.ToArray()));
-				HttpSet("/api/layer/UpdateRaster", postData);
-			}
+			using MemoryStream stream = new(16384);
+			rasterImage.Save(stream, ImageFormat.Png);
+			NameValueCollection postData = new NameValueCollection(2);
+			postData.Set("layer_name", MEL.ConvertLayerName(layerName));
+			postData.Set("image_data", Convert.ToBase64String(stream.ToArray()));
+			HttpSet("/api/layer/UpdateRaster", postData);
 		}
 
-		public APILayerGeometryData GetLayerData(string layerName, int layerType, bool constructionOnly)
+		public APILayerGeometryData? GetLayerData(string? layerName, int layerType, bool constructionOnly)
 		{
-			NameValueCollection values = new NameValueCollection() {
+			NameValueCollection? values = new() {
 				{"name", layerName },
 				{"layer_type", layerType.ToString() },
 				{"construction_only", constructionOnly ? "1" : "0" }
 			};
 
-			if (HttpGet("/api/mel/GeometryExportName", values, out APILayerGeometryData result))
-			{
-				return result;
-			}
-
-			return null;
+			return HttpGet("/api/mel/GeometryExportName", values, out APILayerGeometryData? result) ? result : null;
 		}
 
-		public double[,] GetRasterizedPressure(string name)
+		public double[,]? GetRasterizedPressure(string name)
 		{
 			throw new NotImplementedException();
-		}
-
-		private bool HttpSet(string apiUrl, NameValueCollection postValues = null)
-		{
-			return APIRequest.Perform(m_ServerUrl, apiUrl, m_CurrentAccessToken, postValues);
-		}
-
-		private bool HttpGet<TTargetType>(string apiUrl, out TTargetType result)
-		{
-			return HttpGet(apiUrl, null, out result);
-		}
-
-		private bool HttpGet<TTargetType>(string apiUrl, NameValueCollection postValues, out TTargetType result)
-		{
-			return APIRequest.Perform(m_ServerUrl, apiUrl, m_CurrentAccessToken, postValues, out result);
-		}
-
-		public void UpdateAccessToken(string newAccessToken)
-		{
-			m_CurrentAccessToken = newAccessToken;
 		}
 	}
 }

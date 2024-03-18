@@ -35,7 +35,7 @@ namespace MEL
 
 		public Dictionary<string, PressureLayer> pressureLayers = new Dictionary<string, PressureLayer>();
 		public Config config;
-		private string configstring;
+		private string? configstring;
 
 		public float x_min;
 		public float x_max;
@@ -52,12 +52,12 @@ namespace MEL
 		private List<cPressure> cfishingpressures = new List<cPressure>();
 		public List<cGrid> outputs = new List<cGrid>();
 
-		private APITokenHandler tokenHandler;
+		private CommunicationPipeHandler pipeHandler;
 
 		private string dumpDir;
 		private UInt32 nextDumpNo = 1;
 
-		public IApiConnector ApiConnector
+		public ApiMspServer ApiMspServer
 		{
 			get;
 			private set;
@@ -89,15 +89,19 @@ namespace MEL
 					ApiBaseURL);
 			}
 
-			ApiConnector = new ApiMspServer(ApiBaseURL);
+			ApiMspServer = new ApiMspServer(ApiBaseURL);
 			//ApiConnector = new ApiDebugLocalFiles("BS_Basic");
 
 			shell = new cEwEMSPLink();
 
-			tokenHandler = new APITokenHandler(ApiConnector,
-				CommandLineArguments.GetOptionValue(CommandLineArguments.MSWPipeName), "MEL", ApiBaseURL);
-
-			WaitForAPIAccess();
+			pipeHandler = new CommunicationPipeHandler(
+				CommandLineArguments.GetOptionValue(CommandLineArguments.MSWPipeName),
+				"MEL",
+				ApiBaseURL
+			);
+			pipeHandler.SetTokenReceiver(ApiMspServer);
+			pipeHandler.SetUpdateMonthReceiver(ApiMspServer);
+			WaitForApiAccess();
 
 			LoadConfig();
 
@@ -142,7 +146,7 @@ namespace MEL
 					pressures.Add(new cPressure(fish.Name, fish.Value));
 					cfishingpressures.Add(new cPressure(fish.Name, fish.Value));
 				}
-				ApiConnector.SetInitialFishingValues(initialFishingValues);
+				ApiMspServer.SetInitialFishingValues(initialFishingValues);
 
 				// Dump game version for testing purposes
 				Console.WriteLine("Loaded EwE model '{0}', {1}, {2}", shell.CurrentGame.Version,
@@ -169,7 +173,7 @@ namespace MEL
 		private void LoadConfig()
 		{
 			//file name should probably be obtained from the server
-			configstring = ApiConnector.GetMelConfigAsString();
+			configstring = ApiMspServer.GetMelConfigAsString();
 
 			config = JsonConvert.DeserializeObject<Config>(configstring);
 
@@ -242,18 +246,11 @@ namespace MEL
 			rasterizedLayer.GetLayerDataAndRasterize(this);
 		}
 
-		private void WaitForAPIAccess()
+		public void WaitForApiAccess()
 		{
-			bool firstAttemptFailed = true;
-			while (!ApiConnector.CheckAPIAccess())
+			while (!APIRequest.SleepOnApiUnauthorizedWebException(() => ApiMspServer.CheckApiAccess()))
 			{
-				if (firstAttemptFailed)
-				{
-					Console.WriteLine("API refused current access. Waiting for a little while and silently trying again.");
-					firstAttemptFailed = false;
-				}
-
-				Thread.Sleep(100);
+				// ApiRequest handles sleep.
 			}
 		}
 
@@ -262,13 +259,17 @@ namespace MEL
 		/// </summary>
 		public void Tick()
 		{
-			WaitForAPIAccess();
-
 			var watch = Stopwatch.StartNew();
 			//Console.WriteLine("Trying tick");
-			int currentGameMonth = ApiConnector.GetCurrentGameMonth(lastupdatedmonth);
+			int currentGameMonth = ApiMspServer.GetCurrentGameMonth();
+			// do not allow to go back in time.
+			if (currentGameMonth <= lastupdatedmonth)
+			{
+				currentGameMonth = -100;
+			}
 			if (currentGameMonth == -100)
 			{
+				Thread.Sleep(2500);
 				return;
 			}
 
@@ -318,7 +319,7 @@ namespace MEL
 		private void UpdatePressureLayers()
 		{
 			//get the list of layers that need to be updated
-			string[] toUpdate = ApiConnector.GetUpdatedLayers();
+			string[] toUpdate = ApiMspServer.GetUpdatedLayers();
 			if (toUpdate.Length == 0 || (toUpdate.Length == 1 && toUpdate[0] == ""))
 			{
 				return;
@@ -353,7 +354,7 @@ namespace MEL
 
 		private void UpdateFishing()
 		{
-			Fishing[] fishing = ApiConnector.GetFishingValuesForMonth(lastupdatedmonth);
+			Fishing[] fishing = ApiMspServer.GetFishingValuesForMonth(lastupdatedmonth);
 			for (int i = 0; i < cfishingpressures.Count; i++)
 			{
 				foreach (Fishing f in fishing)
@@ -371,13 +372,13 @@ namespace MEL
 		{
 			foreach (cGrid outcome in outputs)
 			{
-				ApiConnector.SubmitKpi(outcome.Name, currentMonth, outcome.Mean, outcome.Units);
+				ApiMspServer.SubmitKpi(outcome.Name, currentMonth, outcome.Mean, outcome.Units);
 			}
 		}
 
 		private void TickDone()
 		{
-			ApiConnector.NotifyTickDone();
+			ApiMspServer.NotifyTickDone();
 		}
 
 		private void StoreTick()
@@ -392,7 +393,7 @@ namespace MEL
 		{
 			using (Bitmap bitmap = Rasterizer.ToBitmapSlow(grid.Cell))
 			{
-				ApiConnector.SubmitRasterLayerData(grid.Name, bitmap);
+				ApiMspServer.SubmitRasterLayerData(grid.Name, bitmap);
 			}
 		}
 

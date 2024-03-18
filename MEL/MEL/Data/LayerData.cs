@@ -9,9 +9,9 @@ namespace MEL
 	public class LayerData
 	{
 		[JsonProperty(PropertyName = "name")]
-		private string encoded_name = null;
+		private string? encoded_name = null;
 
-		public string layer_name;
+		public string? layer_name;
 		public int layer_type = -1;
 
 		public float influence;

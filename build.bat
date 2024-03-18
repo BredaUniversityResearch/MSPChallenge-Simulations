@@ -79,13 +79,15 @@ call :build MSWSupport
 IF %ERRORLEVEL% NEQ 0 (
     exit /b %ERRORLEVEL%
 )
-copy /y MSWSupport\MSWSupport\bin\%configuration%\%donetversion%\MSWSupport.dll DLLs\
+copy /y MSWSupport\MSWSupport\bin\%configuration%\%donetversion%\*.dll DLLs\
+copy /y MSWSupport\MSWSupport\bin\%configuration%\%donetversion%\*.pdb DLLs\
 rem prepare required dlls for SEL/REL
 call :build SELRELBridge
 IF %ERRORLEVEL% NEQ 0 (
     exit /b %ERRORLEVEL%
 )
 copy /y SELRELBridge\SELRELBridge\bin\%configuration%\%donetversion%\SELRELBridge.dll DLLs\
+copy /y SELRELBridge\SELRELBridge\bin\%configuration%\%donetversion%\*.pdb DLLs\
 rem build referenced dlls, in right order
 call :build %eweutils_dir%
 call :build %eweplugin_dir%
@@ -94,9 +96,13 @@ call :build %ewemsplink_dir%
 rem prepare required dlls for MEL
 copy /y %ewemsplink_dir%\bin\%configuration%\%donetversion%\EwEMSPLink.dll DLLs\
 copy /y %ewemsplink_dir%\bin\%configuration%\%donetversion%\EwELicense.dll DLLs\
+copy /y %ewemsplink_dir%\bin\%configuration%\%donetversion%\*.pdb DLLs\
 copy /y %ewecore_dir%\bin\%configuration%\%donetversion%\EwECore.dll DLLs\
+copy /y %ewecore_dir%\bin\%configuration%\%donetversion%\*.pdb DLLs\
 copy /y %eweplugin_dir%\bin\%configuration%\%donetversion%\EwEPlugin.dll DLLs\
+copy /y %eweplugin_dir%\bin\%configuration%\%donetversion%\*.pdb DLLs\
 copy /y %eweutils_dir%\bin\%configuration%\%donetversion%\EwEUtils.dll DLLs\
+copy /y %eweutils_dir%\bin\%configuration%\%donetversion%\*.pdb DLLs\
 
 cd %ewecore_dir%
 call :publish .
@@ -217,7 +223,7 @@ if "%1" NEQ "." (
 	mkdir %target_data_dir% > nul 2> nul
 	echo %api_version% > %target_data_dir%\version.txt
 	if exist "%source_data_dir%" (
-		copy /y %source_data_dir%\* %target_data_dir%		
+		copy /y %source_data_dir%\* %target_data_dir%
 	)
 )
 SET /a "x+=1"

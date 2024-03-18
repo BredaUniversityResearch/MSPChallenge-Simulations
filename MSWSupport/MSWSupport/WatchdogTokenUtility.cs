@@ -13,10 +13,17 @@ namespace MSWSupport
 
 		public static string GetWatchdogTokenForServerAtAddress(string serverBaseAddress)
 		{
-			if (APIRequest.Perform(serverBaseAddress, "/api/simulations/GetWatchdogTokenForServer", null, null,
-				out WatchdogTokenResponse response))
+			try
 			{
-				return response.watchdog_token;
+				if (APIRequest.Perform(serverBaseAddress, "/api/simulations/GetWatchdogTokenForServer", null, null,
+					out WatchdogTokenResponse response))
+				{
+					return response.watchdog_token;
+				}
+			}
+			catch (ApiUnauthorizedWebException ex)
+			{
+				return String.Empty;
 			}
 			return String.Empty;
 		}

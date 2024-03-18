@@ -11,13 +11,13 @@ class Dinic
     bool runCorrectly;
 
 	/* All nodes are split into in and out, with the edge between representing the node's capacity.
-     * out nodes are at normal indices, in nodes are at indices + inOutOffset. 			
+     * out nodes are at normal indices, in nodes are at indices + inOutOffset.
 	 */
 	Dictionary<int, int> nodeIDtoIndex;
     Dictionary<int, int> nodeIndextoID;
 	Dictionary<int, Edge> cableIDtoEdge;
     List<List<Edge>> adj;
-	
+
 	int sourceIndex, sinkIndex;	//Paths energy is sent along
 	int[] timesEdgesVisited;	//The next edge index to visit when a node is explored
 	List<FlowPath> flowPaths;	//To log results
@@ -27,7 +27,7 @@ class Dinic
         int result = 0;
         if (!nodeIDtoIndex.TryGetValue(nodeID, out result))
         {
-            Console.WriteLine("ERROR\t| Connection to node ID that does not exist. Node ID: " + nodeID);
+            Console.WriteLine("ERROR".PadRight(10)+"| Connection to node ID that does not exist. Node ID: " + nodeID);
             runCorrectly = false;
         }
         return result;
@@ -38,7 +38,7 @@ class Dinic
         int result = 0;
         if (!nodeIndextoID.TryGetValue(index, out result))
         {
-            Console.WriteLine("ERROR\t| Getting node ID for index that does not exist. Index: " + index);
+            Console.WriteLine("ERROR".PadRight(10)+"| Getting node ID for index that does not exist. Index: " + index);
             runCorrectly = false;
         }
         return result;
@@ -65,9 +65,9 @@ class Dinic
         }
 
         //Create the edge between the 2 parts of the node
-        for (int i = 0; i < numberNodes / 2; i++) 
+        for (int i = 0; i < numberNodes / 2; i++)
             AddSingleEdge(i + inOutOffset, i, nodes[i].maxcapacity, nodes[i].geometry_id);
-        
+
         //Add the initial connections
         foreach (Connection con in initialConnections)
             AddBidirectionalEdge(con.fromNodeID, con.toNodeID, con.maxcapacity, con.cableID, true);

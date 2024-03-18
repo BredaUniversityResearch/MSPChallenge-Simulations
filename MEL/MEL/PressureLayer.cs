@@ -29,7 +29,7 @@ namespace MEL
 		private List<LayerEntry> layers = new List<LayerEntry>();
 		public bool redraw = true;
 		public cPressure pressure;
-		public double[,] rawData { get; private set; }
+		public double[,]? rawData { get; private set; }
 
 		public PressureLayer(string name)
 		{
@@ -54,7 +54,7 @@ namespace MEL
 				Console.WriteLine("rasterizing " + name);
 				redraw = false;
 
-				if (mel.ApiConnector.ShouldRasterizeLayers)
+				if (mel.ApiMspServer.ShouldRasterizeLayers)
 				{
 					try
 					{
@@ -96,7 +96,7 @@ namespace MEL
 				}
 				else
 				{
-					rawData = mel.ApiConnector.GetRasterizedPressure(name);
+					rawData = mel.ApiMspServer.GetRasterizedPressure(name);
 				}
 
 				//Console.WriteLine(this.name + " : " + total.ToString());
@@ -106,7 +106,7 @@ namespace MEL
 
 				using (Bitmap bitmap = Rasterizer.ToBitmapSlow(rawData))
 				{
-					mel.ApiConnector.SubmitRasterLayerData(name, bitmap);
+					mel.ApiMspServer.SubmitRasterLayerData(name, bitmap);
 				}
 			}
 		}
