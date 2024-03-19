@@ -102,7 +102,7 @@ namespace MEL
 				//Console.WriteLine(this.name + " : " + total.ToString());
 
 				//set the data to be sent to EwE
-				pressure = new cPressure(name, MEL.x_res, MEL.y_res, rawData);
+				pressure = new cEnvironmentalPressure(name, MEL.x_res, MEL.y_res, rawData);
 
 				using (Bitmap bitmap = Rasterizer.ToBitmapSlow(rawData))
 				{

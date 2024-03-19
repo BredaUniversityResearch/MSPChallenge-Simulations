@@ -49,7 +49,7 @@ namespace MEL
 
 		private cEwEMSPLink shell;
 		private List<cPressure> pressures = new List<cPressure>();
-		private List<cPressure> cfishingpressures = new List<cPressure>();
+		private List<cFishingEffortPressure> cfishingpressures = new ();
 		public List<cGrid> outputs = new List<cGrid>();
 
 		private CommunicationPipeHandler pipeHandler;
@@ -143,8 +143,8 @@ namespace MEL
 				{
 					Console.WriteLine("Initialized fishing values for {0} to {1}", fish.Name, fish.Value);
 
-					pressures.Add(new cPressure(fish.Name, fish.Value));
-					cfishingpressures.Add(new cPressure(fish.Name, fish.Value));
+					pressures.Add(new cFishingEffortPressure(fish.Name, (float)fish.Value));
+					cfishingpressures.Add(new cFishingEffortPressure(fish.Name, (float)fish.Value));
 				}
 				ApiMspServer.SetInitialFishingValues(initialFishingValues);
 
@@ -362,7 +362,7 @@ namespace MEL
 					if (cfishingpressures[i].Name == f.name)
 					{
 						Console.WriteLine("Updated fishing values for {0} to {1}", f.name, f.scalar);
-						cfishingpressures[i] = new cPressure(f.name, f.scalar);
+						cfishingpressures[i] = new cFishingEffortPressure(f.name, f.scalar);
 					}
 				}
 			}
@@ -413,9 +413,9 @@ namespace MEL
 				pressures.Add(entry.Value.pressure);
 			}
 
-			foreach (cPressure fishing in cfishingpressures)
+			foreach (cFishingEffortPressure fishing in cfishingpressures)
 			{
-				pressures.Add(new cPressure(fishing.Name, fishing.Scalar));
+				pressures.Add(new cFishingEffortPressure(fishing.Name, fishing.EffortScalar));
 			}
 
 			//watch.Stop();
