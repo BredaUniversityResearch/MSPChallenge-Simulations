@@ -3,14 +3,11 @@ using MSWSupport;
 
 namespace SEL.API
 {
-	internal interface IApiConnector: ITokenReceiver
+	internal interface IApiConnector
 	{
-		bool CheckApiAccess();
-
 		APISELRegionSettings GetSELRegionSettings();
 		APIHeatmapOutputSettings[] GetHeatmapOutputSettings();
 		APIHeatmapSettings GetHeatmapSettings();
-		int GetCurrentMonth();
 		APIUpdateDescriptor GetUpdatePackage();
 
 		APIAreaOutputConfiguration GetAreaOutputConfiguration();

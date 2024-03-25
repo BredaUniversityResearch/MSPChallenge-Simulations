@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Collections.Specialized;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
@@ -8,12 +7,12 @@ using System.Threading;
 using MSWSupport;
 
 
-class EnergyDistribution : ITokenReceiver
+class EnergyDistribution : ApiConnectorBase
 {
 	//Elements
 	private Connection[] connectionObj;                 //<fromID, toID, cableID, cap>
 	private List<InputNode> nodeObj;                    //<id, cap>     NO CABLES
-	private int[] sourceObj;                            //<id>             
+	private int[] sourceObj;                            //<id>
 	private List<CountryGridSockets> socketCountryObj;  //<gridid, <countryid, cap, <socketid>>>
 
 	private int intermediaryNodeIndex;                  //ID of the next intermediary node to be inserted
@@ -22,28 +21,37 @@ class EnergyDistribution : ITokenReceiver
 	private int lastRunMonth;
 	private Dinic dinic;
 
-	private string currentApiAccessToken = "";
-	private APITokenHandler tokenHandler;
+	private CommunicationPipeHandler pipeHandler;
 
-	public EnergyDistribution()
+	public EnergyDistribution(): base(CELConfig.Instance.APIRoot)
 	{
-		tokenHandler = new APITokenHandler(this, CommandLineArguments.GetOptionValue(CommandLineArguments.MSWPipeName), "CEL", CELConfig.Instance.APIRoot);
+		pipeHandler = new CommunicationPipeHandler(CommandLineArguments.GetOptionValue(CommandLineArguments.MSWPipeName), "CEL", CELConfig.Instance.APIRoot);
+		pipeHandler.SetTokenReceiver(this);
+		pipeHandler.SetUpdateMonthReceiver(this);
+	}
+
+	public void WaitForApiAccess()
+	{
+		while (!APIRequest.SleepOnApiUnauthorizedWebException(() => CheckApiAccess()))
+		{
+			// ApiRequest handles sleep.
+		}
 	}
 
 	public void Tick()
 	{
-		if (!CheckAPIAccess())
+		if (GetCurrentGameMonth() == -100)
 		{
+			Thread.Sleep(2500);
 			return;
 		}
-
 		if (firstUpdate)
 		{
-			lastRunMonth = GetCurrentMonth() - 1;
+			lastRunMonth = GetCurrentGameMonth() - 1;
 			firstUpdate = false;
 		}
 
-		int month = GetCurrentMonth();
+		int month = GetCurrentGameMonth();
 		if (month > lastRunMonth)
 		{
 			if (GetIfUpdateNecessary())
@@ -64,7 +72,7 @@ class EnergyDistribution : ITokenReceiver
 				}
 				else
 				{
-					Console.WriteLine("ERROR\t| Energy update failed. Retrying...");
+					Console.WriteLine("ERROR".PadRight(10)+"| Energy update failed. Retrying...");
 					dinic = null;
 				}
 			}
@@ -87,7 +95,7 @@ class EnergyDistribution : ITokenReceiver
 				}
 				else
 				{
-					Console.WriteLine("ERROR\t| Energy update failed. Retrying...");
+					Console.WriteLine("ERROR".PadRight(10)+"| Energy update failed. Retrying...");
 					dinic = null;
 				}
 			}
@@ -103,52 +111,39 @@ class EnergyDistribution : ITokenReceiver
 		}
 	}
 
-	private bool CheckAPIAccess()
-	{
-		APIRequest.Perform(CELConfig.Instance.APIRoot, "/api/game/IsOnline", currentApiAccessToken, null,
-			out string result);
-		return (result == "online");
-	}
-
 	bool LoadData()
 	{
 		bool successful = true;
-		var task1 = Task.Run(() =>
-		{
+		Task task1 = Task.Run(() => {
 			//connections <from, to, cable, cap>
-			if (!APIRequest.Perform(CELConfig.Instance.APIRoot, "/api/cel/GetConnections", currentApiAccessToken, null,
-				out connectionObj))
+			if (HttpGet("/api/cel/GetConnections", out connectionObj))
+				return;
+			Console.WriteLine("".PadRight(10)+"| Data load failed.");
+			successful = false;
+		});
+
+		Task task2 = Task.Run(() =>
+		{
+			//nodes <id, cap>   NO CABLES
+			if (!HttpGet("/api/cel/GetNodes", out nodeObj))
 			{
-				Console.WriteLine("\t| Data load failed.");
-				successful = false;
+			   successful = false;
 			}
 		});
 
-		var task2 = Task.Run(() =>
-	   {
-		   //nodes <id, cap>   NO CABLES
-		   if (!APIRequest.Perform(CELConfig.Instance.APIRoot, "/api/cel/GetNodes", currentApiAccessToken, null,
-			   out nodeObj))
-		   {
-			   successful = false;
-		   }
-	   });
-
-		var task3 = Task.Run(() =>
+		Task task3 = Task.Run(() =>
 		{
 			//source IDs <id>
-			if (!APIRequest.Perform(CELConfig.Instance.APIRoot, "/api/cel/GetSources", currentApiAccessToken, null,
-				out sourceObj))
+			if (!HttpGet("/api/cel/GetSources", out sourceObj))
 			{
 				successful = false;
 			}
 		});
 
-		var task4 = Task.Run(() =>
+		Task task4 = Task.Run(() =>
 		{
 			//grid info <gridid, <country, cap, <socketid>>>
-			if (!APIRequest.Perform(CELConfig.Instance.APIRoot, "/api/cel/GetGrids", currentApiAccessToken, null,
-				out socketCountryObj))
+			if (!HttpGet("/api/cel/GetGrids", out socketCountryObj))
 			{
 				successful = false;
 			}
@@ -156,7 +151,7 @@ class EnergyDistribution : ITokenReceiver
 
 		Task.WaitAll(task1, task2, task3, task4);
 		if (successful)
-			Console.WriteLine("\t| Data loaded successfully.");
+			Console.WriteLine("".PadRight(10)+"| Data loaded successfully.");
 		return successful;
 	}
 
@@ -213,14 +208,11 @@ class EnergyDistribution : ITokenReceiver
 		long result = 0;
 		if (dinic.DinicMaxflow(-1, -2, out result))
 		{
-			Console.WriteLine("\t| Total energy sent: " + result.ToString());
+			Console.WriteLine("".PadRight(10)+"| Total energy sent: " + result.ToString());
 			return true;
 		}
-		else
-		{
-			Console.WriteLine("ERROR\t| The energy simulation encountered an error while running. Results were discarded.");
-			return false;
-		}
+		Console.WriteLine("ERROR".PadRight(10)+"| The energy simulation encountered an error while running. Results were discarded.");
+		return false;
 	}
 
 	void SubmitResults()
@@ -241,9 +233,12 @@ class EnergyDistribution : ITokenReceiver
 			geomOutput.Add(new GeomCapacityOutput(ID, usedCap));
 		}
 
-		NameValueCollection nvc = new NameValueCollection();
-		nvc.Add("geomCapacityValues", JsonConvert.SerializeObject(geomOutput));
-		APIRequest.Perform(CELConfig.Instance.APIRoot, "/api/cel/SetGeomCapacity", currentApiAccessToken, nvc);
+		NameValueCollection nvc = new() {
+			{
+				"geomCapacityValues", JsonConvert.SerializeObject(geomOutput)
+			},
+		};
+		HttpSet("/api/cel/SetGeomCapacity", nvc);
 
 		SubmitKPIs();
 	}
@@ -263,36 +258,20 @@ class EnergyDistribution : ITokenReceiver
 
 		NameValueCollection nvc = new NameValueCollection();
 		nvc.Add("kpiValues", JsonConvert.SerializeObject(geomOutput));
-		APIRequest.Perform(CELConfig.Instance.APIRoot, "/api/cel/SetGridCapacity", currentApiAccessToken, nvc);
-	}
-
-	private int GetCurrentMonth()
-	{
-		if (APIRequest.Perform(CELConfig.Instance.APIRoot, "/api/Game/GetCurrentMonth",
-			currentApiAccessToken, null, out MonthContainer result))
-		{
-			return result.game_currentmonth;
-		}
-
-		return -1;
+		HttpSet("/api/cel/SetGridCapacity", nvc);
 	}
 
 	private void SetLastRunMonth(int newMonth)
 	{
 		NameValueCollection form = new NameValueCollection();
 		form.Add("month", newMonth.ToString());
-		APIRequest.Perform(CELConfig.Instance.APIRoot, "/api/cel/UpdateFinished", currentApiAccessToken, form);
+		HttpSet("/api/cel/UpdateFinished", form);
 	}
 
 	private bool GetIfUpdateNecessary()
 	{
-		bool success = APIRequest.Perform(CELConfig.Instance.APIRoot, "/api/cel/ShouldUpdate", currentApiAccessToken, null, out bool result);
+		bool success = HttpGet("/api/cel/ShouldUpdate", out bool result);
 		return success && result;
-	}
-
-	public void UpdateAccessToken(string newAccessToken)
-	{
-		currentApiAccessToken = newAccessToken;
 	}
 }
 

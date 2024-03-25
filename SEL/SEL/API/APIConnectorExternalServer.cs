@@ -2,34 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Net;
-using System.Text;
 using MSWSupport;
 
 namespace SEL.API
 {
-	class APIConnectorExternalServer : IApiConnector
+	class APIConnectorExternalServer : ApiConnectorBase, IApiConnector
 	{
-		private class APIMonthContainer
+		public APIConnectorExternalServer() : base(SELConfig.Instance.GetAPIRoot())
 		{
-			public int game_currentmonth = 0;
-		};
-
-		private string m_accessToken = null;
-
-		public void UpdateAccessToken(string newAccessToken)
-		{
-			m_accessToken = newAccessToken;
-		}
-
-		public bool CheckApiAccess()
-		{
-			if (HttpGet("/api/game/IsOnline", null, out string result))
-			{
-				return result == "online";
-			}
-
-			return false;
 		}
 
 		public APISELRegionSettings GetSELRegionSettings()
@@ -48,16 +28,6 @@ namespace SEL.API
 		{
 			HttpGet("/api/SEL/GetHeatmapSettings", null, out APIHeatmapSettings result);
 			return result;
-		}
-
-		public int GetCurrentMonth()
-		{
-			if (HttpGet("/api/Game/GetCurrentMonth", null, out APIMonthContainer result))
-			{
-				return result.game_currentmonth;
-			}
-
-			return -100;
 		}
 
 		public APIUpdateDescriptor GetUpdatePackage()
@@ -188,19 +158,6 @@ namespace SEL.API
 			postData.Set("message", errorMessage);
 			postData.Set("stack_trace", stackTrace);
 			HttpSet("/api/log/Event", postData);
-		}
-
-		private bool HttpGet<TTargetType>(string apiEndPoint, NameValueCollection postValues, out TTargetType result)
-		{
-			return APIRequest.Perform(SELConfig.Instance.GetAPIRoot(), apiEndPoint, m_accessToken, postValues, out result);
-		}
-
-		private void HttpSet(string apiEndPoint, NameValueCollection postValues)
-		{
-			if (!APIRequest.Perform(SELConfig.Instance.GetAPIRoot(), apiEndPoint, m_accessToken, postValues))
-			{
-				Console.WriteLine($"APIRequest to {apiEndPoint} failed.");
-			}
 		}
 
 		public static APIShippingPortIntensity[] DebugGenerateIntensityDataForAllPorts(IApiConnector apiProvider)

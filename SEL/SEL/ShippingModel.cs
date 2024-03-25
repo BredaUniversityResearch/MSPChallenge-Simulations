@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using SEL.API;
 using SEL.KPI;
@@ -10,8 +11,8 @@ namespace SEL
 {
 	class ShippingModel
 	{
-		private IApiConnector m_apiConnector = new APIConnectorExternalServer();
-		private APITokenHandler m_apiTokenHandler = null;
+		private APIConnectorExternalServer m_apiConnector = new();
+		private CommunicationPipeHandler m_pipeHandler = null;
 		private ErrorReporter m_errorReporter = null;
 		private ShippingPortManager m_portManager;
 		private RouteManager m_routeManager;
@@ -29,11 +30,10 @@ namespace SEL
 		private int m_lastUpdatedMonthId = -2;
 
 		private bool m_hasLoadedInitialData;
-		private bool m_hadApiAccessLastUpdate = false;
 
 		public ShippingModel()
 		{
-			string pipeHandle = null;
+			string? pipeHandle = null;
 			if (CommandLineArguments.HasOptionValue(CommandLineArguments.MSWPipe))
 			{
 				pipeHandle = CommandLineArguments.GetOptionValue(CommandLineArguments.MSWPipe);
@@ -42,9 +42,11 @@ namespace SEL
 			string watchdogToken = WatchdogTokenUtility.GetWatchdogTokenForServerAtAddress(SELConfig.Instance.GetAPIRoot());
 			Console.WriteLine($"Targeting simulation for server at {SELConfig.Instance.GetAPIRoot()} with token {watchdogToken}");
 
-			if (!SELConfig.Instance.ShouldIgnoreApiSecurity())
+			if (!SELConfig.Instance.ShouldIgnoreApiSecurity() && pipeHandle != null)
 			{
-				m_apiTokenHandler = new APITokenHandler(m_apiConnector, pipeHandle, "SEL", SELConfig.Instance.GetAPIRoot());
+				m_pipeHandler = new CommunicationPipeHandler(pipeHandle, "SEL", SELConfig.Instance.GetAPIRoot());
+				m_pipeHandler.SetTokenReceiver(m_apiConnector);
+				m_pipeHandler.SetUpdateMonthReceiver(m_apiConnector);
 			}
 			m_relSupport = new RELSupport(watchdogToken);
 			m_errorReporter = new ErrorReporter(m_apiConnector);
@@ -182,60 +184,64 @@ namespace SEL
 			}
 		}
 
+        public void WaitForApiAccess()
+		{
+			if (SELConfig.Instance.ShouldIgnoreApiSecurity())
+			{
+				return;
+			}
+			while (!APIRequest.SleepOnApiUnauthorizedWebException(() => m_apiConnector.CheckApiAccess()))
+			{
+				// ApiRequest handles sleep.
+			}
+		}
+
 		public void Tick()
 		{
-			if (SELConfig.Instance.ShouldIgnoreApiSecurity() || m_apiConnector.CheckApiAccess())
+			if (!m_hasLoadedInitialData)
 			{
-				m_hadApiAccessLastUpdate = true;
-				if (!m_hasLoadedInitialData)
+				using (new PerformanceTimer("Load Persistent Data"))
 				{
-					using (new PerformanceTimer("Load Persistent Data"))
-					{
-						LoadConfigurationData();
-						LoadPersistentConfigData();
-						LoadSharedMapData();
-					}
-					Console.WriteLine("\t| Done. Awaiting game updates...");
-
-					m_hasLoadedInitialData = true;
+					LoadConfigurationData();
+					LoadPersistentConfigData();
+					LoadSharedMapData();
 				}
+				Console.WriteLine("".PadRight(10)+"| Done. Awaiting game updates...");
 
-				int monthId = m_apiConnector.GetCurrentMonth();
-				if (monthId != m_lastUpdatedMonthId)
-				{
-					APIUpdateDescriptor updateDescriptor = m_apiConnector.GetUpdatePackage();
-					if (m_routeManager == null || updateDescriptor.rebuild_edges)
-					{
-						m_shippingIssueManager.ClearIssues();
-						m_routeManager = new RouteManager(m_shippingIssueManager);
-						m_portManager = new ShippingPortManager();
-						LoadRouteManagerData(m_routeManager, m_portManager);
-					}
-
-					ExecuteUpdate(monthId, m_routeManager, m_portManager);
-					m_lastUpdatedMonthId = monthId;
-
-					m_apiConnector.SetUpdateFinished(m_lastUpdatedMonthId);
-
-					if (SELConfig.Instance.ShouldCreateEdgeMap())
-					{
-						SEL_debug.CreateEdgeMap(m_routeManager, SELConfig.Instance.EdgeMapOutputResolution());
-					}
-
-					if (SELConfig.Instance.ShouldCreateRouteMaps())
-					{
-						SEL_debug.CreateRouteMap(m_routeManager, SELConfig.Instance.RouteMapOutputResolution());
-					}
-				}
+				m_hasLoadedInitialData = true;
 			}
-			else
+
+			int monthId = m_apiConnector.GetCurrentGameMonth();
+			if (monthId == -100)
 			{
-				if (m_hadApiAccessLastUpdate)
+				Thread.Sleep(2500);
+				return;
+			}
+			if (monthId != m_lastUpdatedMonthId)
+			{
+				APIUpdateDescriptor updateDescriptor = m_apiConnector.GetUpdatePackage();
+				if (m_routeManager == null || updateDescriptor.rebuild_edges)
 				{
-					Console.WriteLine("API token is not set or invalid... Waiting for new token...");
+					m_shippingIssueManager.ClearIssues();
+					m_routeManager = new RouteManager(m_shippingIssueManager);
+					m_portManager = new ShippingPortManager();
+					LoadRouteManagerData(m_routeManager, m_portManager);
 				}
 
-				m_hadApiAccessLastUpdate = false;
+				ExecuteUpdate(monthId, m_routeManager, m_portManager);
+				m_lastUpdatedMonthId = monthId;
+
+				m_apiConnector.SetUpdateFinished(m_lastUpdatedMonthId);
+
+				if (SELConfig.Instance.ShouldCreateEdgeMap())
+				{
+					SEL_debug.CreateEdgeMap(m_routeManager, SELConfig.Instance.EdgeMapOutputResolution());
+				}
+
+				if (SELConfig.Instance.ShouldCreateRouteMaps())
+				{
+					SEL_debug.CreateRouteMap(m_routeManager, SELConfig.Instance.RouteMapOutputResolution());
+				}
 			}
 		}
 
@@ -283,7 +289,7 @@ namespace SEL
 				m_relSupport.SubmitResults(m_routeManager, m_routeIntensityManager, timeMonth, m_portManager);
 			}
 
-			Console.WriteLine("\t| Finished Update for Month {0}", timeMonth);
+			Console.WriteLine("".PadRight(10)+"| Finished Update for Month {0}", timeMonth);
 		}
 
 		private void BuildOutputRasters(int timeMonth)

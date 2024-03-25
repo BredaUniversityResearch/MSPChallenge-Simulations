@@ -11,12 +11,12 @@ namespace MEL
 	/// </summary>
 	public class RasterizedLayer
 	{
-		public readonly string name;
+		public readonly string? name;
 		public readonly int LayerType;
 		public readonly bool constructionOnly;
 
 		public bool IsLoadedCorrectly { get; private set; }
-		public double[,] rawData;
+		public double[,]? rawData;
 
 		public RasterizedLayer(LayerData layerData)
 		{
@@ -31,11 +31,11 @@ namespace MEL
 			//var watch = System.Diagnostics.Stopwatch.StartNew();
 			Console.WriteLine("Getting: " + name);
 
-			APILayerGeometryData layerGeometryData = mel.ApiConnector.GetLayerData(name, LayerType, constructionOnly);
+			APILayerGeometryData? layerGeometryData = mel.ApiMspServer.GetLayerData(name, LayerType, constructionOnly);
 
 			if (layerGeometryData != null)
 			{
-				List<APILayerGeometryData> g = new List<APILayerGeometryData> { layerGeometryData };
+				List<APILayerGeometryData?> g = new List<APILayerGeometryData?> { layerGeometryData };
 
 				switch (layerGeometryData.geotype)
 				{
@@ -54,7 +54,7 @@ namespace MEL
 				case "raster":
 					try
 					{
-						rawData = mel.ApiConnector.GetRasterLayerByName(name);
+						rawData = mel.ApiMspServer.GetRasterLayerByName(name);
 						if (rawData == null)
 						{
 							throw new Exception("Got null raw data from API. This can happen when this layer is an output from a different simulation.");

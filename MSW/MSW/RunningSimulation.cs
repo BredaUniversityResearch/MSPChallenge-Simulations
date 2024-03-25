@@ -10,6 +10,7 @@ namespace MSW
 	class RunningSimulation
 	{
 		private const string TokenPrelude = "Token=";
+        private const string MonthPrelude = "Month=";
 
 		private readonly AvailableSimulationVersion m_simulationVersion = null;
 		private readonly string m_targetApiEndpoint;
@@ -77,6 +78,27 @@ namespace MSW
 		{
 			m_currentApiAccessToken = a_tokenValue;
 			CommunicateUpdatedApiAccessToken();
+		}
+
+		public void SetMonth(int a_month)
+		{
+			if (m_communicationPipeServer.IsConnected)
+			{
+				try
+				{
+					using (StreamWriter writer = new StreamWriter(m_communicationPipeServer, Encoding.UTF8, 128, true))
+					{
+						writer.WriteLine(MonthPrelude+a_month);
+						writer.Flush();
+					}
+				}
+				catch (IOException)
+				{
+					Console.WriteLine($"Communication pipe {m_pipeName} reported IO Exception. Did the other application exit?");
+					m_communicationPipeServer.Disconnect();
+					m_communicationPipeServer.WaitForConnectionAsync().ContinueWith((a_task) => { OnPipeConnected(); });
+				}
+			}
 		}
 
 		private void CommunicateUpdatedApiAccessToken()
