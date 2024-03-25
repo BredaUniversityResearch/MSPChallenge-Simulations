@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using MSWSupport;
 
 namespace SEL.Util
 {
@@ -18,7 +17,7 @@ namespace SEL.Util
 		public void Dispose()
 		{
 			m_stopWatch.Stop();
-			Console.WriteLine($"{m_stopWatch.ElapsedMilliseconds}ms".PadRight(10)+"| "+m_message);
+			Console.WriteLine(string.Format("{0}ms\t| {1} ", m_stopWatch.ElapsedMilliseconds, m_message));
 		}
 	}
 }

@@ -2,8 +2,6 @@
 using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
-using System.Reflection;
-using System.Threading;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -11,9 +9,6 @@ namespace MSWSupport
 {
 	public static class APIRequest
 	{
-		private const int DEFAULT_API_UNAUTHORIZED_SLEEP_SEC = 4;
-		private const string DEFAULT_API_UNAUTHORIZED_MESSAGE_FORMAT = "API refused access... Waiting {0} sec and retrying";
-
 		[SuppressMessage("ReSharper", "InconsistentNaming")]
 		public class ApiResponseWrapper
 		{
@@ -21,22 +16,6 @@ namespace MSWSupport
 			public string message = null;
 			public JToken payload = null;
 		};
-
-		public static bool SleepOnApiUnauthorizedWebException(Action action, int sleepSec = DEFAULT_API_UNAUTHORIZED_SLEEP_SEC,
-			string messageFormat = DEFAULT_API_UNAUTHORIZED_MESSAGE_FORMAT)
-		{
-	        try
-	        {
-	            action();
-	        }
-	        catch (ApiUnauthorizedWebException ex)
-	        {
-				Console.WriteLine(messageFormat, sleepSec);
-				Thread.Sleep(sleepSec * 1000);
-				return false;
-	        }
-	        return true;
-		}
 
 		public static bool Perform<TTargetType>(string serverUrl, string apiUrl, string currentAccessToken, NameValueCollection postValues, out TTargetType result, JsonSerializer jsonSerializer = null)
 		{
@@ -95,12 +74,6 @@ namespace MSWSupport
 			}
 			catch (WebException ex)
 			{
-				if (null != ex.Response &&
-					((HttpWebResponse)ex.Response).StatusCode == HttpStatusCode.Unauthorized)
-				{
-					throw new ApiUnauthorizedWebException(ex); // allow child code to handle this one
-				}
-
 				Console.WriteLine($"ApiRequest::Perform for {fullServerUrl} failed with exception: {ex.Message}");
 				responsePayload = null;
 				return false;
@@ -144,9 +117,6 @@ namespace MSWSupport
 		{
 			WebClient webclient = new WebClient();
 			webclient.Headers.Add(MSWConstants.APITokenHeader, "Bearer " + currentAccessToken);
-#if DEBUG
-			webclient.Headers.Add("AssemblyLocation", Assembly.GetEntryAssembly()?.Location);
-#endif
 			byte[] response = webclient.UploadValues(fullApiUrl, values);
 
 			return System.Text.Encoding.UTF8.GetString(response);

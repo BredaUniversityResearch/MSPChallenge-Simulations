@@ -106,14 +106,6 @@ namespace MSW
 				}
 			}
 
-			public void SetMonth(int month)
-			{
-				foreach (RunningSimulation sim in RunningSimulations)
-				{
-					sim.SetMonth(month);
-				}
-			}
-
 			public void SetApiRecoveryToken(string token)
 			{
 				m_recoveryToken.SetToken(token);
@@ -137,7 +129,7 @@ namespace MSW
 				foreach (RunningSimulation simulation in RunningSimulations)
 				{
 					simulation.PingCommunicationPipe();
-				}
+				} 
 				RenewToken();
 			}
 
@@ -175,7 +167,6 @@ namespace MSW
 		private List<ServerData> m_activeServers = new List<ServerData>(8);
 		private RestApiController m_restApiController;
 		private RestEndpointUpdateState m_updateStateEndpoint;
-		private RestEndpointSetMonth m_setMonthEndpoint;
 		private List<AvailableSimulation> m_availableSimulations = new List<AvailableSimulation>(8);
 
 		private MSWPipeDebugConnector m_debugConnector = null;
@@ -190,28 +181,15 @@ namespace MSW
 			}
 
 			m_updateStateEndpoint = new RestEndpointUpdateState(m_availableSimulations.ToArray());
-			m_setMonthEndpoint = new RestEndpointSetMonth();
 			m_restApiController.AddEndpoint(m_updateStateEndpoint);
-			m_restApiController.AddEndpoint(m_setMonthEndpoint);
 		}
 
 		public void Tick()
 		{
-			// set month
+			RestEndpointUpdateState.RequestData[] requests = m_updateStateEndpoint.GetPendingRequestData();
+			foreach (RestEndpointUpdateState.RequestData request in requests)
 			{
-				RestEndpointSetMonth.RequestData[] requests = m_setMonthEndpoint.GetPendingRequestData();
-				foreach (RestEndpointSetMonth.RequestData request in requests)
-				{
-					HandleSetMonthRequest(request);
-				}
-			}
-			// update state
-			{
-				RestEndpointUpdateState.RequestData[] requests = m_updateStateEndpoint.GetPendingRequestData();
-				foreach (RestEndpointUpdateState.RequestData request in requests)
-				{
-					HandleUpdateStateRequest(request);
-				}
+				HandleUpdateStateRequest(request);
 			}
 
 			UpdateAccessTokensForRunningSimulations();
@@ -258,20 +236,9 @@ namespace MSW
 			return a_state == EGameState.End;
 		}
 
-		private void HandleSetMonthRequest(RestEndpointSetMonth.RequestData a_request)
-		{
-			ServerData? existingData = FindServerDataForSessionToken(a_request.GameSessionToken);
-			if (existingData == null)
-			{
-				return;
-			}
-			Console.WriteLine("Setting month to " + a_request.Month);
-			existingData.SetMonth(a_request.Month);
-		}
-
 		private void HandleUpdateStateRequest(RestEndpointUpdateState.RequestData a_request)
 		{
-			ServerData? existingData = FindServerDataForSessionToken(a_request.GameSessionToken);
+			ServerData existingData = FindServerDataForSessionToken(a_request.GameSessionToken);
 			if (existingData != null)
 			{
 				if (!IsStoppedState(a_request.GameState))
@@ -287,7 +254,6 @@ namespace MSW
 				existingData.SetCurrentState(a_request.GameState);
 				existingData.SetApiAccessToken(a_request.AccessToken.GetTokenAsString());
 				existingData.SetApiRecoveryToken(a_request.RecoveryToken.GetTokenAsString());
-				existingData.SetMonth(a_request.Month);
 			}
 			else
 			{
@@ -314,13 +280,12 @@ namespace MSW
 					data.SetCurrentState(a_request.GameState);
 					data.SetApiAccessToken(a_request.AccessToken.GetTokenAsString());
 					data.SetApiRecoveryToken(a_request.RecoveryToken.GetTokenAsString());
-					data.SetMonth(a_request.Month);
 					Console.WriteLine("Created new simulation server instance for " + a_request.GameSessionApi);
 				}
 			}
 		}
 
-		private ServerData? FindServerDataForSessionToken(string a_sessionToken)
+		private ServerData FindServerDataForSessionToken(string a_sessionToken)
 		{
 			return m_activeServers.Find(a_obj => a_obj.ServerWatchdogToken == a_sessionToken);
 		}

@@ -34,9 +34,8 @@ namespace MSW
 			public readonly SimulationRequest[] ConfiguredSimulations;
 			public readonly ApiAccessToken AccessToken;
 			public readonly ApiAccessToken RecoveryToken;
-			public readonly int Month;
 
-			public RequestData(string a_gameSessionApi, string a_gameSessionToken, EGameState a_gameState, SimulationRequest[] a_configuredSimulations, ApiAccessToken a_accessToken, ApiAccessToken a_recoveryToken, int a_month)
+			public RequestData(string a_gameSessionApi, string a_gameSessionToken, EGameState a_gameState, SimulationRequest[] a_configuredSimulations, ApiAccessToken a_accessToken, ApiAccessToken a_recoveryToken)
 			{
 				GameSessionApi = a_gameSessionApi;
 				GameSessionToken = a_gameSessionToken;
@@ -44,7 +43,6 @@ namespace MSW
 				ConfiguredSimulations = a_configuredSimulations;
 				AccessToken = a_accessToken;
 				RecoveryToken = a_recoveryToken;
-				Month = a_month;
 			}
 		}
 
@@ -77,8 +75,7 @@ namespace MSW
 				a_postValues.TryGetValue("game_state", out string gameState) &&
 				a_postValues.TryGetValue("required_simulations", out string requiredSimulations) &&
 				a_postValues.TryGetValue("api_access_token", out string apiAccessToken) &&
-				a_postValues.TryGetValue("api_access_renew_token", out string apiAccessRenewToken) &&
-				a_postValues.TryGetValue("month", out string month))
+				a_postValues.TryGetValue("api_access_renew_token", out string apiAccessRenewToken))
 			{
 				RequestData.SimulationRequest[] requestedSimulations;
 				if (!string.IsNullOrEmpty(requiredSimulations))
@@ -102,15 +99,8 @@ namespace MSW
 
 				if (Enum.TryParse(gameState, true, out EGameState parsedGameState))
 				{
-					RequestData data = new RequestData(
-						gameSession,
-                        gameSessionToken,
-                        parsedGameState,
-                        requestedSimulations,
-						JsonConvert.DeserializeObject<ApiAccessToken>(apiAccessToken),
-						JsonConvert.DeserializeObject<ApiAccessToken>(apiAccessRenewToken),
-						int.Parse(month)
-					);
+					RequestData data = new RequestData(gameSession, gameSessionToken, parsedGameState, requestedSimulations,
+						JsonConvert.DeserializeObject<ApiAccessToken>(apiAccessToken), JsonConvert.DeserializeObject<ApiAccessToken>(apiAccessRenewToken));
 					if (CheckRequest(data, out requestErrorMessage))
 					{
 						lock (m_pendingRequests)

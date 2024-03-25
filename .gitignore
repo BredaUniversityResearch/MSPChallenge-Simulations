@@ -78,9 +78,6 @@ crashlytics-build.properties
 
 # output of build/publish
 DLLs/MSWSupport.dll
-DLLs/Newtonsoft.Json.dll
 DLLs/SELRELBridge.dll
-DLLs/SmartFormat.ZString.dll
-DLLs/SmartFormat.dll
 DLLs/EwE*.dll
 output/
