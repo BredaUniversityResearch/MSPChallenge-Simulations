@@ -32,7 +32,7 @@ namespace MEL {
                 {
 		            if (rings.Count == 0)
 			            continue;
-		            // fist is exterior ring, rest are interior rings (holes)
+		            // first is exterior ring, rest are interior rings (holes)
 		            List<double[]> exteriorRing = rings[0];
 		            RasterizePolygonRing(exteriorRing, weight, maxWeightPerPoly, width, height, voffset, hoffset, vsquaresize, hsquaresize, squaresurface, ref output);
 		            for (int n = 1 ; n < rings.Count; n++) {
