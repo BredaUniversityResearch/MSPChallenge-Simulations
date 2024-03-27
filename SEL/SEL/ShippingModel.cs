@@ -40,7 +40,7 @@ namespace SEL
 			}
 
 			string watchdogToken = WatchdogTokenUtility.GetWatchdogTokenForServerAtAddress(SELConfig.Instance.GetAPIRoot());
-			Console.WriteLine($"Targeting simulation for server at {SELConfig.Instance.GetAPIRoot()} with token {watchdogToken}");
+			ConsoleLogger.Info($"Targeting simulation for server at {SELConfig.Instance.GetAPIRoot()} with token {watchdogToken}");
 
 			if (!SELConfig.Instance.ShouldIgnoreApiSecurity() && pipeHandle != null)
 			{
@@ -206,7 +206,7 @@ namespace SEL
 					LoadPersistentConfigData();
 					LoadSharedMapData();
 				}
-				Console.WriteLine("".PadRight(10)+"| Done. Awaiting game updates...");
+				ConsoleLogger.Info("".PadRight(10)+"| Done. Awaiting game updates...");
 
 				m_hasLoadedInitialData = true;
 			}
@@ -289,7 +289,7 @@ namespace SEL
 				m_relSupport.SubmitResults(m_routeManager, m_routeIntensityManager, timeMonth, m_portManager);
 			}
 
-			Console.WriteLine("".PadRight(10)+"| Finished Update for Month {0}", timeMonth);
+			ConsoleLogger.Info("".PadRight(10)+"| Finished Update for Month {0}", timeMonth);
 		}
 
 		private void BuildOutputRasters(int timeMonth)

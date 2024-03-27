@@ -18,7 +18,7 @@ namespace SEL.Util
 		public void Dispose()
 		{
 			m_stopWatch.Stop();
-			Console.WriteLine($"{m_stopWatch.ElapsedMilliseconds}ms".PadRight(10)+"| "+m_message);
+			ConsoleLogger.Info($"{m_stopWatch.ElapsedMilliseconds}ms".PadRight(10)+"| "+m_message);
 		}
 	}
 }

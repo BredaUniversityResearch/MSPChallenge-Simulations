@@ -10,5 +10,5 @@
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
         <PackageReference Include="SmartFormat" Version="3.3.2" />
     </ItemGroup>
-    
+
 </Project>

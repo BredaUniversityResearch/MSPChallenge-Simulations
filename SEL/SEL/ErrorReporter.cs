@@ -22,16 +22,8 @@ namespace SEL
 
 		public static void ReportError(EErrorSeverity severity, string message)
 		{
-			ReportErrorLocal(severity, message);
+			ConsoleLogger.Error(message);
 			Instance?.ReportErrorToServer(severity, message);
-		}
-
-		private static void ReportErrorLocal(EErrorSeverity severity, string message)
-		{
-			ConsoleColor colorToRestore = Console.ForegroundColor;
-			Console.ForegroundColor = ConsoleColor.Red;
-			Console.WriteLine(message);
-			Console.ForegroundColor = colorToRestore;
 		}
 
 		private void ReportErrorToServer(EErrorSeverity severity, string message)

@@ -653,7 +653,7 @@ namespace SEL
 							{
 								if (foundRoute != null)
 								{
-									Console.WriteLine(
+									ConsoleLogger.Warning(
 										"Failed to add valid available route to the available routes collection. Probably due to concurrency?");
 								}
 							}
@@ -670,7 +670,7 @@ namespace SEL
 				m_issueManager.AddRoutingFailureIssue(source, destination, shipType);
 			}
 
-			Console.WriteLine(
+			ConsoleLogger.Warning(
 				$"Could not find route from port \"{source.PortName}\" to port \"{destination.PortName}\" for ship type \"{shipType.ShipTypeId}\"");
 		}
 

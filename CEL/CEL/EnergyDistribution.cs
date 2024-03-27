@@ -72,7 +72,7 @@ class EnergyDistribution : ApiConnectorBase
 				}
 				else
 				{
-					Console.WriteLine("ERROR".PadRight(10)+"| Energy update failed. Retrying...");
+					ConsoleLogger.Error("ERROR".PadRight(10)+"| Energy update failed. Retrying...");
 					dinic = null;
 				}
 			}
@@ -95,14 +95,14 @@ class EnergyDistribution : ApiConnectorBase
 				}
 				else
 				{
-					Console.WriteLine("ERROR".PadRight(10)+"| Energy update failed. Retrying...");
+					ConsoleLogger.Error("ERROR".PadRight(10)+"| Energy update failed. Retrying...");
 					dinic = null;
 				}
 			}
 			else
 			{
 				//No update is done. Existing data is used for KPIs of new month
-				Console.WriteLine(string.Format("No update required for month {0}\n", month));
+				ConsoleLogger.Info($"No update required for month {month}");
 				SubmitKPIs();
 				lastRunMonth = month;
 				SetLastRunMonth(lastRunMonth);
@@ -118,7 +118,7 @@ class EnergyDistribution : ApiConnectorBase
 			//connections <from, to, cable, cap>
 			if (HttpGet("/api/cel/GetConnections", out connectionObj))
 				return;
-			Console.WriteLine("".PadRight(10)+"| Data load failed.");
+			ConsoleLogger.Error("ERROR".PadRight(10)+"| Data load failed.");
 			successful = false;
 		});
 
@@ -151,7 +151,7 @@ class EnergyDistribution : ApiConnectorBase
 
 		Task.WaitAll(task1, task2, task3, task4);
 		if (successful)
-			Console.WriteLine("".PadRight(10)+"| Data loaded successfully.");
+			ConsoleLogger.Info("".PadRight(10)+"| Data loaded successfully.");
 		return successful;
 	}
 
@@ -208,10 +208,10 @@ class EnergyDistribution : ApiConnectorBase
 		long result = 0;
 		if (dinic.DinicMaxflow(-1, -2, out result))
 		{
-			Console.WriteLine("".PadRight(10)+"| Total energy sent: " + result.ToString());
+			ConsoleLogger.Info("".PadRight(10)+"| Total energy sent: " + result.ToString());
 			return true;
 		}
-		Console.WriteLine("ERROR".PadRight(10)+"| The energy simulation encountered an error while running. Results were discarded.");
+		ConsoleLogger.Error("ERROR".PadRight(10)+"| The energy simulation encountered an error while running. Results were discarded.");
 		return false;
 	}
 

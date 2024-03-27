@@ -121,7 +121,7 @@ namespace MSW
 					}
 					else
 					{
-						Console.WriteLine("Request did not pass checks. Error message: " + requestErrorMessage);
+						ConsoleLogger.Error($"Request did not pass checks. Error message: {requestErrorMessage}");
 					}
 				}
 			}

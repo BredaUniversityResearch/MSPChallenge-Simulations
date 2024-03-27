@@ -51,7 +51,7 @@ namespace MEL
 				//double total = 0f;
 
 				rawData = new double[MEL.x_res, MEL.y_res];
-				Console.WriteLine("rasterizing " + name);
+				ConsoleLogger.Info($"rasterizing {name}");
 				redraw = false;
 
 				if (mel.ApiMspServer.ShouldRasterizeLayers)
@@ -62,13 +62,13 @@ namespace MEL
 						{
 							if (layerEntry == null)
 							{
-								Console.WriteLine("null layer");
+								ConsoleLogger.Info("null layer");
 								continue;
 							}
 
 							if (!layerEntry.RasterizedLayer.IsLoadedCorrectly)
 							{
-								Console.WriteLine(
+								ConsoleLogger.Error(
 									$"Tried to rasterize {layerEntry.RasterizedLayer.name}, but the layer failed to load correctly");
 								continue;
 							}
@@ -91,7 +91,7 @@ namespace MEL
 					}
 					catch (Exception e)
 					{
-						Console.WriteLine(e);
+						ConsoleLogger.Error(e.Message);
 					}
 				}
 				else

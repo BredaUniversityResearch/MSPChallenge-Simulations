@@ -81,11 +81,11 @@ namespace MEL
 			if (CommandLineArguments.HasOptionValue("APIEndpoint"))
 			{
 				ApiBaseURL = CommandLineArguments.GetOptionValue("APIEndpoint");
-				Console.WriteLine("Using APIEndpoint {0}", ApiBaseURL);
+				ConsoleLogger.Info($"Using APIEndpoint {ApiBaseURL}");
 			}
 			else
 			{
-				Console.WriteLine("No commandline argument found for APIEndpoint. Using default value {0}",
+				ConsoleLogger.Info("No commandline argument found for APIEndpoint. Using default value {0}",
 					ApiBaseURL);
 			}
 
@@ -115,14 +115,14 @@ namespace MEL
 			int attempt = 1;
 			while (attempt <= MAX_RASTER_LOAD_ATTEMPTS)
 			{
-				Console.WriteLine("Start loading pressure layers");
+				ConsoleLogger.Info("Start loading pressure layers");
 				LoadPressureLayers();
 				WaitForAllBackgroundTasks();
 				if (AreAllPressureLayersLoaded())
 				{
 					break;
 				}
-				Console.WriteLine("Found unloaded pressure layers, retrying in {0} sec, attempt: {1} of {2}",
+				ConsoleLogger.Error("Found unloaded pressure layers, retrying in {0} sec, attempt: {1} of {2}",
 					NEXT_RASTER_LOAD_WAITING_TIME_SEC, attempt, MAX_RASTER_LOAD_ATTEMPTS);
 				Thread.Sleep(TimeSpan.FromSeconds(NEXT_RASTER_LOAD_WAITING_TIME_SEC));
 				++attempt;
@@ -141,7 +141,7 @@ namespace MEL
 			{
 				foreach (cScalar fish in initialFishingValues)
 				{
-					Console.WriteLine("Initialized fishing values for {0} to {1}", fish.Name, fish.Value);
+					ConsoleLogger.Info($"Initialized fishing values for {fish.Name} to {fish.Value}");
 
 					pressures.Add(new cFishingEffortPressure(fish.Name, (float)fish.Value));
 					cfishingpressures.Add(new cFishingEffortPressure(fish.Name, (float)fish.Value));
@@ -149,20 +149,20 @@ namespace MEL
 				ApiMspServer.SetInitialFishingValues(initialFishingValues);
 
 				// Dump game version for testing purposes
-				Console.WriteLine("Loaded EwE model '{0}', {1}, {2}", shell.CurrentGame.Version,
+				ConsoleLogger.Info("Loaded EwE model '{0}', {1}, {2}", shell.CurrentGame.Version,
 					shell.CurrentGame.Author, shell.CurrentGame.Contact);
 
 				//eweshell initialised fine
 				shell.Startup();
 
-				Console.WriteLine("Startup done");
+				ConsoleLogger.Info("Startup done");
 			}
 			else
 			{
 				//something went wrong here
 				ConsoleColor orgColor = Console.ForegroundColor;
 				Console.ForegroundColor = ConsoleColor.Red;
-				Console.WriteLine("EwE Startup failed");
+				ConsoleLogger.Error("EwE Startup failed");
 				Console.ForegroundColor = orgColor;
 			}
 		}
@@ -182,7 +182,6 @@ namespace MEL
 
 			foreach (Outcome o in config.outcomes)
 			{
-				//Console.WriteLine(o.name);
 				outputs.Add(new cGrid(o.name, x_res, y_res));
 			}
 		}
@@ -275,16 +274,12 @@ namespace MEL
 
 			lastupdatedmonth = currentGameMonth;
 
-			Console.WriteLine("Executing month: " + lastupdatedmonth);
+			ConsoleLogger.Info($"Executing month: {lastupdatedmonth}");
 
 			WaitForAllBackgroundTasks();
 
-			//Console.WriteLine("all backgroundTasks are cleared");
-
 			//update pressure layers where needed
 			UpdatePressureLayers();
-
-			//Console.WriteLine("updated pressure layers");
 
 			WaitForAllBackgroundTasks();
 
@@ -308,9 +303,9 @@ namespace MEL
 			TickDone();
 
 			watch.Stop();
-			Console.WriteLine("Month " + lastupdatedmonth + " executed in: " + watch.ElapsedMilliseconds + "ms");
+			ConsoleLogger.Info($"Month {lastupdatedmonth} executed in: {watch.ElapsedMilliseconds}ms");
 
-			Console.WriteLine("------------------");
+			ConsoleLogger.Info("------------------");
 		}
 
 		/// <summary>
@@ -361,7 +356,7 @@ namespace MEL
 				{
 					if (cfishingpressures[i].Name == f.name)
 					{
-						Console.WriteLine("Updated fishing values for {0} to {1}", f.name, f.scalar);
+						ConsoleLogger.Info("Updated fishing values for {0} to {1}", f.name, f.scalar);
 						cfishingpressures[i] = new cFishingEffortPressure(f.name, f.scalar);
 					}
 				}

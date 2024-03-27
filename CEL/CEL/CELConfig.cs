@@ -36,7 +36,7 @@ class CELConfig
 		}
 		catch (Exception e)
 		{
-			Console.WriteLine(e.Message);
+			ConsoleLogger.Error(e.Message);
 		}
 
 		if (CommandLineArguments.HasOptionValue("APIEndpoint"))
@@ -51,7 +51,7 @@ class CELConfig
 		if (settings.api_root == null)
         {
             settings.api_root = "http://localhost/dev/1/";
-            Console.WriteLine(string.Format("No configured API Endpoint found in the CEL_Config.json file, using default: {0}", settings.api_root));
+            ConsoleLogger.Info($"No configured API Endpoint found in the CEL_Config.json file, using default: {settings.api_root}");
         }
     }
 

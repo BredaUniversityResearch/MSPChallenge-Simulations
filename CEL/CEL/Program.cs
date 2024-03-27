@@ -10,10 +10,11 @@ class Program
 
     static void Main(string[] args)
     {
+        AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
         ConsoleTextWriter.Instance.SetMessageFormat("{prefix}{message}");
         ConsoleTextWriter.Instance.SetMessageParameter("prefix", "CEL: ");
 		Console.SetOut(ConsoleTextWriter.Instance);
-        Console.WriteLine("Starting CEL");
+        ConsoleLogger.Info("Starting CEL");
         EnergyDistribution distribution = new EnergyDistribution();
         distribution.WaitForApiAccess();
         while (true)
@@ -21,6 +22,11 @@ class Program
             APIRequest.SleepOnApiUnauthorizedWebException(() => distribution.Tick());
             Thread.Sleep(TICKRATE);
         }
+    }
+
+    static void CurrentDomain_UnhandledException(object aSender, UnhandledExceptionEventArgs aException)
+    {
+        ConsoleLogger.Error(((Exception) aException.ExceptionObject).Message);
     }
 }
 

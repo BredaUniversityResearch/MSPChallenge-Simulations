@@ -27,7 +27,7 @@ class Dinic
         int result = 0;
         if (!nodeIDtoIndex.TryGetValue(nodeID, out result))
         {
-            Console.WriteLine("ERROR".PadRight(10)+"| Connection to node ID that does not exist. Node ID: " + nodeID);
+            ConsoleLogger.Error("ERROR".PadRight(10)+"| Connection to node ID that does not exist. Node ID: " + nodeID);
             runCorrectly = false;
         }
         return result;
@@ -38,7 +38,7 @@ class Dinic
         int result = 0;
         if (!nodeIndextoID.TryGetValue(index, out result))
         {
-            Console.WriteLine("ERROR".PadRight(10)+"| Getting node ID for index that does not exist. Index: " + index);
+            ConsoleLogger.Error("ERROR".PadRight(10)+"| Getting node ID for index that does not exist. Index: " + index);
             runCorrectly = false;
         }
         return result;
@@ -204,7 +204,7 @@ class Dinic
 			string path = "Sent "+ flowPaths[i].flow.ToString() + " energy over nodes";
 			for (int j = 0; j < flowPaths[i].path.Count; j++)
 				path += " " + flowPaths[i].path[j].ToString();
-			Console.WriteLine(path);
+			ConsoleLogger.Info(path);
 		}
 
         result = maxFlow;
