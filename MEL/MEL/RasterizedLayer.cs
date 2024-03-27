@@ -29,7 +29,7 @@ namespace MEL
 		public void GetLayerDataAndRasterize(MEL mel)
 		{
 			//var watch = System.Diagnostics.Stopwatch.StartNew();
-			Console.WriteLine("Getting: " + name);
+			Console.WriteLine("Getting: " + name + (LayerType == -1 ? "" : "|" + LayerType));
 
 			APILayerGeometryData? layerGeometryData = mel.ApiMspServer.GetLayerData(name, LayerType, constructionOnly);
 
