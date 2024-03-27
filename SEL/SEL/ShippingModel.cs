@@ -289,7 +289,7 @@ namespace SEL
 				m_relSupport.SubmitResults(m_routeManager, m_routeIntensityManager, timeMonth, m_portManager);
 			}
 
-			ConsoleLogger.Info("".PadRight(10)+"| Finished Update for Month {0}", timeMonth);
+			ConsoleLogger.Info(string.Format("".PadRight(10)+"| Finished Update for Month {0}", timeMonth));
 		}
 
 		private void BuildOutputRasters(int timeMonth)

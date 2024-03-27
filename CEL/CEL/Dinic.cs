@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using MSWSupport;
 
 // Original C++ implementations of Dinic's Algorithm found at: http://126kr.com/article/469et77xphm and https://sites.google.com/site/indy256/algo_cpp/dinic_flow
 class Dinic

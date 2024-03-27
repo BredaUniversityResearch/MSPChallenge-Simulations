@@ -85,8 +85,7 @@ namespace MEL
 			}
 			else
 			{
-				ConsoleLogger.Info("No commandline argument found for APIEndpoint. Using default value {0}",
-					ApiBaseURL);
+				ConsoleLogger.Info($"No commandline argument found for APIEndpoint. Using default value {ApiBaseURL}");
 			}
 
 			ApiMspServer = new ApiMspServer(ApiBaseURL);
@@ -122,8 +121,7 @@ namespace MEL
 				{
 					break;
 				}
-				ConsoleLogger.Error("Found unloaded pressure layers, retrying in {0} sec, attempt: {1} of {2}",
-					NEXT_RASTER_LOAD_WAITING_TIME_SEC, attempt, MAX_RASTER_LOAD_ATTEMPTS);
+				ConsoleLogger.Error($"Found unloaded pressure layers, retrying in {NEXT_RASTER_LOAD_WAITING_TIME_SEC} sec, attempt: {attempt} of {MAX_RASTER_LOAD_ATTEMPTS}");
 				Thread.Sleep(TimeSpan.FromSeconds(NEXT_RASTER_LOAD_WAITING_TIME_SEC));
 				++attempt;
 			}
@@ -149,8 +147,7 @@ namespace MEL
 				ApiMspServer.SetInitialFishingValues(initialFishingValues);
 
 				// Dump game version for testing purposes
-				ConsoleLogger.Info("Loaded EwE model '{0}', {1}, {2}", shell.CurrentGame.Version,
-					shell.CurrentGame.Author, shell.CurrentGame.Contact);
+				ConsoleLogger.Info($"Loaded EwE model '{shell.CurrentGame.Version}', {shell.CurrentGame.Author}, {shell.CurrentGame.Contact}");
 
 				//eweshell initialised fine
 				shell.Startup();
@@ -356,7 +353,7 @@ namespace MEL
 				{
 					if (cfishingpressures[i].Name == f.name)
 					{
-						ConsoleLogger.Info("Updated fishing values for {0} to {1}", f.name, f.scalar);
+						ConsoleLogger.Info($"Updated fishing values for {f.name} to {f.scalar}");
 						cfishingpressures[i] = new cFishingEffortPressure(f.name, f.scalar);
 					}
 				}

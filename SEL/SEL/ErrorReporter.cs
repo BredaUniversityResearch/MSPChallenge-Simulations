@@ -1,5 +1,7 @@
 ﻿using System;
+using MSWSupport;
 using SEL.API;
+using IApiConnector = SEL.API.IApiConnector;
 
 namespace SEL
 {

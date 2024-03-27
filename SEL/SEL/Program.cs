@@ -15,7 +15,7 @@ namespace SEL
 	        ConsoleTextWriter.Instance.SetMessageFormat("{prefix}{message}");
 	        ConsoleTextWriter.Instance.SetMessageParameter("prefix", "SEL: ");
 			Console.SetOut(ConsoleTextWriter.Instance);
-			ConsoleLogger.Info("Starting MSP2050 Shipping EmuLation version {0}", typeof(Program).Assembly.GetName().Version);
+			ConsoleLogger.Info($"Starting MSP2050 Shipping EmuLation version {typeof(Program).Assembly.GetName().Version}");
 
 			ShippingModel model = new ShippingModel();
 			model.WaitForApiAccess();
