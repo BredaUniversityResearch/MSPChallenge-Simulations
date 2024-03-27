@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Threading;
+using Newtonsoft.Json;
+using System.Collections.Generic;
+using MSWSupport;
 
 class Program
 {
@@ -8,11 +11,15 @@ class Program
     static void Main(string[] args)
     {
         AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+        ConsoleTextWriter.Instance.SetMessageFormat("{prefix}{message}");
+        ConsoleTextWriter.Instance.SetMessageParameter("prefix", "CEL: ");
+		Console.SetOut(ConsoleTextWriter.Instance);
         ConsoleLogger.Info("Starting CEL");
         EnergyDistribution distribution = new EnergyDistribution();
+        distribution.WaitForApiAccess();
         while (true)
         {
-            distribution.Tick();
+            APIRequest.SleepOnApiUnauthorizedWebException(() => distribution.Tick());
             Thread.Sleep(TICKRATE);
         }
     }

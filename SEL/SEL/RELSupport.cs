@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using MSWSupport;
 using SELRELBridge;
 using SELRELBridge.API;
 
@@ -86,7 +87,7 @@ namespace SEL
 			data.m_routeGraphIntensities = new APIRouteGraphEdgeIntensity[edgeIntensities.Count];
 			edgeIntensities.CopyTo(data.m_routeGraphIntensities);
 
-			ConsoleLogger.Info($"RELSupport is sending SEL output data to REL for month {data.m_simulatedMonth}");
+			ConsoleLogger.Info("SELREL".PadRight(10)+$"| Sending SEL output data to REL for month {data.m_simulatedMonth}");
 			m_bridgeServer.Submit(data);
 		}
 

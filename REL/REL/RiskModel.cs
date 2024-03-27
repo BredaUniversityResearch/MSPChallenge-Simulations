@@ -15,8 +15,8 @@ namespace REL
 {
 	class RiskModel
 	{
-		private APITokenHandler m_tokenHandler;
-		private IMSPAPIConnector m_mspApiConnector = new MSPAPIExternalServer();
+		private CommunicationPipeHandler m_pipeHandler;
+		private MSPAPIExternalServer m_mspApiConnector = new ();
 		private IMarinAPIConnector m_marinApiConnector = new MarinAPIConnectorDebug();
 
 		private MSPAPIRELConfig m_relServerConfig = null;
@@ -39,7 +39,9 @@ namespace REL
 			string watchdogToken = WatchdogTokenUtility.GetWatchdogTokenForServerAtAddress(RELConfig.Instance.GetAPIRoot());
 			m_selBridge = new BridgeClient(watchdogToken);
 
-			m_tokenHandler = new APITokenHandler(m_mspApiConnector, pipeHandle, "REL", RELConfig.Instance.GetAPIRoot());
+			m_pipeHandler = new CommunicationPipeHandler(pipeHandle, "REL", RELConfig.Instance.GetAPIRoot());
+			m_pipeHandler.SetTokenReceiver(m_mspApiConnector);
+			m_pipeHandler.SetUpdateMonthReceiver(m_mspApiConnector);
 
 			CoordinateSystemFactory coordinateSystemFactory = new CoordinateSystemFactory();
 			CoordinateTransformationFactory transformationFactory = new CoordinateTransformationFactory();
@@ -49,29 +51,29 @@ namespace REL
 			m_MarinToMSPTransformation = transformationFactory.CreateFromCoordinateSystems(m_MarinCoordinateSystem, m_MSPCoordinateSystem);
 		}
 
+
+
+		public void WaitForApiAccess()
+		{
+			while (!APIRequest.SleepOnApiUnauthorizedWebException(() => m_pipeHandler.CheckApiAccessWithLatestReceivedToken()))
+			{
+				// APIRequest handles sleeps..
+			}
+		}
+
 		public void Run()
 		{
 			while (true)
 			{
-				if (m_tokenHandler.CheckApiAccessWithLatestReceivedToken())
-				{
+				APIRequest.SleepOnApiUnauthorizedWebException(() => {
 					if (m_relServerConfig == null)
 					{
 						m_relServerConfig = m_mspApiConnector.GetConfiguration();
 					}
-
 					m_selBridge.PumpReceivedMessages(ProcessReceivedMessages);
-				}
-				else
-				{
-					Console.WriteLine("API refused access... Waiting for a bit and retrying");
-					Thread.Sleep(2500);
-				}
-
+				});
 				Thread.Sleep(100);
 			}
-
-			//PerformUpdate();
 		}
 
 		private void ProcessReceivedMessages(int a_messageType, string a_messageData)
@@ -79,12 +81,12 @@ namespace REL
 			if (a_messageType == SELOutputData.MessageIdentifier)
 			{
 				SELOutputData data = JsonConvert.DeserializeObject<SELOutputData>(a_messageData);
-				Console.WriteLine($"REL\t|Received input data for month {data.m_simulatedMonth}. Processing...");
+				Console.WriteLine("".PadRight(10)+$"| Received input data for month {data.m_simulatedMonth}. Processing...");
 				PerformUpdate(data);
 
 
 				//Debug
-				Console.WriteLine($"REL\t|Using dummy response from marin api ...");
+				Console.WriteLine("".PadRight(10)+"| Using dummy response from marin api ...");
 				MarinAPIProcessResponse response = m_marinApiConnector.TryGetProcessResponse();
 				if (response != null)
 				{
@@ -122,7 +124,7 @@ namespace REL
 
 			m_marinApiConnector.SubmitInput(input);
 
-			Console.WriteLine($"REL\t|Submitted input data to Marin API... Processing the response is TODO at this point...");
+			Console.WriteLine("".PadRight(10)+"| Submitted input data to Marin API... Processing the response is TODO at this point...");
 		}
 
 		private MarinAPIPoint[] TransformPoints(APIRouteGraphVertex[] a_points)
@@ -168,7 +170,7 @@ namespace REL
 			for (int i = 0; i < a_linkCrossesMspTypes.Length; ++i)
 			{
 				int marinGeometryType = ConvertLayerTypeFromMSPToMarin(a_linkCrossesMspTypes[i]);
-				result.Add(marinGeometryType); 
+				result.Add(marinGeometryType);
 			}
 
 			return result.ToArray();
@@ -176,7 +178,7 @@ namespace REL
 
 		private int ConvertLayerTypeFromMSPToMarin(APIGeometryType a_mspLayerType)
 		{
-			return a_mspLayerType.layer_id > 0 ? 1 : -1; //TODO: Fix 
+			return a_mspLayerType.layer_id > 0 ? 1 : -1; //TODO: Fix
 		}
 
 		private MarinAPITraffic[] TransformIntensities(APIRouteGraphEdgeIntensity[] a_intensities)
@@ -184,7 +186,7 @@ namespace REL
 			MarinAPITraffic[] result = new MarinAPITraffic[a_intensities.Length];
 			for (int i = 0; i < a_intensities.Length; ++i)
 			{
-				result[i] = new MarinAPITraffic 
+				result[i] = new MarinAPITraffic
 				{
 					link_id = (ushort)a_intensities[i].edge_id,
 					ship_type = a_intensities[i].ship_type_id,

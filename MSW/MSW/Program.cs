@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
+using MSWSupport;
 
 namespace MSW
 {
@@ -33,13 +34,13 @@ firewallPolicy.Rules.Add(firewallRule);*/
 				Watchdog watchdog;
 				try {
 					watchdog = new Watchdog(int.Parse(CommandLineArgumentsManager.Instance.AutoFill(
-						CommandLineArgumentsManager.CommandLineArgumentName.Port, 
+						CommandLineArgumentsManager.CommandLineArgumentName.Port,
 						RestApiController.DEFAULT_PORT.ToString()
 					)));
 				}
 				catch (Exception e)
 				{
-					ConsoleLogger.Error(e.Message);
+					Console.WriteLine(e);
 					throw;
 				}
 				Stopwatch localTickStopwatch = new Stopwatch();
@@ -61,11 +62,10 @@ firewallPolicy.Rules.Add(firewallRule);*/
 			}
 			catch (Exception e)
 			{
-				ConsoleLogger.Error(e.Message + "\n" + e.StackTrace);
+				Console.WriteLine(e.Message + "\n" + e.StackTrace);
 			}
-
 		}
-		
+
 		static void CurrentDomain_UnhandledException(object a_sender, UnhandledExceptionEventArgs a_e)
 		{
 			ConsoleLogger.Error(((Exception) a_e.ExceptionObject).Message);

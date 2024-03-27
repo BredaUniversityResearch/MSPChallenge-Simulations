@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using EwEMSPLink;
+using MSWSupport;
 
 namespace MEL
 {
@@ -29,7 +30,7 @@ namespace MEL
 		private List<LayerEntry> layers = new List<LayerEntry>();
 		public bool redraw = true;
 		public cPressure pressure;
-		public double[,] rawData { get; private set; }
+		public double[,]? rawData { get; private set; }
 
 		public PressureLayer(string name)
 		{
@@ -54,7 +55,7 @@ namespace MEL
 				ConsoleLogger.Info($"rasterizing {name}");
 				redraw = false;
 
-				if (mel.ApiConnector.ShouldRasterizeLayers)
+				if (mel.ApiMspServer.ShouldRasterizeLayers)
 				{
 					try
 					{
@@ -96,17 +97,17 @@ namespace MEL
 				}
 				else
 				{
-					rawData = mel.ApiConnector.GetRasterizedPressure(name);
+					rawData = mel.ApiMspServer.GetRasterizedPressure(name);
 				}
 
 				//Console.WriteLine(this.name + " : " + total.ToString());
 
 				//set the data to be sent to EwE
-				pressure = new cPressure(name, MEL.x_res, MEL.y_res, rawData);
+				pressure = new cEnvironmentalPressure(name, MEL.x_res, MEL.y_res, rawData);
 
 				using (Bitmap bitmap = Rasterizer.ToBitmapSlow(rawData))
 				{
-					mel.ApiConnector.SubmitRasterLayerData(name, bitmap);
+					mel.ApiMspServer.SubmitRasterLayerData(name, bitmap);
 				}
 			}
 		}

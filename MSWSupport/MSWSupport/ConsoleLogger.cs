@@ -1,14 +1,14 @@
 using System;
 
-namespace MEL
+namespace MSWSupport
 {
     public static class ConsoleLogger
     {
         private static void Write(string aMessage)
         {
-            Console.WriteLine($"MEL\t| {aMessage}");
+            Console.WriteLine(aMessage);
         }
-        
+
         private static void WriteWithColor(string aMessage, ConsoleColor aColor)
         {
             ConsoleColor orgColor = Console.ForegroundColor;

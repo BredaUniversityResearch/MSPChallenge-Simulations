@@ -10,7 +10,7 @@ namespace MEL
 	/// API Connector used for debugging.
 	/// This API connector write return the calculated data to disk in a known folder.
 	/// </summary>
-	public class ApiDebugLocalFiles: IApiConnector
+	public class ApiDebugLocalFiles: MSWSupport.IApiConnector, IApiConnector
 	{
 		private const string DebugDataFolder = "DebugData/";
 		private readonly string m_ConfigFileName;
@@ -25,14 +25,26 @@ namespace MEL
 			m_ConfigFileName = configFileName;
 		}
 
-		public bool CheckAPIAccess()
+		public bool CheckApiAccess()
 		{
 			return true;
 		}
-
-		public int GetCurrentGameMonth(int lastSimulatedMonth)
+		public int ApiRequestCurrentMonth()
 		{
 			return m_CurrentGameMonth;
+		}
+
+		public int GetCurrentGameMonth()
+		{
+			return m_CurrentGameMonth;
+		}
+		public string GetServerUrl()
+		{
+			throw new System.NotImplementedException();
+		}
+		public string GetAccessToken()
+		{
+			throw new System.NotImplementedException();
 		}
 
 		public void SetInitialFishingValues(List<cScalar> fishingValues)
@@ -44,7 +56,7 @@ namespace MEL
 			}
 		}
 
-		public string GetMelConfigAsString()
+		public string? GetMelConfigAsString()
 		{
 			JObject configValues = JObject.Parse(File.ReadAllText(Path.Combine(DebugDataFolder, m_ConfigFileName + ".json")));
 			return configValues["MEL"].ToString();
@@ -70,7 +82,7 @@ namespace MEL
 			++m_CurrentGameMonth;
 		}
 
-		public double[,] GetRasterLayerByName(string layerName)
+		public double[,]? GetRasterLayerByName(string? layerName)
 		{
 			throw new System.NotImplementedException();
 		}
@@ -84,14 +96,14 @@ namespace MEL
 			}
 		}
 
-		public APILayerGeometryData GetLayerData(string layerName, int layerType, bool constructionOnly)
+		public APILayerGeometryData? GetLayerData(string? layerName, int layerType, bool constructionOnly)
 		{
 			return null;
 		}
 
-		public double[,] GetRasterizedPressure(string name)
+		public double[,]? GetRasterizedPressure(string name)
 		{
-			double[,] result = null;
+			double[,]? result = null;
 			using (Stream stream = File.OpenRead(Path.Combine(DebugDataFolder, m_ConfigFileName, MEL.ConvertLayerName(name)+".tif")))
 			{
 				using (Bitmap bitmap = new Bitmap(stream))
@@ -107,6 +119,11 @@ namespace MEL
 		{
 			//Moot. I don't think this should ever be called with a local files api.
 			throw new System.NotImplementedException();
+		}
+
+		public void UpdateMonth(int month)
+		{
+			m_CurrentGameMonth = month;
 		}
 	}
 }
