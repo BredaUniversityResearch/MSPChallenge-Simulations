@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Threading;
-using Newtonsoft.Json;
-using System.Collections.Generic;
 
 class Program
 {
@@ -18,7 +16,7 @@ class Program
             Thread.Sleep(TICKRATE);
         }
     }
-    
+
     static void CurrentDomain_UnhandledException(object aSender, UnhandledExceptionEventArgs aException)
     {
         ConsoleLogger.Error(((Exception) aException.ExceptionObject).Message);
