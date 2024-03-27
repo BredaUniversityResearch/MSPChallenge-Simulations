@@ -292,7 +292,7 @@ namespace MEL
 			RasterizeLayers();
 
 			//Start EwE tick
-			shell.Tick(pressures, outputs);
+			shell.Tick(pressures, outputs, false);
 			if (dumpDir != null)
 			{
 				DateTime currentDateTime = DateTime.Now;
