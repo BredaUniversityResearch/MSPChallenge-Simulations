@@ -15,7 +15,7 @@ public class PerformanceTimer : IDisposable
     public void Dispose()
     {
         stopWatch.Stop();
-        Console.WriteLine($"{stopWatch.ElapsedMilliseconds}ms".PadRight(10)+"| {message} ");
+        Console.WriteLine($"{stopWatch.ElapsedMilliseconds}ms".PadRight(10)+"| "+message);
     }
 }
 
