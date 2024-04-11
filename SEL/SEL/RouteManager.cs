@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Numerics;
 using System.Threading.Tasks;
+using MSWSupport;
 using Poly2Tri.Triangulation.Delaunay;
 using SEL.Issues;
 using SEL.RasterizerLib;

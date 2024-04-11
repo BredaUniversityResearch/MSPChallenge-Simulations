@@ -35,7 +35,7 @@ namespace MEL
 
 		public Dictionary<string, PressureLayer> pressureLayers = new Dictionary<string, PressureLayer>();
 		public Config config;
-		private string configstring;
+		private string? configstring;
 
 		public float x_min;
 		public float x_max;
@@ -49,15 +49,15 @@ namespace MEL
 
 		private cEwEMSPLink shell;
 		private List<cPressure> pressures = new List<cPressure>();
-		private List<cPressure> cfishingpressures = new List<cPressure>();
+		private List<cFishingEffortPressure> cfishingpressures = new ();
 		public List<cGrid> outputs = new List<cGrid>();
 
-		private APITokenHandler tokenHandler;
+		private CommunicationPipeHandler pipeHandler;
 
 		private string dumpDir;
 		private UInt32 nextDumpNo = 1;
 
-		public IApiConnector ApiConnector
+		public ApiMspServer ApiMspServer
 		{
 			get;
 			private set;
@@ -88,15 +88,19 @@ namespace MEL
 				ConsoleLogger.Info($"No commandline argument found for APIEndpoint. Using default value {ApiBaseURL}");
 			}
 
-			ApiConnector = new ApiMspServer(ApiBaseURL);
+			ApiMspServer = new ApiMspServer(ApiBaseURL);
 			//ApiConnector = new ApiDebugLocalFiles("BS_Basic");
 
 			shell = new cEwEMSPLink();
 
-			tokenHandler = new APITokenHandler(ApiConnector,
-				CommandLineArguments.GetOptionValue(CommandLineArguments.MSWPipeName), "MEL", ApiBaseURL);
-
-			WaitForAPIAccess();
+			pipeHandler = new CommunicationPipeHandler(
+				CommandLineArguments.GetOptionValue(CommandLineArguments.MSWPipeName),
+				"MEL",
+				ApiBaseURL
+			);
+			pipeHandler.SetTokenReceiver(ApiMspServer);
+			pipeHandler.SetUpdateMonthReceiver(ApiMspServer);
+			WaitForApiAccess();
 
 			LoadConfig();
 
@@ -137,10 +141,10 @@ namespace MEL
 				{
 					ConsoleLogger.Info($"Initialized fishing values for {fish.Name} to {fish.Value}");
 
-					pressures.Add(new cPressure(fish.Name, fish.Value));
-					cfishingpressures.Add(new cPressure(fish.Name, fish.Value));
+					pressures.Add(new cFishingEffortPressure(fish.Name, (float)fish.Value));
+					cfishingpressures.Add(new cFishingEffortPressure(fish.Name, (float)fish.Value));
 				}
-				ApiConnector.SetInitialFishingValues(initialFishingValues);
+				ApiMspServer.SetInitialFishingValues(initialFishingValues);
 
 				// Dump game version for testing purposes
 				ConsoleLogger.Info($"Loaded EwE model '{shell.CurrentGame.Version}', {shell.CurrentGame.Author}, {shell.CurrentGame.Contact}");
@@ -166,7 +170,7 @@ namespace MEL
 		private void LoadConfig()
 		{
 			//file name should probably be obtained from the server
-			configstring = ApiConnector.GetMelConfigAsString();
+			configstring = ApiMspServer.GetMelConfigAsString();
 
 			config = JsonConvert.DeserializeObject<Config>(configstring);
 
@@ -238,18 +242,11 @@ namespace MEL
 			rasterizedLayer.GetLayerDataAndRasterize(this);
 		}
 
-		private void WaitForAPIAccess()
+		public void WaitForApiAccess()
 		{
-			bool firstAttemptFailed = true;
-			while (!ApiConnector.CheckAPIAccess())
+			while (!APIRequest.SleepOnApiUnauthorizedWebException(() => ApiMspServer.CheckApiAccess()))
 			{
-				if (firstAttemptFailed)
-				{
-					ConsoleLogger.Error("API refused current access. Waiting for a little while and silently trying again.");
-					firstAttemptFailed = false;
-				}
-
-				Thread.Sleep(100);
+				// ApiRequest handles sleep.
 			}
 		}
 
@@ -258,12 +255,17 @@ namespace MEL
 		/// </summary>
 		public void Tick()
 		{
-			WaitForAPIAccess();
-
 			var watch = Stopwatch.StartNew();
-			int currentGameMonth = ApiConnector.GetCurrentGameMonth(lastupdatedmonth);
+			//Console.WriteLine("Trying tick");
+			int currentGameMonth = ApiMspServer.GetCurrentGameMonth();
+			// do not allow to go back in time.
+			if (currentGameMonth <= lastupdatedmonth)
+			{
+				currentGameMonth = -100;
+			}
 			if (currentGameMonth == -100)
 			{
+				Thread.Sleep(2500);
 				return;
 			}
 
@@ -282,7 +284,7 @@ namespace MEL
 			RasterizeLayers();
 
 			//Start EwE tick
-			shell.Tick(pressures, outputs);
+			shell.Tick(pressures, outputs, false);
 			if (dumpDir != null)
 			{
 				DateTime currentDateTime = DateTime.Now;
@@ -309,7 +311,7 @@ namespace MEL
 		private void UpdatePressureLayers()
 		{
 			//get the list of layers that need to be updated
-			string[] toUpdate = ApiConnector.GetUpdatedLayers();
+			string[] toUpdate = ApiMspServer.GetUpdatedLayers();
 			if (toUpdate.Length == 0 || (toUpdate.Length == 1 && toUpdate[0] == ""))
 			{
 				return;
@@ -344,7 +346,7 @@ namespace MEL
 
 		private void UpdateFishing()
 		{
-			Fishing[] fishing = ApiConnector.GetFishingValuesForMonth(lastupdatedmonth);
+			Fishing[] fishing = ApiMspServer.GetFishingValuesForMonth(lastupdatedmonth);
 			for (int i = 0; i < cfishingpressures.Count; i++)
 			{
 				foreach (Fishing f in fishing)
@@ -352,7 +354,7 @@ namespace MEL
 					if (cfishingpressures[i].Name == f.name)
 					{
 						ConsoleLogger.Info($"Updated fishing values for {f.name} to {f.scalar}");
-						cfishingpressures[i] = new cPressure(f.name, f.scalar);
+						cfishingpressures[i] = new cFishingEffortPressure(f.name, f.scalar);
 					}
 				}
 			}
@@ -362,13 +364,13 @@ namespace MEL
 		{
 			foreach (cGrid outcome in outputs)
 			{
-				ApiConnector.SubmitKpi(outcome.Name, currentMonth, outcome.Mean, outcome.Units);
+				ApiMspServer.SubmitKpi(outcome.Name, currentMonth, outcome.Mean, outcome.Units);
 			}
 		}
 
 		private void TickDone()
 		{
-			ApiConnector.NotifyTickDone();
+			ApiMspServer.NotifyTickDone();
 		}
 
 		private void StoreTick()
@@ -383,7 +385,7 @@ namespace MEL
 		{
 			using (Bitmap bitmap = Rasterizer.ToBitmapSlow(grid.Cell))
 			{
-				ApiConnector.SubmitRasterLayerData(grid.Name, bitmap);
+				ApiMspServer.SubmitRasterLayerData(grid.Name, bitmap);
 			}
 		}
 
@@ -403,9 +405,9 @@ namespace MEL
 				pressures.Add(entry.Value.pressure);
 			}
 
-			foreach (cPressure fishing in cfishingpressures)
+			foreach (cFishingEffortPressure fishing in cfishingpressures)
 			{
-				pressures.Add(new cPressure(fishing.Name, fishing.Scalar));
+				pressures.Add(new cFishingEffortPressure(fishing.Name, fishing.EffortScalar));
 			}
 
 			//watch.Stop();

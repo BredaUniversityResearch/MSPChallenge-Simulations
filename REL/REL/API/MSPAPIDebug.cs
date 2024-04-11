@@ -37,5 +37,10 @@ namespace REL.API
 		{
 			throw new System.NotImplementedException();
 		}
+
+		public void UpdateMonth(int month)
+		{
+			throw new System.NotImplementedException();
+		}
 	}
 }

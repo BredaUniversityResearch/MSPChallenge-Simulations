@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-
+using MSWSupport;
 using HeuristicValue = System.Int64;
 
 namespace SEL
@@ -152,7 +152,7 @@ namespace SEL
 			[Conditional("ROUTE_DEBUG_VERIFY")]
 			public void VerifyReverseSorted(IEnumerable<KeyValuePair<HeuristicValue, RouteNode>> list)
 			{
-				//List should be sorted from highest value to lowest value. 
+				//List should be sorted from highest value to lowest value.
 				HeuristicValue lastFCost = HeuristicValue.MaxValue;
 				foreach (KeyValuePair<HeuristicValue, RouteNode> node in list)
 				{
@@ -240,7 +240,7 @@ namespace SEL
 
 			if (currentNode.m_currentVertex == query.m_destinationVertex)
 			{
-				//Route completed. 
+				//Route completed.
 				query.m_queryComplete = true;
 				query.m_endNode = currentNode;
 				return;
