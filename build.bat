@@ -4,9 +4,9 @@ echo * Just call build.bat to output to subdir .\ouput for all platforms and Rel
 echo * To change the output path (Can be a relative starting with .. or a full path):
 echo   build.bat "output_path=..\MSPChallenge-Server\simulations"
 echo * To build with the Debug configuration and only for platform alpine:
-echo   build.bat "publish_targets[0]=alpine.3.17-x64" "configuration=Debug"
+echo   build.bat "publish_targets[0]=linux-x64" "configuration=Debug"
 echo * To filter on multiple platforms:
-echo   build.bat "publish_targets[0]=alpine.3.17-x64 publish_targets[1]=win-x64"
+echo   build.bat "publish_targets[0]=linux-x64 publish_targets[1]=win-x64"
 echo * To skip the Start? confirmation:
 echo   build.bat "start=Y"
 echo.
@@ -52,9 +52,8 @@ if "%api_version%" == "" (
     set api_version=1.1.0
 )
 if "%publish_targets[0]%" == "" (
-    set publish_targets[0]=alpine.3.17-x64
+    set publish_targets[0]=debian.12-x64
     set publish_targets[1]=win-x64
-    rem set publish_targets[2]=ubuntu.22.04-x64
 )
 if "%output_path%" == "" (
     set output_path=%cwd%\output
