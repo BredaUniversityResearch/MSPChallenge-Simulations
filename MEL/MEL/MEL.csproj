@@ -49,6 +49,9 @@
       <None Update="MELdata\EasternMed Sea model 10km.eiixml">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+      <None Update="MELdata\WesternBalticSeaModelForMSPChallenge.eiixml">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
