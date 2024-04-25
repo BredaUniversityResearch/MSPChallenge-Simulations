@@ -18,6 +18,7 @@ namespace MEL
 
 		public bool IsLoadedCorrectly { get; private set; }
 		public double[,]? rawData;
+		public List<PolicyData> policies = new List<PolicyData>();
 
 		public RasterizedLayer(LayerData layerData)
 		{
@@ -36,8 +37,13 @@ namespace MEL
 
 			if (layerGeometryData != null)
 			{
-				List<APILayerGeometryData?> g = new List<APILayerGeometryData?> { layerGeometryData };
+				policies.Clear();
+				foreach (PolicyData policyData in layerGeometryData.policies)
+				{
+					policies.Add(policyData);
+				}
 
+				List<APILayerGeometryData?> g = new List<APILayerGeometryData?> { layerGeometryData };
 				switch (layerGeometryData.geotype)
 				{
 				case "polygon":

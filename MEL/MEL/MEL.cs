@@ -49,7 +49,8 @@ namespace MEL
 
 		private cEwEMSPLink shell;
 		private List<cPressure> pressures = new List<cPressure>();
-		private List<cFishingEffortPressure> cfishingpressures = new ();
+		private List<cFishingEffortPressure> cFishingPressures = new ();
+		private List<cFishingEcoPressure> cFishingEcoPressures = new ();
 		public List<cGrid> outputs = new List<cGrid>();
 
 		private CommunicationPipeHandler pipeHandler;
@@ -142,7 +143,7 @@ namespace MEL
 					ConsoleLogger.Info($"Initialized fishing values for {fish.Name} to {fish.Value}");
 
 					pressures.Add(new cFishingEffortPressure(fish.Name, (float)fish.Value));
-					cfishingpressures.Add(new cFishingEffortPressure(fish.Name, (float)fish.Value));
+					cFishingPressures.Add(new cFishingEffortPressure(fish.Name, (float)fish.Value));
 				}
 				ApiMspServer.SetInitialFishingValues(initialFishingValues);
 
@@ -347,14 +348,14 @@ namespace MEL
 		private void UpdateFishing()
 		{
 			Fishing[] fishing = ApiMspServer.GetFishingValuesForMonth(lastupdatedmonth);
-			for (int i = 0; i < cfishingpressures.Count; i++)
+			for (int i = 0; i < cFishingPressures.Count; i++)
 			{
 				foreach (Fishing f in fishing)
 				{
-					if (cfishingpressures[i].Name == f.name)
+					if (cFishingPressures[i].Name == f.name)
 					{
 						ConsoleLogger.Info($"Updated fishing values for {f.name} to {f.scalar}");
-						cfishingpressures[i] = new cFishingEffortPressure(f.name, f.scalar);
+						cFishingPressures[i] = new cFishingEffortPressure(f.name, f.scalar);
 					}
 				}
 			}
@@ -403,9 +404,23 @@ namespace MEL
 					entry.Value.RasterizeLayers(this);
 
 				pressures.Add(entry.Value.pressure);
+				// todo: process policies, something like this
+				// foreach (var layerEntry in entry.Value.GetLayerEntries())
+				// {
+				// 	foreach (var policy in layerEntry.RasterizedLayer.policies)
+				// 	{
+				// 		if (policy.name == "ecological_fishing_gear")
+				// 		{
+				// 			pressures.Add(
+				// 				new cFishingEcoPressure(policy.name,
+				// 				JsonConvert.DeserializeObject<bool>(policy.value))
+				// 			);
+				// 		}
+				// 	}
+				// }
 			}
 
-			foreach (cFishingEffortPressure fishing in cfishingpressures)
+			foreach (cFishingEffortPressure fishing in cFishingPressures)
 			{
 				pressures.Add(new cFishingEffortPressure(fishing.Name, fishing.EffortScalar));
 			}

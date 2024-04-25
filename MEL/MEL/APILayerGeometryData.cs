@@ -6,5 +6,6 @@ namespace MEL
 	{
 		public string geotype { get; set; }
 		public List<List<List<double[]>>> geometry { get; set; }
+		public List<PolicyData> policies = new();
 	}
 }
