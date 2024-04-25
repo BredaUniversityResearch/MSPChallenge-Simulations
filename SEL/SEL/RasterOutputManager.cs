@@ -106,7 +106,7 @@ namespace SEL
 					outputSetting.raster_bounds[1][1] != m_simulationArea.max.y)
 				{
 					ErrorReporter.ReportError(EErrorSeverity.Error,
-						$"Heatmap for output file for Layer: {outputSetting.layer_name} has incorrect bounds. Have you tried reimporting the region?");
+						$"Heatmap for output file for Layer: {outputSetting.layer_name} has incorrect bounds. Have you tried reimporting the region?\nRaster bounds ([{outputSetting.raster_bounds[0][0]},{outputSetting.raster_bounds[0][1]}],[{outputSetting.raster_bounds[1][0]},{outputSetting.raster_bounds[1][1]}]) !=\nSimulation area ([{m_simulationArea.min.x},{m_simulationArea.min.y}],[{m_simulationArea.max.x},{m_simulationArea.max.y}])");
 				}
 			}
 			else
@@ -117,7 +117,7 @@ namespace SEL
 					outputSetting.raster_bounds[1][1] != m_melOutputConfig.m_subBounds.max.y)
 				{
 					ErrorReporter.ReportError(EErrorSeverity.Error,
-						$"Heatmap for output file for layer: {outputSetting.layer_name} has incorrect bounds. Have you tried reimporting the region?");
+						$"Heatmap for output file for layer: {outputSetting.layer_name} has incorrect bounds. Have you tried reimporting the region?\nRaster bounds ([{outputSetting.raster_bounds[0][0]},{outputSetting.raster_bounds[0][1]}],[{outputSetting.raster_bounds[1][0]},{outputSetting.raster_bounds[1][1]}]) !=\nMEL bounds ([{m_melOutputConfig.m_subBounds.min.x},{m_melOutputConfig.m_subBounds.min.y}],[{m_melOutputConfig.m_subBounds.max.x},{m_melOutputConfig.m_subBounds.max.y}])");
 				}
 			}
 		}
@@ -202,7 +202,7 @@ namespace SEL
 
 			UpdateRestrictionMaps(routeManager, shipTypeManager);
 			RebuildIntensityRasters(routeManager, allRouteIntensities);
-			
+
 			foreach (RasterOutputInstance outputInstance in m_rasterOutputInstances)
 			{
 				using (MemoryStream stream = new MemoryStream())
