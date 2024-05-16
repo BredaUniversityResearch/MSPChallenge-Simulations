@@ -124,12 +124,14 @@ namespace MEL {
             {
 	            if (layer == null)
 		            continue;
-	            if (layer.geometry.Count == 0)
-		            continue;
-                foreach (List<Double[]> line in layer.geometry[0])
+				foreach(List<List<Double[]>> rings in layer.geometry)
                 {
+		            if (rings.Count == 0)
+			            continue;
+
                     //Convert to int poly
-                    List<IntPoint> intpoly = VectorToIntPoint(line);
+                    // only exterior ring is supported now for lines -- no holes
+                    List<IntPoint> intpoly = VectorToIntPoint(rings[0]);
 
                     //Get bounding box
                     long left, right, top, bot;
@@ -184,10 +186,13 @@ namespace MEL {
 		            continue;
 	            if (layer.geometry.Count == 0)
 		            continue;
-                foreach (List<Double[]> point in layer.geometry[0])
+				foreach(List<List<Double[]>> rings in layer.geometry)
                 {
-                    int x = (int)((point[0][0] - rasterBounds.xMin) / hsquaresize);
-                    int y = (int)((point[0][1] - rasterBounds.yMin) / vsquaresize);
+		            if (rings.Count == 0)
+			            continue;
+		            // only exterior ring is supported now for points -- no holes
+                    int x = (int)((rings[0][0][0] - rasterBounds.xMin) / hsquaresize);
+                    int y = (int)((rings[0][0][1] - rasterBounds.yMin) / vsquaresize);
 
                     if(x < width && x >= 0 && y < height && y >= 0)
                         output[x, height - 1 - y] += weight;
