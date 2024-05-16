@@ -84,3 +84,5 @@ DLLs/SmartFormat.ZString.dll
 DLLs/SmartFormat.dll
 DLLs/EwE*.dll
 output/
+
+# Add you ignores here...
