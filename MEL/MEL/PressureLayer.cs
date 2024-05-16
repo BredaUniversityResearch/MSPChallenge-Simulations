@@ -47,68 +47,69 @@ namespace MEL
 
 		public void RasterizeLayers(MEL mel)
 		{
-			if (redraw)
+			if (!redraw)
+				return;
+			//double total = 0f;
+
+			rawData = new double[MEL.x_res, MEL.y_res];
+			ConsoleLogger.Info($"rasterizing {name}");
+			redraw = false;
+
+			if (mel.ApiMspServer.ShouldRasterizeLayers)
 			{
-				//double total = 0f;
-
-				rawData = new double[MEL.x_res, MEL.y_res];
-				ConsoleLogger.Info($"rasterizing {name}");
-				redraw = false;
-
-				if (mel.ApiMspServer.ShouldRasterizeLayers)
+				try
 				{
-					try
+					foreach (LayerEntry layerEntry in layers)
 					{
-						foreach (LayerEntry layerEntry in layers)
+						if (layerEntry == null)
 						{
-							if (layerEntry == null)
-							{
-								ConsoleLogger.Info("null layer");
-								continue;
-							}
+							ConsoleLogger.Info("null layer");
+							continue;
+						}
 
-							if (!layerEntry.RasterizedLayer.IsLoadedCorrectly)
-							{
-								ConsoleLogger.Error(
-									$"Tried to rasterize {layerEntry.RasterizedLayer.name}, but the layer failed to load correctly");
-								continue;
-							}
+						if (!layerEntry.RasterizedLayer.IsLoadedCorrectly)
+						{
+							ConsoleLogger.Error(
+								$"Tried to rasterize {layerEntry.RasterizedLayer.name}, but the layer failed to load correctly");
+							continue;
+						}
 
-							for (int i = 0; i < MEL.x_res; i++)
+						for (int i = 0; i < MEL.x_res; i++)
+						{
+							for (int j = 0; j < MEL.y_res; j++)
 							{
-								for (int j = 0; j < MEL.y_res; j++)
+								rawData[i, j] += (layerEntry.RasterizedLayer.rawData[i, j] * layerEntry.influence);
+
+								if (rawData[i, j] > 1)
 								{
-									rawData[i, j] += (layerEntry.RasterizedLayer.rawData[i, j] * layerEntry.influence);
-
-									if (rawData[i, j] > 1)
-									{
-										rawData[i, j] = 1;
-									}
-
-									//total += this.rawdata[i, j];
+									rawData[i, j] = 1;
 								}
+
+								//total += this.rawdata[i, j];
 							}
 						}
 					}
-					catch (Exception e)
-					{
-						ConsoleLogger.Error(e.Message);
-					}
 				}
-				else
+				catch (Exception e)
 				{
-					rawData = mel.ApiMspServer.GetRasterizedPressure(name);
+					ConsoleLogger.Error(e.Message);
 				}
+			}
+			else
+			{
+				rawData = mel.ApiMspServer.GetRasterizedPressure(name);
+			}
 
-				//Console.WriteLine(this.name + " : " + total.ToString());
+			//Console.WriteLine(this.name + " : " + total.ToString());
 
-				//set the data to be sent to EwE
-				pressure = new cEnvironmentalPressure(name, MEL.x_res, MEL.y_res, rawData);
+			//set the data to be sent to EwE
+			pressure = new cEnvironmentalPressure(name, MEL.x_res, MEL.y_res, rawData);
 
-				using (Bitmap bitmap = Rasterizer.ToBitmapSlow(rawData))
-				{
-					mel.ApiMspServer.SubmitRasterLayerData(name, bitmap);
-				}
+			if (rawData == null)
+				return;
+			using (Bitmap bitmap = Rasterizer.ToBitmapSlow(rawData))
+			{
+				mel.ApiMspServer.SubmitRasterLayerData(name, bitmap);
 			}
 		}
 
