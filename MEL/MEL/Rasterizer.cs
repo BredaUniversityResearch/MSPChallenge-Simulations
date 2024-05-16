@@ -19,6 +19,8 @@ namespace MEL {
 		///     Top left zero: clockwise
 		/// </summary>
 		public static double[,] RasterizePolygons(List<APILayerGeometryData?> layers, double weight, double maxWeightPerPoly, int width, int height, Rect rasterBounds) {
+			double[,] output = new double[width, height];
+
 			//Offset to the first square (for both axes)
 			long voffset = (long)(rasterBounds.yMin * intConversion);
 			long hoffset = (long)(rasterBounds.xMin * intConversion);
@@ -26,89 +28,58 @@ namespace MEL {
 			long hsquaresize = (long)((rasterBounds.xMax - rasterBounds.xMin) * intConversion) / width;
             double squaresurface = (rasterBounds.yMax - rasterBounds.yMin) * (rasterBounds.xMax - rasterBounds.xMin) / (width * height);
 
-            double[,] output = new double[width, height];
-            foreach (APILayerGeometryData? layer in layers) {
-				foreach(List<List<Double[]>> rings in layer.geometry) // first is exterior ring, rest are interior rings (holes)
+            foreach (APILayerGeometryData? layer in layers)
+            {
+	            if (layer == null)
+		            continue;
+				foreach(List<Double[]> polygon in layer.geometry)
                 {
-		            if (rings.Count == 0)
-			            continue;
-		            // first is exterior ring, rest are interior rings (holes)
-		            List<double[]> exteriorRing = rings[0];
-		            RasterizePolygonRing(exteriorRing, weight, maxWeightPerPoly, width, height, voffset, hoffset, vsquaresize, hsquaresize, squaresurface, ref output);
-		            for (int n = 1 ; n < rings.Count; n++) {
-			            List<double[]> interiorRing = rings[n];
-			            RasterizePolygonRing(interiorRing, 0, maxWeightPerPoly, width, height, voffset, hoffset, vsquaresize, hsquaresize, squaresurface, ref output, true);
-		            }
+					//Convert to int poly
+					List<IntPoint> intpoly = VectorToIntPoint(polygon);
+
+					//Get bounding box
+					long left, right, top, bot;
+					GetBounds(intpoly, out left, out right, out top, out bot);
+
+					//Determine squares within bounding box
+					long xmin = (left - hoffset) / hsquaresize;
+					long xmax = (right - hoffset) / hsquaresize;
+					long ymin = (bot - voffset) / vsquaresize;
+					long ymax = (top - voffset) / vsquaresize;
+
+                    //Foreach overlapping square: calculate intersecting area
+                    for (long x = xmin < 0 ? 0 : xmin; x <= xmax && x < width; x++)
+                    {
+                        for (long y = ymin < 0 ? 0 : ymin; y <= ymax && y < height; y++)
+                        {
+                            Clipper clipper = new Clipper();
+
+                            //Construct polygon paths (of poly and grid square)
+                            clipper.AddPaths(new List<List<IntPoint>>() { intpoly }, PolyType.ptSubject, true);
+                            clipper.AddPaths(new List<List<IntPoint>>() { GetSquarePoly(x * hsquaresize + hoffset, (x + 1) * hsquaresize + hoffset,
+                                                                                        y * vsquaresize + voffset, (y + 1) * vsquaresize + voffset) }, PolyType.ptClip, true);
+
+                            //Calculate intersection
+                            List<List<IntPoint>> intersection = new List<List<IntPoint>>();
+
+                            clipper.Execute(ClipType.ctIntersection, intersection, PolyFillType.pftNonZero);
+
+                            //Calculate part of square that is covered by the intersection and add it to the result
+                            if (intersection.Count > 0 && intersection[0].Count > 0)
+                                output[x, height - 1 - y] += Math.Min((GetPolygonArea(intersection) / squaresurface) * weight, maxWeightPerPoly);
+                        }
+                    }
 				}
 			}
 			return output;
 		}
 
-		private static void RasterizePolygonRing(
-			List<double[]> ring,
-            double weight,
-            double maxWeightPerPoly,
-            int width,
-            int height,
-            long voffset,
-            long hoffset,
-            long vsquaresize,
-            long hsquaresize,
-            double squaresurface,
-			ref double[,] output,
-			bool assign = false
-		) {
-			//Convert to int poly
-			List<IntPoint> intpoly = VectorToIntPoint(ring);
-
-			//Get bounding box
-			long left, right, top, bot;
-			GetBounds(intpoly, out left, out right, out top, out bot);
-
-			//Determine squares within bounding box
-			long xmin = (left - hoffset) / hsquaresize;
-			long xmax = (right - hoffset) / hsquaresize;
-			long ymin = (bot - voffset) / vsquaresize;
-			long ymax = (top - voffset) / vsquaresize;
-
-            //Foreach overlapping square: calculate intersecting area
-            for (long x = xmin < 0 ? 0 : xmin; x <= xmax && x < width; x++)
-            {
-                for (long y = ymin < 0 ? 0 : ymin; y <= ymax && y < height; y++)
-                {
-                    Clipper clipper = new Clipper();
-
-                    //Construct polygon paths (of poly and grid square)
-                    clipper.AddPaths(new List<List<IntPoint>>() { intpoly }, PolyType.ptSubject, true);
-                    clipper.AddPaths(new List<List<IntPoint>>() { GetSquarePoly(x * hsquaresize + hoffset, (x + 1) * hsquaresize + hoffset,
-                                                                                y * vsquaresize + voffset, (y + 1) * vsquaresize + voffset) }, PolyType.ptClip, true);
-                    //Calculate intersection
-                    List<List<IntPoint>> intersection = new List<List<IntPoint>>();
-
-                    clipper.Execute(ClipType.ctIntersection, intersection, PolyFillType.pftNonZero);
-
-                    //Calculate part of square that is covered by the intersection and add it to the result
-                    if (intersection.Count <= 0 || intersection[0].Count <= 0)
-	                    continue;
-                    double part = Math.Min((GetPolygonArea(intersection) / squaresurface) * weight, maxWeightPerPoly);
-                    if (assign)
-                    {
-	                    output[x, height - 1 - y] = part;
-                    }
-                    else
-                    {
-	                    output[x, height - 1 - y] += part;
-                    }
-                }
-            }
-		}
-
         /// <summary>
         /// Creates a raster of the weighted input layers, which should contain lines.
         /// </summary>
-        public static double[,]? RasterizeLines(List<APILayerGeometryData?> layers, double weight, double maxWeightPerLine, int width, int height, Rect rasterBounds)
+        public static double[,] RasterizeLines(List<APILayerGeometryData?> layers, double weight, double maxWeightPerLine, int width, int height, Rect rasterBounds)
         {
-            double[,]? output = new double[width, height];
+            double[,] output = new double[width, height];
 
             //Offset to the first square (for both axes)
             long voffset = (long)(rasterBounds.yMin * intConversion);
@@ -120,9 +91,9 @@ namespace MEL {
 
             foreach (APILayerGeometryData? layer in layers)
             {
-	            if (layer.geometry.Count == 0)
+	            if (layer == null)
 		            continue;
-                foreach (List<Double[]> line in layer.geometry[0])
+	            foreach (List<Double[]> line in layer.geometry)
                 {
                     //Convert to int poly
                     List<IntPoint> intpoly = VectorToIntPoint(line);
@@ -167,18 +138,18 @@ namespace MEL {
         /// <summary>
         /// Creates a raster of the weighted input layers, which should contain points.
         /// </summary>
-        public static double[,]? RasterizePoints(List<APILayerGeometryData?> layers, double weight, int width, int height, Rect rasterBounds)
+        public static double[,] RasterizePoints(List<APILayerGeometryData?> layers, double weight, int width, int height, Rect rasterBounds)
         {
-            double[,]? output = new double[width, height];
+            double[,] output = new double[width, height];
 
             double vsquaresize = (rasterBounds.yMax - rasterBounds.yMin) / (double)height;
             double hsquaresize = (rasterBounds.xMax - rasterBounds.xMin) / (double)width;
 
             foreach (APILayerGeometryData? layer in layers)
             {
-	            if (layer.geometry.Count == 0)
+	            if (layer == null)
 		            continue;
-                foreach (List<Double[]> point in layer.geometry[0])
+	            foreach (List<Double[]> point in layer.geometry)
                 {
                     int x = (int)((point[0][0] - rasterBounds.xMin) / hsquaresize);
                     int y = (int)((point[0][1] - rasterBounds.yMin) / vsquaresize);
@@ -190,8 +161,8 @@ namespace MEL {
             return output;
         }
 
-		public static double[,]? PNGToArray(Bitmap bitmap, float influence, int width, int height) {
-			double[,]? output = new double[width, height];
+		public static double[,] PNGToArray(Bitmap bitmap, float influence, int width, int height) {
+			double[,] output = new double[width, height];
 
 			//double total = 0;
 
@@ -338,7 +309,7 @@ namespace MEL {
 			return Image;
 		}
 
-        public static Bitmap ToBitmapSlow(double[,]? rawImage)
+        public static Bitmap ToBitmapSlow(double[,] rawImage)
         {
             int width = rawImage.GetLength(0);
             int height = rawImage.GetLength(1);
