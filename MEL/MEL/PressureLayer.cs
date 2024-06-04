@@ -26,7 +26,6 @@ namespace MEL
 		}
 
 		private readonly string name;
-
 		private List<LayerEntry> layers = new List<LayerEntry>();
 		public bool redraw = true;
 		public cPressure pressure;

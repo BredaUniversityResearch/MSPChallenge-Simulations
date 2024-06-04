@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using EwEMSPLink;
-using MSWSupport;
+using Newtonsoft.Json.Linq;
 
 namespace MEL
 {
@@ -22,7 +22,12 @@ namespace MEL
 		double[,]? GetRasterLayerByName(string? layerName);
 		void SubmitRasterLayerData(string layerName, Bitmap rasterImage);
 
-		APILayerGeometryData? GetLayerData(string? layerName, int layerType, bool constructionOnly);
+		APILayerGeometryData? GetLayerData(
+			string? layerName,
+            int layerType,
+            bool constructionOnly,
+			JObject? policyFilters = null
+		);
 
 		//Debug Only...
 		double[,]? GetRasterizedPressure(string name);

@@ -199,7 +199,7 @@ namespace MEL
 						RasterizedLayer rasterizedLayer = FindCachedLayerForData(layerData);
 						if (rasterizedLayer == null)
 						{
-							rasterizedLayer = new RasterizedLayer(layerData);
+							rasterizedLayer = new RasterizedLayer(layerData, pressure.policy_filters);
 							layers.Add(rasterizedLayer);
 						}
 						pressureLayers[pressure.name].Add(rasterizedLayer, layerData.influence);

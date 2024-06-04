@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using MSWSupport;
-using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace MEL
 {
@@ -15,16 +15,18 @@ namespace MEL
 		public readonly string? name;
 		public readonly int LayerType;
 		public readonly bool constructionOnly;
+		private JObject? policyFilters = null;
 
 		public bool IsLoadedCorrectly { get; private set; }
 		public double[,]? rawData;
 
-		public RasterizedLayer(LayerData layerData)
+		public RasterizedLayer(LayerData layerData, JObject? policyFilters = null)
 		{
 			name = layerData.layer_name;
 			LayerType = layerData.layer_type;
 			constructionOnly = layerData.construction;
 			IsLoadedCorrectly = false;
+			this.policyFilters = policyFilters;
 		}
 
 		public void GetLayerDataAndRasterize(MEL mel)
@@ -32,7 +34,7 @@ namespace MEL
 			//var watch = System.Diagnostics.Stopwatch.StartNew();
 			ConsoleLogger.Info("Getting: " + name + (LayerType == -1 ? "" : "|" + LayerType));
 
-			APILayerGeometryData? layerGeometryData = mel.ApiMspServer.GetLayerData(name, LayerType, constructionOnly);
+			APILayerGeometryData? layerGeometryData = mel.ApiMspServer.GetLayerData(name, LayerType, constructionOnly, policyFilters);
 
 			if (layerGeometryData != null)
 			{

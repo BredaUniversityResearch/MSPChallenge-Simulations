@@ -127,14 +127,21 @@ namespace MEL
 			HttpSet("/api/layer/UpdateRaster", postData);
 		}
 
-		public APILayerGeometryData? GetLayerData(string? layerName, int layerType, bool constructionOnly)
-		{
+		public APILayerGeometryData? GetLayerData(
+			string? layerName,
+			int layerType,
+			bool constructionOnly,
+			JObject? policyFilters = null
+		) {
 			NameValueCollection? values = new() {
 				{"name", layerName },
 				{"layer_type", layerType.ToString() },
 				{"construction_only", constructionOnly ? "1" : "0" }
 			};
-
+			if (policyFilters != null)
+			{
+				values.Add("policy_filters", policyFilters.ToString());
+			}
 			return HttpGet("/api/mel/GeometryExportName", values, out APILayerGeometryData? result) ? result : null;
 		}
 

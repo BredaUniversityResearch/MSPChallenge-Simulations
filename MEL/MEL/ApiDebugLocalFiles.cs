@@ -96,8 +96,12 @@ namespace MEL
 			}
 		}
 
-		public APILayerGeometryData? GetLayerData(string? layerName, int layerType, bool constructionOnly)
-		{
+		public APILayerGeometryData? GetLayerData(
+			string? layerName,
+            int layerType,
+            bool constructionOnly,
+			JObject? policyFilters = null
+		) {
 			return null;
 		}
 
