@@ -3,7 +3,7 @@ using System.Collections.Specialized;
 using Newtonsoft.Json;
 namespace MSWSupport;
 
-public class ApiConnectorBase: IApiConnector
+abstract public class ApiConnectorBase: IApiConnector
 {
 	private string m_accessToken = "";
 	private readonly string m_serverUrl;

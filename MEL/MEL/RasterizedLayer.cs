@@ -34,7 +34,7 @@ namespace MEL
 			//var watch = System.Diagnostics.Stopwatch.StartNew();
 			ConsoleLogger.Info("Getting: " + name + (LayerType == -1 ? "" : "|" + LayerType));
 
-			APILayerGeometryData? layerGeometryData = mel.ApiMspServer.GetLayerData(name, LayerType, constructionOnly, policyFilters);
+			APILayerGeometryData? layerGeometryData = mel.ApiConnector.GetLayerData(name, LayerType, constructionOnly, policyFilters);
 
 			if (layerGeometryData != null)
 			{
@@ -57,7 +57,7 @@ namespace MEL
 				case "raster":
 					try
 					{
-						rawData = mel.ApiMspServer.GetRasterLayerByName(name);
+						rawData = mel.ApiConnector.GetRasterLayerByName(name);
 						if (rawData == null)
 						{
 							throw new Exception("Got null raw data from API. This can happen when this layer is an output from a different simulation.");

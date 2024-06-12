@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 
 namespace MEL
 {
-	public interface IApiConnector
+	public interface IApiConnector: MSWSupport.IApiConnector
 	{
 		bool ShouldRasterizeLayers
 		{
@@ -31,5 +31,6 @@ namespace MEL
 
 		//Debug Only...
 		double[,]? GetRasterizedPressure(string name);
+		public int[] GetEcoFleets();
 	}
 }

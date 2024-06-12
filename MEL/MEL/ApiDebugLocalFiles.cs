@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using EwEMSPLink;
@@ -10,7 +11,7 @@ namespace MEL
 	/// API Connector used for debugging.
 	/// This API connector write return the calculated data to disk in a known folder.
 	/// </summary>
-	public class ApiDebugLocalFiles: MSWSupport.IApiConnector, IApiConnector
+	public class ApiDebugLocalFiles: IApiConnector
 	{
 		private const string DebugDataFolder = "DebugData/";
 		private readonly string m_ConfigFileName;
@@ -59,7 +60,7 @@ namespace MEL
 		public string? GetMelConfigAsString()
 		{
 			JObject configValues = JObject.Parse(File.ReadAllText(Path.Combine(DebugDataFolder, m_ConfigFileName + ".json")));
-			return configValues["MEL"].ToString();
+			return configValues["MEL"]?.ToString();
 		}
 
 		public string[] GetUpdatedLayers()
@@ -89,11 +90,11 @@ namespace MEL
 
 		public void SubmitRasterLayerData(string layerName, Bitmap rasterImage)
 		{
-			using (Stream fs = File.OpenWrite(Path.Combine(DebugDataFolder, m_ConfigFileName,
-				MEL.ConvertLayerName(layerName) + ".tif")))
-			{
-				rasterImage.Save(fs, System.Drawing.Imaging.ImageFormat.Png);
-			}
+			using Stream fs = File.OpenWrite(Path.Combine(DebugDataFolder, m_ConfigFileName,
+				MEL.ConvertLayerName(layerName) + ".tif"));
+#pragma warning disable CA1416 // Validate platform compatibility
+			rasterImage.Save(fs, System.Drawing.Imaging.ImageFormat.Png);
+ #pragma warning restore CA1416
 		}
 
 		public APILayerGeometryData? GetLayerData(
@@ -108,13 +109,11 @@ namespace MEL
 		public double[,]? GetRasterizedPressure(string name)
 		{
 			double[,]? result = null;
-			using (Stream stream = File.OpenRead(Path.Combine(DebugDataFolder, m_ConfigFileName, MEL.ConvertLayerName(name)+".tif")))
-			{
-				using (Bitmap bitmap = new Bitmap(stream))
-				{
-					result = Rasterizer.PNGToArray(bitmap, 1.0f, MEL.x_res, MEL.y_res);
-				}
-			}
+			using Stream stream = File.OpenRead(Path.Combine(DebugDataFolder, m_ConfigFileName, MEL.ConvertLayerName(name)+".tif"));
+ #pragma warning disable CA1416 // Validate platform compatibility
+			using Bitmap bitmap = new (stream);
+ #pragma warning restore CA1416
+			result = Rasterizer.PNGToArray(bitmap, 1.0f, MEL.x_res, MEL.y_res);
 
 			return result;
 		}
@@ -122,12 +121,17 @@ namespace MEL
 		public void UpdateAccessToken(string newAccessToken)
 		{
 			//Moot. I don't think this should ever be called with a local files api.
-			throw new System.NotImplementedException();
+			throw new NotImplementedException();
 		}
 
 		public void UpdateMonth(int month)
 		{
 			m_CurrentGameMonth = month;
+		}
+
+		public int[] GetEcoFleets()
+		{
+			return Array.Empty<int>();
 		}
 	}
 }

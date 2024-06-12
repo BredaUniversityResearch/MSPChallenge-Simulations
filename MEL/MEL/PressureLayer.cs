@@ -26,7 +26,7 @@ namespace MEL
 		}
 
 		private readonly string name;
-		private List<LayerEntry> layers = new List<LayerEntry>();
+		private List<LayerEntry> layers = new ();
 		public bool redraw = true;
 		public cPressure pressure;
 		public double[,]? rawData { get; private set; }
@@ -54,18 +54,12 @@ namespace MEL
 			ConsoleLogger.Info($"rasterizing {name}");
 			redraw = false;
 
-			if (mel.ApiMspServer.ShouldRasterizeLayers)
+			if (mel.ApiConnector.ShouldRasterizeLayers)
 			{
 				try
 				{
 					foreach (LayerEntry layerEntry in layers)
 					{
-						if (layerEntry == null)
-						{
-							ConsoleLogger.Info("null layer");
-							continue;
-						}
-
 						if (!layerEntry.RasterizedLayer.IsLoadedCorrectly)
 						{
 							ConsoleLogger.Error(
@@ -96,7 +90,7 @@ namespace MEL
 			}
 			else
 			{
-				rawData = mel.ApiMspServer.GetRasterizedPressure(name);
+				rawData = mel.ApiConnector.GetRasterizedPressure(name);
 			}
 
 			//Console.WriteLine(this.name + " : " + total.ToString());
@@ -106,10 +100,8 @@ namespace MEL
 
 			if (rawData == null)
 				return;
-			using (Bitmap bitmap = Rasterizer.ToBitmapSlow(rawData))
-			{
-				mel.ApiMspServer.SubmitRasterLayerData(name, bitmap);
-			}
+			using Bitmap bitmap = Rasterizer.ToBitmapSlow(rawData);
+			mel.ApiConnector.SubmitRasterLayerData(name, bitmap);
 		}
 
 		public IEnumerable<LayerEntry> GetLayerEntries()

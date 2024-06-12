@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EwEMSPLink;
@@ -50,14 +51,15 @@ namespace MEL
 		private cEwEMSPLink shell;
 		private List<cPressure> pressures = new List<cPressure>();
 		private List<cFishingEffortPressure> cfishingpressures = new ();
+		private List<cFishingEcoPressure> cEcoPressures = new ();
 		public List<cGrid> outputs = new List<cGrid>();
 
 		private CommunicationPipeHandler pipeHandler;
 
-		private string dumpDir;
+		private string? dumpDir = null;
 		private UInt32 nextDumpNo = 1;
 
-		public ApiMspServer ApiMspServer
+		public IApiConnector ApiConnector
 		{
 			get;
 			private set;
@@ -88,7 +90,7 @@ namespace MEL
 				ConsoleLogger.Info($"No commandline argument found for APIEndpoint. Using default value {ApiBaseURL}");
 			}
 
-			ApiMspServer = new ApiMspServer(ApiBaseURL);
+			ApiConnector = new ApiMspServer(ApiBaseURL);
 			//ApiConnector = new ApiDebugLocalFiles("BS_Basic");
 
 			shell = new cEwEMSPLink();
@@ -98,8 +100,8 @@ namespace MEL
 				"MEL",
 				ApiBaseURL
 			);
-			pipeHandler.SetTokenReceiver(ApiMspServer);
-			pipeHandler.SetUpdateMonthReceiver(ApiMspServer);
+			pipeHandler.SetTokenReceiver(ApiConnector);
+			pipeHandler.SetUpdateMonthReceiver(ApiConnector);
 			WaitForApiAccess();
 
 			LoadConfig();
@@ -111,6 +113,7 @@ namespace MEL
 			y_max = config.y_max;
 
 			InitPressureLayers();
+			UpdateEcoPressures();
 			int attempt = 1;
 			while (attempt <= MAX_RASTER_LOAD_ATTEMPTS)
 			{
@@ -144,7 +147,7 @@ namespace MEL
 					pressures.Add(new cFishingEffortPressure(fish.Name, (float)fish.Value));
 					cfishingpressures.Add(new cFishingEffortPressure(fish.Name, (float)fish.Value));
 				}
-				ApiMspServer.SetInitialFishingValues(initialFishingValues);
+				ApiConnector.SetInitialFishingValues(initialFishingValues);
 
 				// Dump game version for testing purposes
 				ConsoleLogger.Info($"Loaded EwE model '{shell.CurrentGame.Version}', {shell.CurrentGame.Author}, {shell.CurrentGame.Contact}");
@@ -170,7 +173,7 @@ namespace MEL
 		private void LoadConfig()
 		{
 			//file name should probably be obtained from the server
-			configstring = ApiMspServer.GetMelConfigAsString();
+			configstring = ApiConnector.GetMelConfigAsString();
 
 			config = JsonConvert.DeserializeObject<Config>(configstring);
 
@@ -196,7 +199,7 @@ namespace MEL
 				{
 					if (layerData.influence > 0.0f)
 					{
-						RasterizedLayer rasterizedLayer = FindCachedLayerForData(layerData);
+						RasterizedLayer? rasterizedLayer = FindCachedLayerForData(layerData);
 						if (rasterizedLayer == null)
 						{
 							rasterizedLayer = new RasterizedLayer(layerData, pressure.policy_filters);
@@ -228,7 +231,7 @@ namespace MEL
 			}
 		}
 
-		private RasterizedLayer FindCachedLayerForData(LayerData layerData)
+		private RasterizedLayer? FindCachedLayerForData(LayerData layerData)
 		{
 			return layers.Find(obj => obj.constructionOnly == layerData.construction && obj.name == layerData.layer_name && obj.LayerType == layerData.layer_type);
 		}
@@ -242,9 +245,9 @@ namespace MEL
 			rasterizedLayer.GetLayerDataAndRasterize(this);
 		}
 
-		public void WaitForApiAccess()
+		private void WaitForApiAccess()
 		{
-			while (!APIRequest.SleepOnApiUnauthorizedWebException(() => ApiMspServer.CheckApiAccess()))
+			while (!APIRequest.SleepOnApiUnauthorizedWebException(() => ApiConnector.CheckApiAccess()))
 			{
 				// ApiRequest handles sleep.
 			}
@@ -255,9 +258,9 @@ namespace MEL
 		/// </summary>
 		public void Tick()
 		{
-			var watch = Stopwatch.StartNew();
+			Stopwatch watch = Stopwatch.StartNew();
 			//Console.WriteLine("Trying tick");
-			int currentGameMonth = ApiMspServer.GetCurrentGameMonth();
+			int currentGameMonth = ApiConnector.GetCurrentGameMonth();
 			// do not allow to go back in time.
 			if (currentGameMonth <= lastupdatedmonth)
 			{
@@ -277,6 +280,7 @@ namespace MEL
 
 			//update pressure layers where needed
 			UpdatePressureLayers();
+			UpdateEcoPressures();
 
 			WaitForAllBackgroundTasks();
 
@@ -305,13 +309,29 @@ namespace MEL
 			ConsoleLogger.Info("------------------");
 		}
 
+		private void UpdateEcoPressures()
+		{
+			int[] ecoFleets = ApiConnector.GetEcoFleets();
+			cEcoPressures.Clear();
+			foreach (Eco eco in config.eco)
+			{
+				if (eco.policy_filters == null || !eco.policy_filters.ContainsKey("fleets"))
+				{
+					continue;
+				}
+				IEnumerable<int>? diff = eco.policy_filters.GetValue("fleets")?.ToObject<List<int>>()
+					?.Intersect(ecoFleets);
+				cEcoPressures.Add(new cFishingEcoPressure(eco.name, diff?.Count() == 0));
+			}
+		}
+
 		/// <summary>
 		/// Query the server to check for updates on any layers, then load the new WKT
 		/// </summary>
 		private void UpdatePressureLayers()
 		{
 			//get the list of layers that need to be updated
-			string[] toUpdate = ApiMspServer.GetUpdatedLayers();
+			string[] toUpdate = ApiConnector.GetUpdatedLayers();
 			if (toUpdate.Length == 0 || (toUpdate.Length == 1 && toUpdate[0] == ""))
 			{
 				return;
@@ -323,22 +343,22 @@ namespace MEL
 			{
 				foreach (PressureLayer.LayerEntry layerEntry in pressure.Value.GetLayerEntries())
 				{
-					if (layerEntry == null) continue;
-
 					foreach (string baseName in toUpdate)
 					{
-						if (layerEntry.RasterizedLayer.name.Contains(baseName))
+						if (layerEntry.RasterizedLayer.name == null)
 						{
-							//tag the pressure layer to be redrawn
-							pressure.Value.redraw = true;
-
-							if (!updated.Contains(layerEntry.RasterizedLayer))
-							{
-								updated.Add(layerEntry.RasterizedLayer);
-								//layer has changed, update it
-								AddBackgroundTask(() => LoadThreaded(layerEntry.RasterizedLayer));
-							}
+							continue;
 						}
+						if (!layerEntry.RasterizedLayer.name.Contains(baseName))
+							continue;
+						//tag the pressure layer to be redrawn
+						pressure.Value.redraw = true;
+
+						if (updated.Contains(layerEntry.RasterizedLayer))
+							continue;
+						updated.Add(layerEntry.RasterizedLayer);
+						//layer has changed, update it
+						AddBackgroundTask(() => LoadThreaded(layerEntry.RasterizedLayer));
 					}
 				}
 			}
@@ -346,7 +366,7 @@ namespace MEL
 
 		private void UpdateFishing()
 		{
-			Fishing[] fishing = ApiMspServer.GetFishingValuesForMonth(lastupdatedmonth);
+			Fishing[] fishing = ApiConnector.GetFishingValuesForMonth(lastupdatedmonth);
 			for (int i = 0; i < cfishingpressures.Count; i++)
 			{
 				foreach (Fishing f in fishing)
@@ -364,13 +384,13 @@ namespace MEL
 		{
 			foreach (cGrid outcome in outputs)
 			{
-				ApiMspServer.SubmitKpi(outcome.Name, currentMonth, outcome.Mean, outcome.Units);
+				ApiConnector.SubmitKpi(outcome.Name, currentMonth, outcome.Mean, outcome.Units);
 			}
 		}
 
 		private void TickDone()
 		{
-			ApiMspServer.NotifyTickDone();
+			ApiConnector.NotifyTickDone();
 		}
 
 		private void StoreTick()
@@ -385,7 +405,7 @@ namespace MEL
 		{
 			using (Bitmap bitmap = Rasterizer.ToBitmapSlow(grid.Cell))
 			{
-				ApiMspServer.SubmitRasterLayerData(grid.Name, bitmap);
+				ApiConnector.SubmitRasterLayerData(grid.Name, bitmap);
 			}
 		}
 
@@ -408,6 +428,11 @@ namespace MEL
 			foreach (cFishingEffortPressure fishing in cfishingpressures)
 			{
 				pressures.Add(new cFishingEffortPressure(fishing.Name, fishing.EffortScalar));
+			}
+
+			foreach (cFishingEcoPressure eco in cEcoPressures)
+			{
+				pressures.Add(new cFishingEcoPressure(eco.Name, eco.bIsEcological));
 			}
 
 			//watch.Stop();
