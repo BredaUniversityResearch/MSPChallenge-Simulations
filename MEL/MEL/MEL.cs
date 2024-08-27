@@ -313,6 +313,7 @@ namespace MEL
 		{
 			int[] ecoFleets = ApiConnector.GetEcoFleets();
 			cEcoPressures.Clear();
+			if (null == config.eco) return;
 			foreach (Eco eco in config.eco)
 			{
 				if (eco.policy_filters == null || !eco.policy_filters.ContainsKey("fleets"))

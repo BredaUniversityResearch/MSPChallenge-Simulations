@@ -17,7 +17,7 @@ namespace MEL
 		public double fishvalue { get; set; }
 		public List<Pressure> pressures { get; set; }
 		public List<Outcome> outcomes { get; set; }
-		public List<Eco> eco { get; set; }
+		public List<Eco>? eco { get; set; }
 
 		public int x_min { get; set; }
 		public int y_min { get; set; }
