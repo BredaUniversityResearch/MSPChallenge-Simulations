@@ -71,13 +71,20 @@ namespace MEL
 			var myWriter = new ConsoleTraceListener();
 			Trace.Listeners.Add(myWriter); // this will output all writes to "Debug."
 
+			string? docker = Environment.GetEnvironmentVariable("DOCKER");
 			string? eweDumpEnabledEnvVar = Environment.GetEnvironmentVariable("MSP_MEL_EWE_DUMP_ENABLED");
+			if (eweDumpEnabledEnvVar != null)
+			{
+				ConsoleLogger.Info($"EwE dump enabled environment variable found: {eweDumpEnabledEnvVar}");
+			}
 			if ((CommandLineArguments.HasOptionValue("EWEDumpEnabled") && CommandLineArguments.GetOptionValue("EWEDumpEnabled") == "1") ||
 				(eweDumpEnabledEnvVar is "1"))
 			{
 				DateTime currentDateTime = DateTime.Now;
-				dumpDir = Directory.GetCurrentDirectory() + "\\mel-ewe-dump\\" + currentDateTime.ToString("yyyyMMddHHmmss") + "\\";
+				string slash = docker != null ? "/" : "\\";
+				dumpDir = Directory.GetCurrentDirectory() + $"{slash}mel-ewe-dump{slash}" + currentDateTime.ToString("yyyyMMddHHmmss") + slash;
 				Directory.CreateDirectory(dumpDir);
+				ConsoleLogger.Info($"EwE dump enabled, dumping to {dumpDir}");
 			}
 
 			if (CommandLineArguments.HasOptionValue("APIEndpoint"))
@@ -320,9 +327,9 @@ namespace MEL
 				{
 					continue;
 				}
-				IEnumerable<int>? diff = eco.policy_filters.GetValue("fleets")?.ToObject<List<int>>()
+				IEnumerable<int>? intersection = eco.policy_filters.GetValue("fleets")?.ToObject<List<int>>()
 					?.Intersect(ecoFleets);
-				cEcoPressures.Add(new cFishingEcoPressure(eco.name, diff?.Count() == 0));
+				cEcoPressures.Add(new cFishingEcoPressure(eco.name, intersection?.Count() != 0));
 			}
 		}
 
