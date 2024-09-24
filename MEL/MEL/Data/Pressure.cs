@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 namespace MEL
 {
@@ -9,6 +10,7 @@ namespace MEL
 	public class Pressure
 	{
 		public string name { get; set; }
+		public JObject? policy_filters { get; set; } = null;
 		public List<LayerData> layers { get; set; }
 	}
 }
