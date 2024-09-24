@@ -70,7 +70,12 @@ namespace MEL
 
 		public string[] GetUpdatedLayers()
 		{
-			return HttpGet("/api/mel/Update", out string[] result) ? result : new string[0];
+			return HttpGet("/api/mel/Update", out string[] result) ? result : Array.Empty<string>();
+		}
+
+		public int[] GetEcoFleets()
+		{
+			return HttpGet("/api/mel/GetEcoGearFleets", out int[] result) ? result : Array.Empty<int>();
 		}
 
 		public Fishing[] GetFishingValuesForMonth(int month)
@@ -84,7 +89,7 @@ namespace MEL
 
 			NameValueCollection postValues = new(1);
 			postValues.Add("game_month", month.ToString());
-			return HttpGet("/api/mel/GetFishing", postValues, out Fishing[] result) ? result : new Fishing[0];
+			return HttpGet("/api/mel/GetFishing", postValues, out Fishing[] result) ? result : Array.Empty<Fishing>();
 
 		}
 
@@ -120,21 +125,30 @@ namespace MEL
 		public void SubmitRasterLayerData(string layerName, Bitmap rasterImage)
 		{
 			using MemoryStream stream = new(16384);
+ #pragma warning disable CA1416 // Validate platform compatibility
 			rasterImage.Save(stream, ImageFormat.Png);
+ #pragma warning restore CA1416
 			NameValueCollection postData = new NameValueCollection(2);
 			postData.Set("layer_name", MEL.ConvertLayerName(layerName));
 			postData.Set("image_data", Convert.ToBase64String(stream.ToArray()));
 			HttpSet("/api/layer/UpdateRaster", postData);
 		}
 
-		public APILayerGeometryData? GetLayerData(string? layerName, int layerType, bool constructionOnly)
-		{
+		public APILayerGeometryData? GetLayerData(
+			string? layerName,
+			int layerType,
+			bool constructionOnly,
+			JObject? policyFilters = null
+		) {
 			NameValueCollection? values = new() {
 				{"name", layerName },
 				{"layer_type", layerType.ToString() },
 				{"construction_only", constructionOnly ? "1" : "0" }
 			};
-
+			if (policyFilters != null)
+			{
+				values.Add("policy_filters", policyFilters.ToString());
+			}
 			return HttpGet("/api/mel/GeometryExportName", values, out APILayerGeometryData? result) ? result : null;
 		}
 

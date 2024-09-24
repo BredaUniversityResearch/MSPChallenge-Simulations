@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
@@ -52,6 +53,12 @@ namespace MSW
 				WorkingDirectory = workingDirectory,
 				UseShellExecute = true
 			};
+
+			// Pass all environment variables to the child process
+			foreach (DictionaryEntry envVar in Environment.GetEnvironmentVariables())
+			{
+			    startInfo.EnvironmentVariables[(string)envVar.Key] = (string)envVar.Value;
+			}
 
 			m_runningProcess = Process.Start(startInfo);
 
