@@ -11,7 +11,7 @@ echo * To skip the Start? confirmation:
 echo   build.bat "start=Y"
 echo.
 
-set ecopath_dir=..\Ecopath6_netstandard
+set ecopath_dir=..\Ecopath6_crossplatform
 set ecopath_source_dir="%ecopath_dir%\Sources"
 if not exist "%ecopath_source_dir%" (
     echo Directory "%ecopath_source_dir%" does not exist. Please checkout the svn repo: https://sources.ecopath.org/svn/Ecopath/branches/Ecopath6_netstandard to "%ecopath_dir%"
@@ -32,7 +32,7 @@ if not exist "%eweplugin_dir%" (
     echo Directory "%eweplugin_dir%" does not exist.
     exit /b 1
 )
-set ewemsplink_dir="%ecopath_source_dir%\EwECustomPlugins\EwEMSPTools\EwEMSPLink"
+set ewemsplink_dir="%ecopath_source_dir%\EwECustomPlugins\EwEMSPChallengeIntegration\EwEMSPLink"
 if not exist "%ewemsplink_dir%" (
     echo Directory "%ewemsplink_dir%" does not exist.
     exit /b 1

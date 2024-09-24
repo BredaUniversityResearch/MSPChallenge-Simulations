@@ -223,7 +223,7 @@ namespace MEL
 			return -1 == layers.FindIndex(x => !x.IsLoadedCorrectly);
 		}
 
-		public void LoadPressureLayers()
+		private void LoadPressureLayers()
 		{
 			foreach (RasterizedLayer rasterizedLayer in layers)
 			{
@@ -295,7 +295,7 @@ namespace MEL
 			RasterizeLayers();
 
 			//Start EwE tick
-			shell.Tick(pressures, outputs, false);
+			shell.Tick(pressures, outputs);
 			if (dumpDir != null)
 			{
 				DateTime currentDateTime = DateTime.Now;
