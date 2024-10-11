@@ -18,6 +18,7 @@
 
 #Stuff for Simulations
 Simulations/MEL/EwE/**
+*_log.xml
 
 # MemoryCaptures can get excessive in size.
 # They also could contain extremely sensitive data
