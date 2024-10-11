@@ -55,6 +55,9 @@
       <None Update="MELdata\EMS_Small_model_test.eiixml">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+      <None Update="MELdata\WesternBaltic_National_Fleets.eiixml">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
