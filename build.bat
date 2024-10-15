@@ -1,6 +1,6 @@
 @echo off
 echo Example usage:
-echo * Just call build.bat to output to subdir .\ouput for all platforms and Release
+echo * Just call build.bat to output to subdir .\output for all platforms and Release
 echo * To change the output path (Can be a relative starting with .. or a full path):
 echo   build.bat "output_path=..\MSPChallenge-Server\simulations"
 echo * To build with the Debug configuration and only for platform alpine:
