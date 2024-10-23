@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using EwEMSPLink;
 using Newtonsoft.Json.Linq;
 
@@ -59,8 +60,51 @@ namespace MEL
 
 		public string? GetMelConfigAsString()
 		{
-			JObject configValues = JObject.Parse(File.ReadAllText(Path.Combine(DebugDataFolder, m_ConfigFileName + ".json")));
-			return configValues["MEL"]?.ToString();
+			var configValues = JObject.Parse(File.ReadAllText(Path.Combine(DebugDataFolder, m_ConfigFileName + ".json")));
+			var dataModel = configValues["datamodel"] as JObject;
+			if (dataModel == null) return null;
+			var melConfig = dataModel["MEL"] as JObject;
+			if (melConfig == null) return null;
+
+			var pressures = melConfig["pressures"] as JArray ?? new JArray();
+			foreach (var pressure in pressures)
+			{
+			    var policyFilters = pressure["policy_filters"];
+			    if (policyFilters == null)
+			    {
+			        continue;
+			    }
+
+			    var layers = pressure["layers"] as JArray ?? new JArray();
+			    foreach (var pressureLayer in layers)
+			    {
+			        var layerName = pressureLayer["name"]?.ToString();
+			        if (string.IsNullOrEmpty(layerName))
+			        {
+			            continue;
+			        }
+
+			        var metaLayers = dataModel["meta"] as JArray ?? new JArray();
+			        var layer = metaLayers.FirstOrDefault(l => l["layer_name"]?.ToString() == layerName);
+			        if (layer == null)
+			        {
+			            continue;
+			        }
+
+			        var layerInfoProperties = layer["layer_info_properties"] as JArray ?? new JArray();
+			        var layerInfoPolicyTypeProps = layerInfoProperties
+			            .Where(p => p["policy_type"] != null)
+			            .ToList();
+			        if (!layerInfoPolicyTypeProps.Any())
+			        {
+			            continue;
+			        }
+
+			        pressureLayer["policy_filters"] = policyFilters;
+			    }
+			}
+
+			return dataModel["MEL"]?.ToString();
 		}
 
 		public string[] GetUpdatedLayers()
