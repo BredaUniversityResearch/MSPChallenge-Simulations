@@ -1,5 +1,6 @@
 ﻿using System.Runtime.Serialization;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace MEL
 {
@@ -16,6 +17,8 @@ namespace MEL
 
 		public float influence;
 		public bool construction;
+		
+		public JObject? policy_filters = null;
 
 		[OnDeserialized]
 		private void OnDeserializedMethod(StreamingContext context)

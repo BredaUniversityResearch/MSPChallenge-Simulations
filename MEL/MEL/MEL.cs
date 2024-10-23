@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using EwEMSPLink;
 using MSWSupport;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace MEL
 {
@@ -25,7 +26,11 @@ namespace MEL
 	{
 		public const int TICK_DELAY_MS = 100;   //in ms
 		private const int NEXT_RASTER_LOAD_WAITING_TIME_SEC = 10;
+#if DEBUG
+		private const int MAX_RASTER_LOAD_ATTEMPTS = 60; // Increased for DEBUG version
+#else
 		private const int MAX_RASTER_LOAD_ATTEMPTS = 20;
+#endif
 
 		private static string ApiBaseURL = "http://localhost/1/"; //Default to localhost.
 
@@ -98,7 +103,7 @@ namespace MEL
 			}
 
 			ApiConnector = new ApiMspServer(ApiBaseURL);
-			//ApiConnector = new ApiDebugLocalFiles("BS_Basic");
+			//ApiConnector = new ApiDebugLocalFiles("NS_Basic"); LoadConfig();
 
 			shell = new cEwEMSPLink();
 
@@ -204,16 +209,14 @@ namespace MEL
 
 				foreach (LayerData layerData in pressure.layers)
 				{
-					if (layerData.influence > 0.0f)
+					if (!(layerData.influence > 0.0f)) continue;
+					RasterizedLayer? rasterizedLayer = FindCachedLayerForData(layerData);
+					if (rasterizedLayer == null)
 					{
-						RasterizedLayer? rasterizedLayer = FindCachedLayerForData(layerData);
-						if (rasterizedLayer == null)
-						{
-							rasterizedLayer = new RasterizedLayer(layerData, pressure.policy_filters);
-							layers.Add(rasterizedLayer);
-						}
-						pressureLayers[pressure.name].Add(rasterizedLayer, layerData.influence);
+						rasterizedLayer = new RasterizedLayer(layerData);
+						layers.Add(rasterizedLayer);
 					}
+					pressureLayers[pressure.name].Add(rasterizedLayer, layerData.influence);
 				}
 			}
 		}
@@ -240,7 +243,13 @@ namespace MEL
 
 		private RasterizedLayer? FindCachedLayerForData(LayerData layerData)
 		{
-			return layers.Find(obj => obj.constructionOnly == layerData.construction && obj.name == layerData.layer_name && obj.LayerType == layerData.layer_type);
+			return layers.Find(
+				obj => 
+					obj.constructionOnly == layerData.construction && 
+					obj.name == layerData.layer_name &&
+					obj.LayerType == layerData.layer_type &&
+					JToken.DeepEquals(obj.policyFilters, layerData.policy_filters)
+			);
 		}
 
 		/// <summary>
