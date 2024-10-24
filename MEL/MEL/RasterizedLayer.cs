@@ -15,24 +15,24 @@ namespace MEL
 		public readonly string? name;
 		public readonly int LayerType;
 		public readonly bool constructionOnly;
-		private JObject? policyFilters = null;
+		public readonly JObject? policyFilters;
 
 		public bool IsLoadedCorrectly { get; private set; }
 		public double[,]? rawData;
 
-		public RasterizedLayer(LayerData layerData, JObject? policyFilters = null)
+		public RasterizedLayer(LayerData layerData)
 		{
 			name = layerData.layer_name;
 			LayerType = layerData.layer_type;
 			constructionOnly = layerData.construction;
 			IsLoadedCorrectly = false;
-			this.policyFilters = policyFilters;
+			policyFilters = layerData.policy_filters;
 		}
 
 		public void GetLayerDataAndRasterize(MEL mel)
 		{
 			//var watch = System.Diagnostics.Stopwatch.StartNew();
-			ConsoleLogger.Info("Getting: " + name + (LayerType == -1 ? "" : "|" + LayerType));
+			ConsoleLogger.Info("Getting: " + name + (LayerType == -1 ? "" : "|" + LayerType) + (policyFilters == null ? "" : " with " + policyFilters));
 
 			APILayerGeometryData? layerGeometryData = mel.ApiConnector.GetLayerData(name, LayerType, constructionOnly, policyFilters);
 
