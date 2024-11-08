@@ -58,6 +58,12 @@
       <None Update="DebugData\NS_Basic.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+      <None Update="MELdata\WesternBaltic_National_Fleets_by_catch.eiixml">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="MELdata\EMS_10KM_2.2.eiixml">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
