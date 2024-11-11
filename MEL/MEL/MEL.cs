@@ -174,7 +174,7 @@ namespace MEL
 				//something went wrong here
 				ConsoleColor orgColor = Console.ForegroundColor;
 				Console.ForegroundColor = ConsoleColor.Red;
-				ConsoleLogger.Error("EwE Startup failed");
+				ConsoleLogger.Error("!!!!!!!!!!!!!!!!!!!! EwE Startup failed !!!!!!!!!!!!!!!!!!!!");
 				Console.ForegroundColor = orgColor;
 			}
 		}
@@ -360,19 +360,29 @@ namespace MEL
 			{
 				foreach (PressureLayer.LayerEntry layerEntry in pressure.Value.GetLayerEntries())
 				{
-					foreach (string baseName in toUpdate)
-					{
-						if (layerEntry.RasterizedLayer.name == null)
-						{
-							continue;
-						}
-						if (!layerEntry.RasterizedLayer.name.Contains(baseName))
-							continue;
-						//tag the pressure layer to be redrawn
-						pressure.Value.redraw = true;
+                    foreach (string baseName in toUpdate)
+                    {
+                        if (layerEntry.RasterizedLayer.name == null)
+                        {
+                            ConsoleLogger.Info("Layer name is null, skipping");
+                            continue;
+                        }
 
-						if (updated.Contains(layerEntry.RasterizedLayer))
-							continue;
+                        if (!layerEntry.RasterizedLayer.name.Contains(baseName))
+                        {
+                            continue;
+                        }
+
+                        //tag the pressure layer to be redrawn
+                        pressure.Value.redraw = true;
+
+                        if (updated.Contains(layerEntry.RasterizedLayer))
+                        {
+	                        ConsoleLogger.Info("Layer name: " + layerEntry.RasterizedLayer.name + " already updated, skipping");
+                            continue;
+						}
+
+                        ConsoleLogger.Info("-->Layer name: " + layerEntry.RasterizedLayer.name + " is gonna be updated");
 						updated.Add(layerEntry.RasterizedLayer);
 						//layer has changed, update it
 						AddBackgroundTask(() => LoadThreaded(layerEntry.RasterizedLayer));
