@@ -52,7 +52,7 @@ if "%api_version%" == "" (
     set api_version=1.1.0
 )
 if "%publish_targets[0]%" == "" (
-    set publish_targets[0]=debian.12-x64
+    set publish_targets[0]=debian.11-x64
     set publish_targets[1]=win-x64
 )
 if "%output_path%" == "" (

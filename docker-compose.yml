@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  mspchallenge-simulations:
+    build:
+      context: output/debian.11-x64
+    image: mspchallenge-simulations  
+    ports:
+      - "${WATCHDOG_PORT:-45000}:${WATCHDOG_PORT:-45000}"
+    restart: always
+    environment:
+      WATCHDOG_PORT: ${WATCHDOG_PORT:-45000}    
+    logging:
+      driver: "local"
+

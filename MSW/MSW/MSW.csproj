@@ -25,6 +25,9 @@
       <None Update="MSWdata\MSW_config.win.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+      <None Update="Dockerfile" Condition="'$(RuntimeIdentifier)' == 'debian.11-x64'">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>

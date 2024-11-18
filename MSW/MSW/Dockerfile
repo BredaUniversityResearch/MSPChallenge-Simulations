@@ -1,18 +1,27 @@
-﻿FROM mcr.microsoft.com/dotnet/runtime:6.0 AS base
+# Use a minimal Debian-based image for the runtime
+FROM debian:11-slim
+
+# Install necessary dependencies for running .NET
+RUN apt-get update && apt-get install -y --no-install-recommends \
+		libicu67 \
+		git \
+        libgdiplus \
+        bash \
+        procps \
+        nano \
+	;	
+
+# Set the working directory in the container
 WORKDIR /app
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
-WORKDIR /src
-COPY ["MSW/MSW.csproj", "MSW/"]
-RUN dotnet restore "MSW/MSW.csproj"
-COPY . .
-WORKDIR "/src/MSW"
-RUN dotnet build "MSW.csproj" -c Release -o /app/build
+# Define a build argument for the source directory
+ARG source_dir=.
 
-FROM build AS publish
-RUN dotnet publish "MSW.csproj" -c Release -o /app/publish
+# Copy the published .NET app into the container
+COPY ${source_dir} /app
 
-FROM base AS final
-WORKDIR /app
-COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "MSW.dll"]
+# Set executable permissions for the .NET app (if not already set)
+RUN chmod +x /app/MSW
+
+# Define the entrypoint to run the .NET app
+ENTRYPOINT ["./MSW"]
