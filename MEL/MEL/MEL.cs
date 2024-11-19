@@ -444,22 +444,27 @@ namespace MEL
 			//var watch = System.Diagnostics.Stopwatch.StartNew();
 			pressures.Clear();
 
-			foreach (KeyValuePair<string, PressureLayer> entry in pressureLayers)
+			foreach (KeyValuePair<string, PressureLayer> entry in pressureLayers) // environmental pressures
 			{
-				if (entry.Value.redraw)
+				if (entry.Value.redraw) {
 					entry.Value.RasterizeLayers(this);
+					ConsoleLogger.Info($"Rasterized {entry.Key}");
+				}
 
 				pressures.Add(entry.Value.pressure);
+				ConsoleLogger.Info($"Added environmental pressure {entry.Key}");
 			}
 
-			foreach (cFishingEffortPressure fishing in cfishingpressures)
+			foreach (cFishingEffortPressure fishing in cfishingpressures) // fishing effort pressures
 			{
 				pressures.Add(new cFishingEffortPressure(fishing.Name, fishing.EffortScalar));
+				ConsoleLogger.Info($"Added fishing effort pressure {fishing.Name} with value {fishing.EffortScalar}");
 			}
 
-			foreach (cFishingEcoPressure eco in cEcoPressures)
+			foreach (cFishingEcoPressure eco in cEcoPressures) // ecological fishing gear pressures
 			{
 				pressures.Add(new cFishingEcoPressure(eco.Name, eco.bIsEcological));
+				ConsoleLogger.Info($"Added ecological fishing gear pressure {eco.Name} with value {eco.bIsEcological}");
 			}
 
 			//watch.Stop();

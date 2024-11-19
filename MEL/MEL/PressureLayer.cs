@@ -28,7 +28,7 @@ namespace MEL
 		private readonly string name;
 		private List<LayerEntry> layers = new ();
 		public bool redraw = true;
-		public cPressure pressure;
+		public cEnvironmentalPressure pressure;
 		public double[,]? rawData { get; private set; }
 
 		public PressureLayer(string name)
