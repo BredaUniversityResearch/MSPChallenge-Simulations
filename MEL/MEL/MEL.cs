@@ -174,7 +174,7 @@ namespace MEL
 				//something went wrong here
 				ConsoleColor orgColor = Console.ForegroundColor;
 				Console.ForegroundColor = ConsoleColor.Red;
-				ConsoleLogger.Error("EwE Startup failed");
+				ConsoleLogger.Error("!!!!!!!!!!!!!!!!!!!! EwE Startup failed !!!!!!!!!!!!!!!!!!!!");
 				Console.ForegroundColor = orgColor;
 			}
 		}
@@ -360,19 +360,29 @@ namespace MEL
 			{
 				foreach (PressureLayer.LayerEntry layerEntry in pressure.Value.GetLayerEntries())
 				{
-					foreach (string baseName in toUpdate)
-					{
-						if (layerEntry.RasterizedLayer.name == null)
-						{
-							continue;
-						}
-						if (!layerEntry.RasterizedLayer.name.Contains(baseName))
-							continue;
-						//tag the pressure layer to be redrawn
-						pressure.Value.redraw = true;
+                    foreach (string baseName in toUpdate)
+                    {
+                        if (layerEntry.RasterizedLayer.name == null)
+                        {
+                            ConsoleLogger.Info("Layer name is null, skipping");
+                            continue;
+                        }
 
-						if (updated.Contains(layerEntry.RasterizedLayer))
-							continue;
+                        if (!layerEntry.RasterizedLayer.name.Contains(baseName))
+                        {
+                            continue;
+                        }
+
+                        //tag the pressure layer to be redrawn
+                        pressure.Value.redraw = true;
+
+                        if (updated.Contains(layerEntry.RasterizedLayer))
+                        {
+	                        ConsoleLogger.Info("Layer name: " + layerEntry.RasterizedLayer.name + " already updated, skipping");
+                            continue;
+						}
+
+                        ConsoleLogger.Info("-->Layer name: " + layerEntry.RasterizedLayer.name + " is gonna be updated");
 						updated.Add(layerEntry.RasterizedLayer);
 						//layer has changed, update it
 						AddBackgroundTask(() => LoadThreaded(layerEntry.RasterizedLayer));
@@ -434,22 +444,27 @@ namespace MEL
 			//var watch = System.Diagnostics.Stopwatch.StartNew();
 			pressures.Clear();
 
-			foreach (KeyValuePair<string, PressureLayer> entry in pressureLayers)
+			foreach (KeyValuePair<string, PressureLayer> entry in pressureLayers) // environmental pressures
 			{
-				if (entry.Value.redraw)
+				if (entry.Value.redraw) {
 					entry.Value.RasterizeLayers(this);
+					ConsoleLogger.Info($"Rasterized {entry.Key}");
+				}
 
 				pressures.Add(entry.Value.pressure);
+				ConsoleLogger.Info($"Added environmental pressure {entry.Key}");
 			}
 
-			foreach (cFishingEffortPressure fishing in cfishingpressures)
+			foreach (cFishingEffortPressure fishing in cfishingpressures) // fishing effort pressures
 			{
 				pressures.Add(new cFishingEffortPressure(fishing.Name, fishing.EffortScalar));
+				ConsoleLogger.Info($"Added fishing effort pressure {fishing.Name} with value {fishing.EffortScalar}");
 			}
 
-			foreach (cFishingEcoPressure eco in cEcoPressures)
+			foreach (cFishingEcoPressure eco in cEcoPressures) // ecological fishing gear pressures
 			{
 				pressures.Add(new cFishingEcoPressure(eco.Name, eco.bIsEcological));
+				ConsoleLogger.Info($"Added ecological fishing gear pressure {eco.Name} with value {eco.bIsEcological}");
 			}
 
 			//watch.Stop();
