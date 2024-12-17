@@ -49,7 +49,7 @@ if "%configuration%" == "" (
     set configuration=Release
 )
 if "%api_version%" == "" (
-    set api_version=1.1.0
+    set api_version=2.0.0
 )
 if "%publish_targets[0]%" == "" (
     set publish_targets[0]=debian.11-x64

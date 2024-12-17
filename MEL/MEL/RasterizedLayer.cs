@@ -31,9 +31,7 @@ namespace MEL
 
 		public void GetLayerDataAndRasterize(MEL mel)
 		{
-			//var watch = System.Diagnostics.Stopwatch.StartNew();
-			ConsoleLogger.Info("Getting: " + name + (LayerType == -1 ? "" : "|" + LayerType) + (policyFilters == null ? "" : " with " + policyFilters));
-
+			var watch = System.Diagnostics.Stopwatch.StartNew();
 			APILayerGeometryData? layerGeometryData = mel.ApiConnector.GetLayerData(name, LayerType, constructionOnly, policyFilters);
 
 			if (layerGeometryData != null)
@@ -77,9 +75,9 @@ namespace MEL
 			{
 				ConsoleLogger.Warning($"{name} does not exist or does not have geometry");
 			}
-
-			//watch.Stop();
-			//Console.WriteLine(this.name + " load time: " + watch.ElapsedMilliseconds);
+			
+			watch.Stop();
+			ConsoleLogger.Info("Got: " + name + (LayerType == -1 ? "" : "|" + LayerType) + (policyFilters == null ? "" : " with " + policyFilters) + ", IsLoadedCorrectly: " + IsLoadedCorrectly + ", load time: " + watch.ElapsedMilliseconds);
 		}
 	}
 }
