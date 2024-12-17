@@ -28,7 +28,7 @@ namespace MEL
 		private readonly string name;
 		private List<LayerEntry> layers = new ();
 		public bool redraw = true;
-		public cPressure pressure;
+		public cEnvironmentalPressure pressure;
 		public double[,]? rawData { get; private set; }
 
 		public PressureLayer(string name)
@@ -47,11 +47,13 @@ namespace MEL
 		public void RasterizeLayers(MEL mel)
 		{
 			if (!redraw)
+			{
+				ConsoleLogger.Info($"rasterizing {name}, skipped because redraw is false");
 				return;
-			//double total = 0f;
-
+			}
+				
+			double total = 0f;
 			rawData = new double[MEL.x_res, MEL.y_res];
-			ConsoleLogger.Info($"rasterizing {name}");
 			redraw = false;
 
 			if (mel.ApiConnector.ShouldRasterizeLayers)
@@ -60,6 +62,7 @@ namespace MEL
 				{
 					foreach (LayerEntry layerEntry in layers)
 					{
+						ConsoleLogger.Info($"rasterizing {name}, adding layer: {layerEntry.RasterizedLayer.name}");
 						if (!layerEntry.RasterizedLayer.IsLoadedCorrectly)
 						{
 							ConsoleLogger.Error(
@@ -77,8 +80,7 @@ namespace MEL
 								{
 									rawData[i, j] = 1;
 								}
-
-								//total += this.rawdata[i, j];
+								total += rawData[i, j];
 							}
 						}
 					}
@@ -92,14 +94,19 @@ namespace MEL
 			{
 				rawData = mel.ApiConnector.GetRasterizedPressure(name);
 			}
-
-			//Console.WriteLine(this.name + " : " + total.ToString());
+			
+			ConsoleLogger.Info($"rasterized {name}, total rawData: {total}");
 
 			//set the data to be sent to EwE
 			pressure = new cEnvironmentalPressure(name, MEL.x_res, MEL.y_res, rawData);
 
 			if (rawData == null)
+			{
+				ConsoleLogger.Info($"skipping submitting raster data for {name}, rawData is null");
 				return;
+			}
+			
+			ConsoleLogger.Info($"rasterizing {name}, submitting raster data");
 			using Bitmap bitmap = Rasterizer.ToBitmapSlow(rawData);
 			mel.ApiConnector.SubmitRasterLayerData(name, bitmap);
 		}
