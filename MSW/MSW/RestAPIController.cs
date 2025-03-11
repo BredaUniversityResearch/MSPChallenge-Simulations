@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using MSWSupport;
+using Newtonsoft.Json;
 
 namespace MSW
 {
@@ -78,14 +79,12 @@ namespace MSW
 
 		private Dictionary<string, string> GetPostValuesFromRequest(HttpListenerContext a_context)
 		{
-			Dictionary<string, string> result = new Dictionary<string, string>();
-			if (a_context.Request.HasEntityBody)
-			{
-				StreamReader reader =
-					new StreamReader(a_context.Request.InputStream, a_context.Request.ContentEncoding);
-
-				string bodyText = reader.ReadToEnd();
-
+			if (!a_context.Request.HasEntityBody) return new Dictionary<string, string>();
+			StreamReader reader =
+				new StreamReader(a_context.Request.InputStream, a_context.Request.ContentEncoding);
+			string bodyText = reader.ReadToEnd();
+			if (a_context.Request.Headers["Content-Type"] == "application/x-www-form-urlencoded") {
+				Dictionary<string, string> result = new Dictionary<string, string>();
 				string[] postParams = bodyText.Split('&');
 				foreach (string param in postParams)
 				{
@@ -93,9 +92,11 @@ namespace MSW
 					string value = WebUtility.UrlDecode(keyValuePair[1]);
 					result.Add(keyValuePair[0], value);
 				}
+				return result;
 			}
-
-			return result;
+			// otherwise assume JSON, and parse all fields into the dictionary using JSON.NET
+			return JsonConvert.DeserializeObject<Dictionary<string, string>>(bodyText) ??
+			    new Dictionary<string, string>();
 		}
 
 		public void StopHandlingRequests()
