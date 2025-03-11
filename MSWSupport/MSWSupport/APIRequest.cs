@@ -144,6 +144,7 @@ namespace MSWSupport
 		{
 			WebClient webclient = new WebClient();
 			webclient.Headers.Add(MSWConstants.APITokenHeader, "Bearer " + currentAccessToken);
+			webclient.Headers.Add("X-Server-Id", "019373cc-aa68-7d95-882f-9248ea338014");
 #if DEBUG
 			webclient.Headers.Add("AssemblyLocation", Assembly.GetEntryAssembly()?.Location);
 #endif

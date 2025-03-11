@@ -15,7 +15,7 @@ namespace MSWSupport
 		{
 			try
 			{
-				if (APIRequest.Perform(serverBaseAddress, "/api/simulations/GetWatchdogTokenForServer", null, null,
+				if (APIRequest.Perform(serverBaseAddress, "/api/simulation/GetWatchdogTokenForServer", null, null,
 					out WatchdogTokenResponse response))
 				{
 					return response.watchdog_token;
