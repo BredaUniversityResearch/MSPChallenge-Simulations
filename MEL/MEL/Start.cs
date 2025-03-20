@@ -11,6 +11,15 @@ namespace MEL
 	        ConsoleTextWriter.Instance.SetMessageFormat("{prefix}{message}");
 	        ConsoleTextWriter.Instance.SetMessageParameter("prefix", "MEL: ");
 			Console.SetOut(ConsoleTextWriter.Instance);
+
+			// // wait here, until the file wait.txt has been deleted by the user
+			// //   this allows the programmer to attach a debugger to the process
+			// while (File.Exists("wait.txt"))
+			// {
+			// 	System.Threading.Thread.Sleep(1000);
+			// 	Console.Write(".");
+			// }
+
             MEL mel = new MEL();
             while(true) {
 				System.Threading.Thread.Sleep(MEL.TICK_DELAY_MS);
