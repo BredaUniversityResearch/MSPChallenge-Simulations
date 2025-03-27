@@ -33,9 +33,9 @@ namespace MSWSupport
 	        {
 				Console.WriteLine(messageFormat, sleepSec);
 				Thread.Sleep(sleepSec * 1000);
-				return false;
+				return true; // we are sleeping
 	        }
-	        return true;
+	        return false;
 		}
 
 		public static bool Perform<TTargetType>(string serverUrl, string apiUrl, string currentAccessToken, NameValueCollection postValues, out TTargetType result, JsonSerializer jsonSerializer = null)
@@ -145,11 +145,8 @@ namespace MSWSupport
 			WebClient webclient = new WebClient();
 			webclient.Headers.Add(MSWConstants.APITokenHeader, "Bearer " + currentAccessToken);
 			webclient.Headers.Add("X-Server-Id", "019373cc-aa68-7d95-882f-9248ea338014");
-#if DEBUG
-			webclient.Headers.Add("AssemblyLocation", Assembly.GetEntryAssembly()?.Location);
-#endif
+			webclient.Headers.Add("X-Simulation-Name", Assembly.GetEntryAssembly()?.GetName().Name);
 			byte[] response = webclient.UploadValues(fullApiUrl, values);
-
 			return System.Text.Encoding.UTF8.GetString(response);
 		}
 	}

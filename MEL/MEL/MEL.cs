@@ -263,7 +263,7 @@ namespace MEL
 
 		private void WaitForApiAccess()
 		{
-			while (!APIRequest.SleepOnApiUnauthorizedWebException(() => ApiConnector.CheckApiAccess()))
+			while (APIRequest.SleepOnApiUnauthorizedWebException(() => ApiConnector.CheckApiAccess()))
 			{
 				// ApiRequest handles sleep.
 			}

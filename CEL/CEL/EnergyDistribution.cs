@@ -32,7 +32,7 @@ class EnergyDistribution : ApiConnectorBase
 
 	public void WaitForApiAccess()
 	{
-		while (!APIRequest.SleepOnApiUnauthorizedWebException(() => CheckApiAccess()))
+		while (APIRequest.SleepOnApiUnauthorizedWebException(() => CheckApiAccess()))
 		{
 			// ApiRequest handles sleep.
 		}
