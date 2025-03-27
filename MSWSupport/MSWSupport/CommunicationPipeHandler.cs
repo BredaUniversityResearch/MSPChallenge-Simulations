@@ -8,8 +8,8 @@ namespace MSWSupport
 {
 	public class CommunicationPipeHandler: IDisposable
 	{
-		private const string TOKEN_PRELUDE = "Token=";
-		private const string MONTH_PRELUDE = "Month=";
+		public const string TOKEN_PRELUDE = "Token=";
+		public const string MONTH_PRELUDE = "Month=";
 
 		private NamedPipeClientStream m_communicationPipe;
 		private string m_currentToken;

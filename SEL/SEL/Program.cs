@@ -17,6 +17,18 @@ namespace SEL
 			Console.SetOut(ConsoleTextWriter.Instance);
 			ConsoleLogger.Info($"Starting MSP2050 Shipping EmuLation version {typeof(Program).Assembly.GetName().Version}");
 
+			// wait here, until the file sel_wait.txt has been deleted by the user
+			//   this allows the programmer to attach a debugger to the process
+			if (File.Exists("sel_wait.txt"))
+			{
+				Console.WriteLine("Please delete the file sel_wait.txt to continue...");
+			}
+			while (File.Exists("sel_wait.txt"))
+			{
+				Thread.Sleep(1000);
+				Console.WriteLine("Please delete the file sel_wait.txt to continue...");
+			}			
+			
 			ShippingModel model = new ShippingModel();
 			model.WaitForApiAccess();
 			while (true)

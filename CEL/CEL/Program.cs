@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
-using Newtonsoft.Json;
-using System.Collections.Generic;
+using System.IO;
 using MSWSupport;
 
 class Program
@@ -14,6 +13,18 @@ class Program
         ConsoleTextWriter.Instance.SetMessageFormat("{prefix}{message}");
         ConsoleTextWriter.Instance.SetMessageParameter("prefix", "CEL: ");
 		Console.SetOut(ConsoleTextWriter.Instance);
+        
+		// wait here, until the file cel_wait.txt has been deleted by the user
+		//   this allows the programmer to attach a debugger to the process
+		if (File.Exists("cel_wait.txt"))
+		{
+			Console.WriteLine("Please delete the file cel_wait.txt to continue...");
+		}
+		while (File.Exists("cel_wait.txt"))
+		{
+			Thread.Sleep(1000);
+		}        
+        
         ConsoleLogger.Info("Starting CEL");
         EnergyDistribution distribution = new EnergyDistribution();
         distribution.WaitForApiAccess();

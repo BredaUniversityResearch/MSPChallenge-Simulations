@@ -55,7 +55,7 @@ namespace REL
 
 		public void WaitForApiAccess()
 		{
-			while (!APIRequest.SleepOnApiUnauthorizedWebException(() => m_pipeHandler.CheckApiAccessWithLatestReceivedToken()))
+			while (APIRequest.SleepOnApiUnauthorizedWebException(() => m_pipeHandler.CheckApiAccessWithLatestReceivedToken()))
 			{
 				// APIRequest handles sleeps..
 			}

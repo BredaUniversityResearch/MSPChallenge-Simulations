@@ -12,13 +12,16 @@ namespace MEL
 	        ConsoleTextWriter.Instance.SetMessageParameter("prefix", "MEL: ");
 			Console.SetOut(ConsoleTextWriter.Instance);
 
-			// // wait here, until the file wait.txt has been deleted by the user
-			// //   this allows the programmer to attach a debugger to the process
-			// while (File.Exists("wait.txt"))
-			// {
-			// 	System.Threading.Thread.Sleep(1000);
-			// 	Console.Write(".");
-			// }
+			// wait here, until the file mel_wait.txt has been deleted by the user
+			//   this allows the programmer to attach a debugger to the process
+			if (File.Exists("mel_wait.txt"))
+			{
+				Console.WriteLine("Please delete the file mel_wait.txt to continue...");
+			}
+			while (File.Exists("mel_wait.txt"))
+			{
+				System.Threading.Thread.Sleep(1000);
+			}
 
             MEL mel = new MEL();
             while(true) {
