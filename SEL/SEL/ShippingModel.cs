@@ -190,7 +190,7 @@ namespace SEL
 			{
 				return;
 			}
-			while (!APIRequest.SleepOnApiUnauthorizedWebException(() => m_apiConnector.CheckApiAccess()))
+			while (APIRequest.SleepOnApiUnauthorizedWebException(() => m_apiConnector.CheckApiAccess()))
 			{
 				// ApiRequest handles sleep.
 			}

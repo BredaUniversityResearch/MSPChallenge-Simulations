@@ -11,9 +11,6 @@ namespace MSW
 	//Representation of a running simulation.
 	class RunningSimulation
 	{
-		private const string TokenPrelude = "Token=";
-        private const string MonthPrelude = "Month=";
-
 		private readonly AvailableSimulationVersion m_simulationVersion = null;
 		private readonly string m_targetApiEndpoint;
 		private Process m_runningProcess = null;
@@ -96,7 +93,7 @@ namespace MSW
 				{
 					using (StreamWriter writer = new StreamWriter(m_communicationPipeServer, Encoding.UTF8, 128, true))
 					{
-						writer.WriteLine(MonthPrelude+a_month);
+						writer.WriteLine(CommunicationPipeHandler.MONTH_PRELUDE+a_month);
 						writer.Flush();
 					}
 				}
@@ -117,7 +114,7 @@ namespace MSW
 				{
 					using (StreamWriter writer = new StreamWriter(m_communicationPipeServer, Encoding.UTF8, 128, true))
 					{
-						writer.WriteLine(TokenPrelude+m_currentApiAccessToken.GetTokenAsString());
+						writer.WriteLine(CommunicationPipeHandler.TOKEN_PRELUDE+m_currentApiAccessToken.GetTokenAsString());
 						writer.Flush();
 					}
 				}
