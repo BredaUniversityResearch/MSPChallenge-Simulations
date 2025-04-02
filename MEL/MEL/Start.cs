@@ -26,7 +26,14 @@ namespace MEL
             MEL mel = new MEL();
             while(true) {
 				System.Threading.Thread.Sleep(MEL.TICK_DELAY_MS);
-				APIRequest.SleepOnApiUnauthorizedWebException(() => mel.Tick());
+				try {
+					APIRequest.SleepOnApiUnauthorizedWebException(() => mel.Tick());
+		        }
+		        catch (SessionApiGoneWebException ex)
+		        {
+			        Console.WriteLine("Session API gone, exiting...");
+			        Environment.Exit(0);
+		        }				
 			}
 		}
 

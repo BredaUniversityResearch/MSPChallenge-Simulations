@@ -30,7 +30,16 @@ class Program
         distribution.WaitForApiAccess();
         while (true)
         {
-            APIRequest.SleepOnApiUnauthorizedWebException(() => distribution.Tick());
+	        try
+	        {
+		        APIRequest.SleepOnApiUnauthorizedWebException(() => distribution.Tick());
+	        }
+	        catch (SessionApiGoneWebException ex)
+	        {
+		        Console.WriteLine("Session API gone, exiting...");
+		        Environment.Exit(0);
+	        }
+	        
             Thread.Sleep(TICKRATE);
         }
     }
