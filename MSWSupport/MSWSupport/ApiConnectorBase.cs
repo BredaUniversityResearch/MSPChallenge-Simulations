@@ -71,7 +71,6 @@ abstract public class ApiConnectorBase: IApiConnector
 		{
 			return result == "online";
 		}
-
 		return false;
 	}
 

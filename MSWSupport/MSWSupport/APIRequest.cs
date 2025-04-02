@@ -100,7 +100,12 @@ namespace MSWSupport
 				{
 					throw new ApiUnauthorizedWebException(ex); // allow child code to handle this one
 				}
-
+				if (null != ex.Response &&
+					((HttpWebResponse)ex.Response).StatusCode == HttpStatusCode.Gone)
+				{
+					throw new SessionApiGoneWebException(ex); // allow child code to handle this one
+				}
+				
 				Console.WriteLine($"ApiRequest::Perform for {fullServerUrl} failed with exception: {ex.Message}");
 				responsePayload = null;
 				return false;

@@ -39,7 +39,14 @@ namespace SEL
 				}
 				else
 				{
-					APIRequest.SleepOnApiUnauthorizedWebException(() => model.Tick());
+					try {			
+						APIRequest.SleepOnApiUnauthorizedWebException(() => model.Tick());
+			        }
+			        catch (SessionApiGoneWebException ex)
+			        {
+				        Console.WriteLine("Session API gone, exiting...");
+				        Environment.Exit(0);
+			        }					
 				}
 				Thread.Sleep(TICKRATE);
 			}
