@@ -14,7 +14,7 @@ echo.
 set ecopath_dir=..\Ecopath6_crossplatform
 set ecopath_source_dir="%ecopath_dir%\Sources"
 if not exist "%ecopath_source_dir%" (
-    echo Directory "%ecopath_source_dir%" does not exist. Please checkout the svn repo: https://sources.ecopath.org/svn/Ecopath/branches/Ecopath6_netstandard to "%ecopath_dir%"
+    echo Directory "%ecopath_source_dir%" does not exist. Please checkout the svn repo: https://sources.ecopath.org/svn/Ecopath/branches/Ecopath6_crossplatform to "%ecopath_dir%"
     exit /b 1
 )
 set ewecore_dir="%ecopath_source_dir%\EwECore"
