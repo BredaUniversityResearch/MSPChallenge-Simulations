@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Threading;
@@ -38,21 +39,25 @@ namespace MSWSupport
 	        return false;
 		}
 
-		public static bool Perform<TTargetType>(string serverUrl, string apiUrl, string currentAccessToken, NameValueCollection postValues, out TTargetType result, JsonSerializer jsonSerializer = null)
-		{
-			bool success = Perform(serverUrl, apiUrl, currentAccessToken, postValues, out JToken jsonResult);
+		public static bool Perform<TTargetType>(
+			string serverUrl,
+			string apiUrl,
+			out TTargetType result,
+			string? currentAccessToken = null,
+			NameValueCollection? postValues = null,
+			JsonSerializer? jsonSerializer = null,
+			bool logServerResponseLogs = false
+		) {
+			// do not use named parameters here, as it will break the overload resolution
+			bool success = PerformInternal(
+				serverUrl, apiUrl, out JToken? jsonResult, currentAccessToken, postValues, logServerResponseLogs
+			);
 			if (success)
 			{
 				if (jsonResult != null)
 				{
-					if (jsonSerializer != null)
-					{
-						result = jsonResult.ToObject<TTargetType>(jsonSerializer);
-					}
-					else
-					{
-						result = jsonResult.ToObject<TTargetType>();
-					}
+					result = jsonSerializer != null ?
+						jsonResult.ToObject<TTargetType>(jsonSerializer) : jsonResult.ToObject<TTargetType>();
 				}
 				else
 				{
@@ -67,10 +72,21 @@ namespace MSWSupport
 			return success;
 		}
 
-		public static bool Perform(string serverUrl, string apiUrl, string currentAccessToken,
-			NameValueCollection postValues)
-		{
-			bool success = Perform(serverUrl, apiUrl, currentAccessToken, postValues, out JToken jsonResult, null);
+		public static bool Perform(
+			string serverUrl,
+			string apiUrl,
+			string? currentAccessToken = null,
+			NameValueCollection? postValues = null,
+			bool logServerResponseLogs = false
+		) {
+			bool success = Perform(
+				serverUrl,
+				apiUrl,
+				out JToken jsonResult,
+				currentAccessToken,
+				postValues,
+				logServerResponseLogs: logServerResponseLogs
+			);
 			if (success)
 			{
 				if (jsonResult != null && jsonResult.Type != JTokenType.Null)
@@ -83,11 +99,15 @@ namespace MSWSupport
 			return success;
 		}
 
-		private static bool Perform(string serverUrl, string apiUrl, string currentAccessToken,
-			NameValueCollection postValues, out JToken responsePayload)
-		{
+		private static bool PerformInternal(
+			string serverUrl,
+			string apiUrl,
+			out JToken? responsePayload,
+			string? currentAccessToken = null,
+			NameValueCollection? postValues = null,
+			bool logServerResponseLogs = false
+		) {
 			string fullServerUrl = $"{serverUrl}{apiUrl}";
-			if (postValues == null) postValues = new NameValueCollection();
 			string response = null;
 			try
 			{
@@ -105,8 +125,8 @@ namespace MSWSupport
 				{
 					throw new SessionApiGoneWebException(ex); // allow child code to handle this one
 				}
-				
-				Console.WriteLine($"ApiRequest::Perform for {fullServerUrl} failed with exception: {ex.Message}");
+
+				ConsoleLogger.Error($"ApiRequest::Perform for {fullServerUrl} failed with exception: {ex.Message}");
 				responsePayload = null;
 				return false;
 			}
@@ -121,14 +141,43 @@ namespace MSWSupport
 			if (wrapper == null || wrapper.success == false)
 			{
 				responsePayload = null;
-				Console.WriteLine($"ApiRequest::Perform for {fullServerUrl} failed: {((wrapper != null)? wrapper.message : "JSON Decode Failed")}");
+				ConsoleLogger.Error($"ApiRequest::Perform for {fullServerUrl} failed: {((wrapper != null)? wrapper.message : "JSON Decode Failed")}");
 				return false;
 			}
 
 			responsePayload = wrapper.payload;
+			if (!logServerResponseLogs) return true;
+			if (wrapper.payload is not { Type: JTokenType.Object }) return true;
+			var payloadObj = wrapper.payload.ToObject<JObject>();
+			var logs = payloadObj?.GetValue("logs");
+			var logsArray = (logs as JArray)?.ToObject<string[]>();
+			if (logsArray == null || logsArray.Length == 0) return true;
+			ConsoleLogger.Info(
+				"Server response logs for " + fullServerUrl +
+					(
+						postValues.Count  == 0 ? "" : " with post values\n" +
+						    JsonConvert.SerializeObject(
+							    postValues.AllKeys.Take(5).ToDictionary(
+								    k => k,
+								    k => postValues[k]?.Substring(0, Math.Min(30, postValues[k]?.Length ?? 0)) +
+								         (postValues[k]?.Length > 30 ? "..." : "")
+								),
+							    Formatting.Indented
+							) + ":"
+				    )
+			);
+			foreach (var log in logsArray)
+			{
+				ConsoleLogger.Info("\u21AA " + log);
+			}
+			// if the dynamic object only has one property, it is the logs property, set response payload null
+			//   (to prevent log: "ApiRequest::Perform for {fullServerUrl} got response when none was expected")
+			if (payloadObj?.Count == 1)
+			{
+				responsePayload = null;
+			}
 			return true;
 		}
-
 		private static TOutputType DeserializeJson<TOutputType>(string jsonData)
 		{
 			try
@@ -145,10 +194,17 @@ namespace MSWSupport
 			}
 		}
 
-		private static string HttpGet(string fullApiUrl, string currentAccessToken, NameValueCollection values)
-		{
+		private static string HttpGet(
+			string fullApiUrl,
+			string? currentAccessToken = null,
+			NameValueCollection? values = null
+		) {
+			if (values == null) values = new NameValueCollection();
 			WebClient webclient = new WebClient();
-			webclient.Headers.Add(MSWConstants.APITokenHeader, "Bearer " + currentAccessToken);
+			if (!string.IsNullOrEmpty(currentAccessToken))
+			{
+				webclient.Headers.Add(MSWConstants.APITokenHeader, "Bearer " + currentAccessToken);
+			}
 			webclient.Headers.Add("X-Server-Id", "019373cc-aa68-7d95-882f-9248ea338014");
 			webclient.Headers.Add("X-Simulation-Name", Assembly.GetEntryAssembly()?.GetName().Name);
 			byte[] response = webclient.UploadValues(fullApiUrl, values);

@@ -75,7 +75,7 @@ namespace MEL
 			{
 				ConsoleLogger.Warning($"{name} does not exist or does not have geometry");
 			}
-			
+
 			watch.Stop();
 			ConsoleLogger.Info("Got: " + name + (LayerType == -1 ? "" : "|" + LayerType) + (policyFilters == null ? "" : " with " + policyFilters) + ", IsLoadedCorrectly: " + IsLoadedCorrectly + ", load time: " + watch.ElapsedMilliseconds);
 		}

@@ -60,9 +60,7 @@ namespace MSWSupport
 
 		public bool CheckApiAccessWithLatestReceivedToken()
 		{
-			if (APIRequest.Perform(m_targetServer, "/api/game/IsOnline", m_currentToken, null,
-				out string result))
-			{
+			if (APIRequest.Perform( m_targetServer, "/api/game/IsOnline", out string result, m_currentToken)) {
 				return result == "online";
 			}
 			return false;
