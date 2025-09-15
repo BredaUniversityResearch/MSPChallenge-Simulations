@@ -60,7 +60,7 @@ namespace MEL
 
 			values.Add("fishing_values", JsonConvert.SerializeObject(targetValues));
 
-			HttpSet("/api/mel/InitialFishing", values);
+			HttpSet("/api/mel/InitialFishing", values, logServerResponseLogs: true);
 		}
 
 		public string? GetMelConfigAsString()
@@ -89,7 +89,7 @@ namespace MEL
 
 			NameValueCollection postValues = new(1);
 			postValues.Add("game_month", month.ToString());
-			return HttpGet("/api/mel/GetFishing", postValues, out Fishing[] result) ? result : Array.Empty<Fishing>();
+			return HttpGet("/api/mel/GetFishing", out Fishing[] result, postValues) ? result : Array.Empty<Fishing>();
 
 		}
 
@@ -102,7 +102,7 @@ namespace MEL
 				{ "type" , "ECOLOGY" },
 				{ "unit" , kpiUnits }
 			};
-			HttpGet("/api/kpi/post", values, out int _);
+			HttpGet("/api/kpi/post", out int _, values);
 		}
 
 		public void NotifyTickDone()
@@ -114,7 +114,7 @@ namespace MEL
 		{
 			NameValueCollection postData = new NameValueCollection(1);
 			postData.Set("layer_name", layerName);
-			if (!HttpGet("/api/layer/GetRaster", postData, out APIGetRasterResponse apiResponse))
+			if (!HttpGet("/api/layer/GetRaster", out APIGetRasterResponse apiResponse, postData))
 				return null;
 			byte[] imageBytes = Convert.FromBase64String(apiResponse.image_data);
 			using Stream stream = new MemoryStream(imageBytes);
@@ -131,7 +131,7 @@ namespace MEL
 			NameValueCollection postData = new NameValueCollection(2);
 			postData.Set("layer_name", MEL.ConvertLayerName(layerName));
 			postData.Set("image_data", Convert.ToBase64String(stream.ToArray()));
-			HttpSet("/api/layer/UpdateRaster", postData);
+			HttpSet("/api/layer/UpdateRaster", postData, logServerResponseLogs: true);
 		}
 
 		public APILayerGeometryData? GetLayerData(
@@ -149,7 +149,12 @@ namespace MEL
 			{
 				values.Add("policy_filters", policyFilters.ToString());
 			}
-			return HttpGet("/api/mel/GeometryExportName", values, out APILayerGeometryData? result) ? result : null;
+			return HttpGet(
+				"/api/mel/GeometryExportName",
+				out APILayerGeometryData? result,
+				values,
+				logServerResponseLogs: true
+			) ? result : null;
 		}
 
 		public double[,]? GetRasterizedPressure(string name)

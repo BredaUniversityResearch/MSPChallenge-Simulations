@@ -11,10 +11,10 @@ echo * To skip the Start? confirmation:
 echo   build.bat "start=Y"
 echo.
 
-set ecopath_dir=..\Ecopath6_crossplatform
+set ecopath_dir=..\Ecopath6_multitarget
 set ecopath_source_dir="%ecopath_dir%\Sources"
 if not exist "%ecopath_source_dir%" (
-    echo Directory "%ecopath_source_dir%" does not exist. Please checkout the svn repo: https://sources.ecopath.org/svn/Ecopath/branches/Ecopath6_netstandard to "%ecopath_dir%"
+    echo Directory "%ecopath_source_dir%" does not exist. Please checkout the svn repo: https://sources.ecopath.org/svn/Ecopath/branches/Ecopath6_multitarget to "%ecopath_dir%"
     exit /b 1
 )
 set ewecore_dir="%ecopath_source_dir%\EwECore"
@@ -53,7 +53,7 @@ if "%api_version%" == "" (
 )
 if "%publish_targets[0]%" == "" (
     set publish_targets[0]=debian.11-x64
-    set publish_targets[1]=win-x64
+rem    set publish_targets[1]=win-x64
 )
 if "%output_path%" == "" (
     set output_path=%cwd%\output
@@ -168,7 +168,13 @@ if not exist "%1" (
     goto eof
 )
 cd "%1"
-dotnet build -c %configuration% -f %donetversion%
+for %%A in (%1) do set "project_basename=%%~nxA"
+set vbproj_file=%project_basename%_%donetversion%.vbproj
+if exist "%vbproj_file%" (
+    dotnet build %vbproj_file% -c %configuration% -f %donetversion%
+) else (
+    dotnet build -c %configuration% -f %donetversion%
+)
 IF %ERRORLEVEL% NEQ 0 (
     exit /b %ERRORLEVEL%
 )
@@ -209,7 +215,14 @@ set target_data_dir=%target_dir%\%1data
 set source_data_dir=%source_dir%\%1data
 
 echo Publishing to %target%...
-dotnet publish -c %configuration% -r %target% -f %donetversion% --self-contained
+for %%A in (%cd%) do set "project_basename=%%~nxA"
+set vbproj_file=%project_basename%_%donetversion%.vbproj
+if exist "%vbproj_file%" (
+    dotnet publish %vbproj_file% -c %configuration% -r %target% -f %donetversion% --self-contained
+) else (
+    dotnet publish -c %configuration% -r %target% -f %donetversion% --self-contained
+)
+
 IF %ERRORLEVEL% NEQ 0 (
     exit /b %ERRORLEVEL%
 )

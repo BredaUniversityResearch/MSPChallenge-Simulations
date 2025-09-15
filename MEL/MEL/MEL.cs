@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using EwEMSPLink;
@@ -101,6 +102,18 @@ namespace MEL
 			{
 				ConsoleLogger.Info($"No commandline argument found for APIEndpoint. Using default value {ApiBaseURL}");
 			}
+
+			// get session id from ApiBaseURL
+			if (!int.TryParse(
+				    Regex.Match(ApiBaseURL, @"\/(\d+)\/").Groups[1].Value,
+				    out int sessionId
+			    ))
+			{
+				throw new ArgumentException(
+					$"ApiBaseURL '{ApiBaseURL}' does not contain a valid session ID number in the format '/<session id>/'"
+				);
+			}
+			ConsoleTextWriter.Instance.SetMessageParameter("prefix", $"MEL{sessionId:D3}: ");
 
 			ApiConnector = new ApiMspServer(ApiBaseURL);
 			//ApiConnector = new ApiDebugLocalFiles("NS_Basic"); LoadConfig();
@@ -244,8 +257,8 @@ namespace MEL
 		private RasterizedLayer? FindCachedLayerForData(LayerData layerData)
 		{
 			return layers.Find(
-				obj => 
-					obj.constructionOnly == layerData.construction && 
+				obj =>
+					obj.constructionOnly == layerData.construction &&
 					obj.name == layerData.layer_name &&
 					obj.LayerType == layerData.layer_type &&
 					JToken.DeepEquals(obj.policyFilters, layerData.policy_filters)

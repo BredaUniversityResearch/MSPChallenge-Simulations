@@ -16,7 +16,7 @@ namespace REL.API
 
 		private TResultType RequestAndDeserialize<TResultType>(string a_apiEndpoint, NameValueCollection a_postValues = null)
 		{
-			if (HttpSet(a_apiEndpoint, a_postValues, out TResultType result, m_jsonSerializerSettings))
+			if (HttpSet(a_apiEndpoint, out TResultType result, a_postValues, m_jsonSerializerSettings))
 			{
 				return result;
 			}
@@ -49,7 +49,7 @@ namespace REL.API
 			postData.Set("layer_name", a_layerName);
 			postData.Set("raster_bounds", JsonConvert.SerializeObject(a_bounds.ToArray()));
 			postData.Set("image_data", Convert.ToBase64String(a_rasterImageData));
-			if (!HttpSet("/api/layer/UpdateRaster", postData))
+			if (!HttpSet("/api/layer/UpdateRaster", postData, logServerResponseLogs: true))
 			{
 				Console.WriteLine("API Request to UpdateRaster failed");
 			}

@@ -38,7 +38,7 @@ abstract public class ApiConnectorBase: IApiConnector
 
 	public int ApiRequestCurrentMonth()
 	{
-		if (!HttpGet("/api/Game/GetCurrentMonth", null, out ApiMonthContainer result))
+		if (!HttpGet("/api/Game/GetCurrentMonth", out ApiMonthContainer result))
 			return m_currentMonth;
 		m_currentMonth = result.game_currentmonth;
 		m_currentMonthUpdateTime = DateTime.Now;
@@ -74,27 +74,43 @@ abstract public class ApiConnectorBase: IApiConnector
 		return false;
 	}
 
-	public bool HttpSet(string apiUrl, NameValueCollection? postValues = null)
+	public bool HttpSet(string apiUrl, NameValueCollection? postValues = null, bool logServerResponseLogs = false)
 	{
-		postValues ??= new NameValueCollection();
-		return APIRequest.Perform(m_serverUrl, apiUrl, m_accessToken, postValues);
+		return APIRequest.Perform(m_serverUrl, apiUrl, m_accessToken, postValues, logServerResponseLogs);
 	}
 
-	public bool HttpSet<TTargetType>(string apiUrl, NameValueCollection? postValues, out TTargetType result, JsonSerializer? jsonSerializer = null)
-	{
-		postValues ??= new NameValueCollection();
-		return null != jsonSerializer ? APIRequest.Perform(m_serverUrl, apiUrl, m_accessToken, postValues, out result, jsonSerializer) :
-			APIRequest.Perform(m_serverUrl, apiUrl, m_accessToken, postValues, out result);
+	public bool HttpSet<TTargetType>(
+		string apiUrl,
+		out TTargetType result,
+		NameValueCollection? postValues = null,
+		JsonSerializer? jsonSerializer = null,
+		bool logServerResponseLogs = false
+	) {
+		return APIRequest.Perform(
+			m_serverUrl,
+			apiUrl,
+			result: out result,
+			m_accessToken,
+			postValues,
+			jsonSerializer,
+			logServerResponseLogs
+		);
 	}
 
-	public bool HttpGet<TTargetType>(string apiUrl, out TTargetType result)
-	{
-		return HttpGet(apiUrl, null, out result);
-	}
-
-	public bool HttpGet<TTargetType>(string apiUrl, NameValueCollection? postValues, out TTargetType result)
-	{
+	public bool HttpGet<TTargetType>(
+		string apiUrl,
+		out TTargetType result,
+		NameValueCollection? postValues = null,
+		bool logServerResponseLogs = false
+	) {
 		postValues ??= new NameValueCollection();
-		return APIRequest.Perform(m_serverUrl, apiUrl, m_accessToken, postValues, out result);
+		return APIRequest.Perform(
+			m_serverUrl,
+			apiUrl,
+			out result,
+			m_accessToken,
+			postValues,
+			logServerResponseLogs: logServerResponseLogs
+		);
 	}
 }

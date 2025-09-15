@@ -149,9 +149,13 @@ namespace MSW
 				NameValueCollection postValues = new NameValueCollection(1);
 				postValues.Add("api_refresh_token", m_recoveryToken.GetTokenAsString());
 
-				bool callSuccess = APIRequest.Perform(ServerApiRoot, "api/User/RequestToken",
-					tokenToUse, postValues,
-					out ApiUserRequestTokenResponse response);
+				bool callSuccess = APIRequest.Perform(
+					ServerApiRoot,
+					"api/User/RequestToken",
+					out ApiUserRequestTokenResponse response,
+					tokenToUse,
+					postValues
+				);
 				if (callSuccess == false)
 				{
 					ConsoleLogger.Info("Request to get new token failed...");

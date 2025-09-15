@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.IO;
+using System.Text.RegularExpressions;
 using MSWSupport;
 using Newtonsoft.Json;
 
@@ -53,7 +54,19 @@ class CELConfig
             settings.api_root = "http://localhost/dev/1/";
             ConsoleLogger.Info($"No configured API Endpoint found in the CEL_Config.json file, using default: {settings.api_root}");
         }
-    }
+
+		// get session id from settings.api_root
+		if (!int.TryParse(
+			    Regex.Match(settings.api_root, @"\/(\d+)\/").Groups[1].Value,
+			    out int sessionId
+		    ))
+		{
+			throw new ArgumentException(
+				$"settings.api_root '{settings.api_root}' does not contain a valid session ID number in the format '/<session id>/'"
+			);
+		}
+		ConsoleTextWriter.Instance.SetMessageParameter("prefix", $"CEL{sessionId:D3}: ");
+}
 
     public string APIRoot
     {

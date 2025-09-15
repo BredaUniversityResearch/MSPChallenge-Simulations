@@ -14,61 +14,61 @@ namespace SEL.API
 
 		public APISELRegionSettings GetSELRegionSettings()
 		{
-			HttpGet("/api/SEL/GetSELConfig", null, out APISELRegionSettings result);
+			HttpGet("/api/SEL/GetSELConfig", out APISELRegionSettings result);
 			return result;
 		}
 
 		public APIHeatmapOutputSettings[] GetHeatmapOutputSettings()
 		{
-			HttpGet("/api/SEL/GetHeatmapOutputSettings", null, out APIHeatmapOutputSettings[] result);
+			HttpGet("/api/SEL/GetHeatmapOutputSettings", out APIHeatmapOutputSettings[] result);
 			return result;
 		}
 
 		public APIHeatmapSettings GetHeatmapSettings()
 		{
-			HttpGet("/api/SEL/GetHeatmapSettings", null, out APIHeatmapSettings result);
+			HttpGet("/api/SEL/GetHeatmapSettings", out APIHeatmapSettings result);
 			return result;
 		}
 
 		public APIUpdateDescriptor GetUpdatePackage()
 		{
-			HttpGet("/api/SEL/GetUpdatePackage", null, out APIUpdateDescriptor result);
+			HttpGet("/api/SEL/GetUpdatePackage", out APIUpdateDescriptor result);
 			return result;
 		}
 
 		public APIAreaOutputConfiguration GetAreaOutputConfiguration()
 		{
-			HttpGet("/api/SEL/GetAreaOutputConfiguration", null, out APIAreaOutputConfiguration result);
+			HttpGet("/api/SEL/GetAreaOutputConfiguration", out APIAreaOutputConfiguration result);
 			return result;
 		}
 
 		public APIConfiguredIntensityRoute[] GetConfiguredRouteIntensities()
 		{
-			HttpGet("/api/SEL/GetConfiguredRouteIntensities", null, out APIConfiguredIntensityRoute[] result);
+			HttpGet("/api/SEL/GetConfiguredRouteIntensities", out APIConfiguredIntensityRoute[] result);
 			return result;
 		}
 
 		public APIEEZGeometryData[] GetEEZGeometryData()
 		{
-			HttpGet("/api/SEL/GetCountryBorderGeometry", null, out APIEEZGeometryData[] result);
+			HttpGet("/api/SEL/GetCountryBorderGeometry", out APIEEZGeometryData[] result);
 			return result;
 		}
 
 		public APIShippingRestrictionGeometry[] GetRestrictionGeometry()
 		{
-			HttpGet("/api/SEL/GetRestrictionGeometry", null, out APIShippingRestrictionGeometry[] result);
+			HttpGet("/api/SEL/GetRestrictionGeometry", out APIShippingRestrictionGeometry[] result);
 			return result;
 		}
 
 		public APIShippingLaneGeometry[] GetShippingLanes()
 		{
-			HttpGet("/api/SEL/GetShippingLaneGeometry", null, out APIShippingLaneGeometry[] result);
+			HttpGet("/api/SEL/GetShippingLaneGeometry", out APIShippingLaneGeometry[] result);
 			return result;
 		}
 
 		public APIShippingPortGeometry[] GetShippingPortGeometry()
 		{
-			HttpGet("/api/SEL/GetShippingPortGeometry", null, out APIShippingPortGeometry[] result);
+			HttpGet("/api/SEL/GetShippingPortGeometry", out APIShippingPortGeometry[] result);
 			return result;
 		}
 
@@ -80,20 +80,20 @@ namespace SEL.API
 			}
 			else
 			{
-				HttpGet("/api/SEL/GetPortIntensities", null, out APIShippingPortIntensity[] result);
+				HttpGet("/api/SEL/GetPortIntensities", out APIShippingPortIntensity[] result);
 				return result;
 			}
 		}
 
 		public APIShipType[] GetShipTypes()
 		{
-			HttpGet("/api/SEL/GetShipTypes", null, out APIShipType[] result);
+			HttpGet("/api/SEL/GetShipTypes", out APIShipType[] result);
 			return result;
 		}
 
 		public APIRestrictionTypeException[] GetRestrictionTypeExceptions()
 		{
-			HttpGet("/api/SEL/GetShipRestrictionGroupExceptions", null, out APIRestrictionTypeException[] result);
+			HttpGet("/api/SEL/GetShipRestrictionGroupExceptions", out APIRestrictionTypeException[] result);
 			return result;
 		}
 
@@ -109,7 +109,7 @@ namespace SEL.API
 			NameValueCollection postData = new NameValueCollection(2);
 			postData.Set("layer_name", layerName);
 			postData.Set("image_data", Convert.ToBase64String(imageBuffer));
-			HttpSet("/api/layer/UpdateRaster", postData);
+			HttpSet("/api/layer/UpdateRaster", postData, logServerResponseLogs: true);
 		}
 
 		public void SetKpiValues(string kpiName, int kpiValue, string kpiCategory, string kpiUnit, int country)
@@ -131,7 +131,7 @@ namespace SEL.API
 			string encodedKPIs = JsonConvert.SerializeObject(results);
 			NameValueCollection postData = new NameValueCollection();
 			postData.Set("kpiValues", encodedKPIs);
-			HttpSet("/api/kpi/BatchPost", postData);
+			HttpSet("/api/kpi/BatchPost", postData, logServerResponseLogs: true);
 		}
 
 		public void BatchPostIssues(IEnumerable<APIShippingIssue> shippingIssues)
