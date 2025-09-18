@@ -32,10 +32,12 @@ class EnergyDistribution : ApiConnectorBase
 
 	public void WaitForApiAccess()
 	{
+		ConsoleLogger.Info($"Awaiting API access...");
 		while (APIRequest.SleepOnApiUnauthorizedWebException(() => CheckApiAccess()))
 		{
 			// ApiRequest handles sleep.
 		}
+		ConsoleLogger.Info($"Granted API access with token: ${GetAccessToken()}");
 	}
 
 	public void Tick()

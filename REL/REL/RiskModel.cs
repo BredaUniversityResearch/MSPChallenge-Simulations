@@ -36,9 +36,6 @@ namespace REL
 				pipeHandle = CommandLineArguments.GetOptionValue(MSWConstants.MSWPipeCommandLineArgument);
 			}
 
-			string watchdogToken = WatchdogTokenUtility.GetWatchdogTokenForServerAtAddress(RELConfig.Instance.GetAPIRoot());
-			m_selBridge = new BridgeClient(watchdogToken);
-
 			m_pipeHandler = new CommunicationPipeHandler(pipeHandle, "REL", RELConfig.Instance.GetAPIRoot());
 			m_pipeHandler.SetTokenReceiver(m_mspApiConnector);
 			m_pipeHandler.SetUpdateMonthReceiver(m_mspApiConnector);
@@ -51,14 +48,16 @@ namespace REL
 			m_MarinToMSPTransformation = transformationFactory.CreateFromCoordinateSystems(m_MarinCoordinateSystem, m_MSPCoordinateSystem);
 		}
 
-
-
 		public void WaitForApiAccess()
 		{
-			while (APIRequest.SleepOnApiUnauthorizedWebException(() => m_pipeHandler.CheckApiAccessWithLatestReceivedToken()))
+			ConsoleLogger.Info($"Awaiting API access...");
+			while (APIRequest.SleepOnApiUnauthorizedWebException(() => m_mspApiConnector.CheckApiAccess()))
 			{
 				// APIRequest handles sleeps..
 			}
+			ConsoleLogger.Info($"Granted API access with token: ${m_mspApiConnector.GetAccessToken()}");
+			string watchdogToken = m_mspApiConnector.GetWatchdogTokenForServer();
+			m_selBridge = new BridgeClient(watchdogToken);					
 		}
 
 		public void Run()

@@ -127,69 +127,6 @@ namespace MEL
 			);
 			pipeHandler.SetTokenReceiver(ApiConnector);
 			pipeHandler.SetUpdateMonthReceiver(ApiConnector);
-			WaitForApiAccess();
-
-			LoadConfig();
-
-			x_min = config.x_min;
-			y_min = config.y_min;
-
-			x_max = config.x_max;
-			y_max = config.y_max;
-
-			InitPressureLayers();
-			UpdateEcoPressures();
-			int attempt = 1;
-			while (attempt <= MAX_RASTER_LOAD_ATTEMPTS)
-			{
-				ConsoleLogger.Info("Start loading pressure layers");
-				LoadPressureLayers();
-				WaitForAllBackgroundTasks();
-				if (AreAllPressureLayersLoaded())
-				{
-					break;
-				}
-				ConsoleLogger.Error($"Found unloaded pressure layers, retrying in {NEXT_RASTER_LOAD_WAITING_TIME_SEC} sec, attempt: {attempt} of {MAX_RASTER_LOAD_ATTEMPTS}");
-				Thread.Sleep(TimeSpan.FromSeconds(NEXT_RASTER_LOAD_WAITING_TIME_SEC));
-				++attempt;
-			}
-
-			RasterizeLayers();
-
-			UpdateFishing();
-
-			WaitForAllBackgroundTasks();
-
-			//Start values for fishing intensity as returned by EwEShell.
-			List<cScalar> initialFishingValues = new List<cScalar>();
-
-			if (shell.Configuration(configstring, initialFishingValues))
-			{
-				foreach (cScalar fish in initialFishingValues)
-				{
-					ConsoleLogger.Info($"Initialized fishing values for {fish.Name} to {fish.Value}");
-
-					pressures.Add(new cFishingEffortPressure(fish.Name, (float)fish.Value));
-					cfishingpressures.Add(new cFishingEffortPressure(fish.Name, (float)fish.Value));
-				}
-				ApiConnector.SetInitialFishingValues(initialFishingValues);
-
-				// Dump game version for testing purposes
-				ConsoleLogger.Info($"Loaded EwE model '{shell.CurrentGame.Version}', {shell.CurrentGame.Author}, {shell.CurrentGame.Contact}");
-
-				//eweshell initialised fine
-				shell.Startup();
-
-				ConsoleLogger.Info("Startup done");
-			}
-			else
-			{
-				//something went wrong here
-				ConsoleColor orgColor = Console.ForegroundColor;
-				Console.ForegroundColor = ConsoleColor.Red;
-				ConsoleLogger.Error("!!!!!!!!!!!!!!!!!!!! EwE Startup failed !!!!!!!!!!!!!!!!!!!!");
-				Console.ForegroundColor = orgColor;
-			}
 		}
 
 		/// <summary>
@@ -274,12 +211,76 @@ namespace MEL
 			rasterizedLayer.GetLayerDataAndRasterize(this);
 		}
 
-		private void WaitForApiAccess()
+		public void WaitForApiAccess()
 		{
+			ConsoleLogger.Info($"Awaiting API access...");
 			while (APIRequest.SleepOnApiUnauthorizedWebException(() => ApiConnector.CheckApiAccess()))
 			{
 				// ApiRequest handles sleep.
 			}
+			ConsoleLogger.Info($"Granted API access with token: ${ApiConnector.GetAccessToken()}");
+			
+			LoadConfig();
+
+			x_min = config.x_min;
+			y_min = config.y_min;
+
+			x_max = config.x_max;
+			y_max = config.y_max;
+
+			InitPressureLayers();
+			UpdateEcoPressures();
+			int attempt = 1;
+			while (attempt <= MAX_RASTER_LOAD_ATTEMPTS)
+			{
+				ConsoleLogger.Info("Start loading pressure layers");
+				LoadPressureLayers();
+				WaitForAllBackgroundTasks();
+				if (AreAllPressureLayersLoaded())
+				{
+					break;
+				}
+				ConsoleLogger.Error($"Found unloaded pressure layers, retrying in {NEXT_RASTER_LOAD_WAITING_TIME_SEC} sec, attempt: {attempt} of {MAX_RASTER_LOAD_ATTEMPTS}");
+				Thread.Sleep(TimeSpan.FromSeconds(NEXT_RASTER_LOAD_WAITING_TIME_SEC));
+				++attempt;
+			}
+
+			RasterizeLayers();
+
+			UpdateFishing();
+
+			WaitForAllBackgroundTasks();
+
+			//Start values for fishing intensity as returned by EwEShell.
+			List<cScalar> initialFishingValues = new List<cScalar>();
+
+			if (shell.Configuration(configstring, initialFishingValues))
+			{
+				foreach (cScalar fish in initialFishingValues)
+				{
+					ConsoleLogger.Info($"Initialized fishing values for {fish.Name} to {fish.Value}");
+
+					pressures.Add(new cFishingEffortPressure(fish.Name, (float)fish.Value));
+					cfishingpressures.Add(new cFishingEffortPressure(fish.Name, (float)fish.Value));
+				}
+				ApiConnector.SetInitialFishingValues(initialFishingValues);
+
+				// Dump game version for testing purposes
+				ConsoleLogger.Info($"Loaded EwE model '{shell.CurrentGame.Version}', {shell.CurrentGame.Author}, {shell.CurrentGame.Contact}");
+
+				//eweshell initialised fine
+				shell.Startup();
+
+				ConsoleLogger.Info("Startup done");
+			}
+			else
+			{
+				//something went wrong here
+				ConsoleColor orgColor = Console.ForegroundColor;
+				Console.ForegroundColor = ConsoleColor.Red;
+				ConsoleLogger.Error("!!!!!!!!!!!!!!!!!!!! EwE Startup failed !!!!!!!!!!!!!!!!!!!!");
+				Console.ForegroundColor = orgColor;
+			}			
 		}
 
 		/// <summary>

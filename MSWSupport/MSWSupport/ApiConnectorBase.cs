@@ -13,6 +13,12 @@ abstract public class ApiConnectorBase: IApiConnector
 		// ReSharper disable once InconsistentNaming
 		public int game_currentmonth = 0;
 	}
+	// ReSharper disable once ClassNeverInstantiated.Local
+	private class WatchdogTokenResponse
+	{
+		// ReSharper disable once InconsistentNaming
+		public string watchdog_token = null;
+	};	
 	private int m_currentMonth = -100;
 	private DateTime m_currentMonthUpdateTime = DateTime.MinValue;
 
@@ -67,6 +73,10 @@ abstract public class ApiConnectorBase: IApiConnector
 
 	public bool CheckApiAccess()
 	{
+		if (string.IsNullOrEmpty(m_accessToken))
+		{
+			throw new ApiUnauthorizedWebException(null);
+		}			
 		if (HttpGet("/api/game/IsOnline", out string result))
 		{
 			return result == "online";
@@ -113,4 +123,19 @@ abstract public class ApiConnectorBase: IApiConnector
 			logServerResponseLogs: logServerResponseLogs
 		);
 	}
+	
+	public string GetWatchdogTokenForServer()
+	{
+		try
+		{
+			if (HttpGet("/api/simulation/GetWatchdogTokenForServer", out WatchdogTokenResponse response)) {
+				return response.watchdog_token;
+			}
+		}
+		catch (ApiUnauthorizedWebException ex)
+		{
+			return string.Empty;
+		}
+		return string.Empty;
+	}	
 }

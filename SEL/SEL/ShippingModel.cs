@@ -39,18 +39,12 @@ namespace SEL
 				pipeHandle = CommandLineArguments.GetOptionValue(CommandLineArguments.MSWPipe);
 			}
 
-			string watchdogToken = WatchdogTokenUtility.GetWatchdogTokenForServerAtAddress(SELConfig.Instance.GetAPIRoot());
-			ConsoleLogger.Info($"Targeting simulation for server at {SELConfig.Instance.GetAPIRoot()} with token {watchdogToken}");
-
 			if (!SELConfig.Instance.ShouldIgnoreApiSecurity() && pipeHandle != null)
 			{
 				m_pipeHandler = new CommunicationPipeHandler(pipeHandle, "SEL", SELConfig.Instance.GetAPIRoot());
 				m_pipeHandler.SetTokenReceiver(m_apiConnector);
 				m_pipeHandler.SetUpdateMonthReceiver(m_apiConnector);
 			}
-			m_relSupport = new RELSupport(watchdogToken);
-			m_errorReporter = new ErrorReporter(m_apiConnector);
-			m_KPIManager = new KPIManager(m_apiConnector);
 		}
 
 		private void LoadConfigurationData()
@@ -186,14 +180,20 @@ namespace SEL
 
         public void WaitForApiAccess()
 		{
-			if (SELConfig.Instance.ShouldIgnoreApiSecurity())
+			if (!SELConfig.Instance.ShouldIgnoreApiSecurity())
 			{
-				return;
+				ConsoleLogger.Info($"Awaiting API access...");
+				while (APIRequest.SleepOnApiUnauthorizedWebException(() => m_apiConnector.CheckApiAccess()))
+				{
+					// ApiRequest handles sleep.
+				}
+				ConsoleLogger.Info($"Granted API access with token: ${m_apiConnector.GetAccessToken()}");
 			}
-			while (APIRequest.SleepOnApiUnauthorizedWebException(() => m_apiConnector.CheckApiAccess()))
-			{
-				// ApiRequest handles sleep.
-			}
+			string watchdogToken = m_apiConnector.GetWatchdogTokenForServer();
+			ConsoleLogger.Info($"Targeting simulation for server at {m_apiConnector.GetServerUrl()} with token {watchdogToken}");			
+			m_relSupport = new RELSupport(watchdogToken);
+			m_errorReporter = new ErrorReporter(m_apiConnector);
+			m_KPIManager = new KPIManager(m_apiConnector);					
 		}
 
 		public void Tick()
