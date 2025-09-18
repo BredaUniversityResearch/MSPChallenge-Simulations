@@ -14,7 +14,6 @@ namespace MSWSupport
 		private NamedPipeClientStream m_communicationPipe;
 		private string m_currentToken;
 		private int m_currentMonth = -1;
-		private readonly string m_targetServer;
 
 		private Thread m_readerThread;
 		private ITokenReceiver? m_tokenReceiver;
@@ -22,23 +21,6 @@ namespace MSWSupport
 
 		public CommunicationPipeHandler(string targetPipeName, string simulationTypeName, string targetServer)
 		{
-			m_targetServer = targetServer;
-
-			if (string.IsNullOrEmpty(targetPipeName))
-			{
-				ConsoleColor orgColor = Console.ForegroundColor;
-				Console.ForegroundColor = ConsoleColor.Red;
-				Console.WriteLine("Target pipe name not specified for APITokenHandler. Did the program start from MSW?");
-				Console.ForegroundColor = ConsoleColor.Yellow;
-				Console.WriteLine("Attempting to connect via debug connector...");
-				Console.ForegroundColor = orgColor;
-				targetPipeName = MSWDebugPipeConnector.TryGetPipeForSimulationFromDebugConnection(simulationTypeName, targetServer);
-				if (string.IsNullOrEmpty(targetPipeName))
-				{
-					return;
-				}
-			}
-
 			m_communicationPipe = new NamedPipeClientStream(".", targetPipeName, PipeDirection.In);
 			Console.WriteLine("MSWPipe | Trying to connect to pipe " + targetPipeName);
 			m_communicationPipe.Connect();
@@ -56,14 +38,6 @@ namespace MSWSupport
 		public void SetUpdateMonthReceiver(IUpdateMonthReceiver updateMonthReceiver)
 		{
 			m_updateMonthReceiver = updateMonthReceiver;
-		}
-
-		public bool CheckApiAccessWithLatestReceivedToken()
-		{
-			if (APIRequest.Perform( m_targetServer, "/api/game/IsOnline", out string result, m_currentToken)) {
-				return result == "online";
-			}
-			return false;
 		}
 
 		private static void CommunicationPipeHandlerThreadFunction(object handlerObject)
