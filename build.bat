@@ -4,9 +4,9 @@ echo * Just call build.bat to output to subdir .\output for all platforms and Re
 echo * To change the output path (Can be a relative starting with .. or a full path):
 echo   build.bat "output_path=..\MSPChallenge-Server\simulations"
 echo * To build with the Debug configuration and only for platform alpine:
-echo   build.bat "publish_targets[0]=debian.11-x64" "configuration=Debug"
+echo   build.bat "publish_targets[0]=linux-x64" "configuration=Debug"
 echo * To filter on multiple platforms:
-echo   build.bat "publish_targets[0]=debian.11-x64 publish_targets[1]=win-x64"
+echo   build.bat "publish_targets[0]=linux-x64 publish_targets[1]=win-x64"
 echo * To skip the Start? confirmation:
 echo   build.bat "start=Y"
 echo.
@@ -52,7 +52,7 @@ if "%api_version%" == "" (
     set api_version=2.0.0
 )
 if "%publish_targets[0]%" == "" (
-    set publish_targets[0]=debian.11-x64
+    set publish_targets[0]=linux-x64
 rem    set publish_targets[1]=win-x64
 )
 if "%output_path%" == "" (
@@ -169,7 +169,7 @@ if not exist "%1" (
 )
 cd "%1"
 for %%A in (%1) do set "project_basename=%%~nxA"
-set vbproj_file=%project_basename%_%donetversion%.vbproj
+set vbproj_file=%project_basename%_dotnet.vbproj
 if exist "%vbproj_file%" (
     dotnet build %vbproj_file% -c %configuration% -f %donetversion%
 ) else (
@@ -216,7 +216,7 @@ set source_data_dir=%source_dir%\%1data
 
 echo Publishing to %target%...
 for %%A in (%cd%) do set "project_basename=%%~nxA"
-set vbproj_file=%project_basename%_%donetversion%.vbproj
+set vbproj_file=%project_basename%_dotnet.vbproj
 if exist "%vbproj_file%" (
     dotnet publish %vbproj_file% -c %configuration% -r %target% -f %donetversion% --self-contained
 ) else (
