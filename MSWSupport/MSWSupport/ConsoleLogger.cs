@@ -13,7 +13,7 @@ namespace MSWSupport
         {
             ConsoleColor orgColor = Console.ForegroundColor;
             Console.ForegroundColor = aColor;
-            Write(aMessage);
+            Console.Error.WriteLine(aMessage);
             Console.ForegroundColor = orgColor;
         }
 
