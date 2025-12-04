@@ -97,9 +97,9 @@ namespace MSW
 						writer.Flush();
 					}
 				}
-				catch (IOException)
+				catch (IOException e)
 				{
-					Console.WriteLine($"Communication pipe {m_pipeName} reported IO Exception. Did the other application exit?");
+					ConsoleLogger.Warning($"Communication pipe {m_pipeName} reported IO Exception. Did the other application exit?", e);
 					m_communicationPipeServer.Disconnect();
 					m_communicationPipeServer.WaitForConnectionAsync().ContinueWith((a_task) => { OnPipeConnected(); });
 				}

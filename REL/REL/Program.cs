@@ -10,7 +10,7 @@ namespace REL
 	        ConsoleTextWriter.Instance.SetMessageFormat("{prefix}{message}");
 	        ConsoleTextWriter.Instance.SetMessageParameter("prefix", "REL: ");
 			Console.SetOut(ConsoleTextWriter.Instance);
-			Console.WriteLine("Starting Samson Integration for MSP (REL)...");
+			ConsoleLogger.Info("Starting Samson Integration for MSP (REL)...");
 
 			RiskModel model = new RiskModel();
 			model.WaitForApiAccess();

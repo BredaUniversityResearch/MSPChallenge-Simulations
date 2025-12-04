@@ -18,7 +18,7 @@ class Program
 		//   this allows the programmer to attach a debugger to the process
 		if (File.Exists("cel_wait.txt"))
 		{
-			Console.WriteLine("Please delete the file cel_wait.txt to continue...");
+			ConsoleLogger.Info("Please delete the file cel_wait.txt to continue...");
 		}
 		while (File.Exists("cel_wait.txt"))
 		{
@@ -36,7 +36,7 @@ class Program
 	        }
 	        catch (SessionApiGoneWebException ex)
 	        {
-		        Console.WriteLine("Session API gone, exiting...");
+		        ConsoleLogger.Warning("Session API gone, exiting...", ex);
 		        Environment.Exit(0);
 	        }
 	        

@@ -4,6 +4,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using MSWSupport;
 using SELRELBridge.API;
 
 namespace SELRELBridge
@@ -75,7 +76,7 @@ namespace SELRELBridge
 				a_messageIdentifier = BitConverter.ToInt32(buffer, 0);
 				if (bytesRead != sizeof(int))
 				{
-					Console.WriteLine(
+					ConsoleLogger.Warning(
 						$"SELRELBridge\t| Malformed message received. Message type: {a_messageIdentifier}");
 					return; //IDK what we received...
 				}
@@ -88,7 +89,7 @@ namespace SELRELBridge
 				int messageSize = BitConverter.ToInt32(buffer, 0);
 				if (bytesRead != sizeof(int) || messageSize < 0 || messageSize > 50 * BytesToMegaBytes)
 				{
-					Console.WriteLine(
+					ConsoleLogger.Warning(
 						$"SELRELBridge\t| Malformed message received. Bytes read: {bytesRead} / {sizeof(int)} Decoded message size: {messageSize}");
 					return;
 				}
@@ -106,7 +107,7 @@ namespace SELRELBridge
 
 					if (bytesRead != messageSize)
 					{
-						Console.WriteLine(
+						ConsoleLogger.Warning(
 							$"SELRELBridge\t| Incomplete message received. Expected to read: {messageSize} only got {bytesRead}");
 					}
 

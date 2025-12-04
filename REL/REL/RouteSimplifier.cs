@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using MSWSupport;
 using SELRELBridge.API;
 
 namespace REL
@@ -135,7 +136,7 @@ namespace REL
 			SimplifiedEdges = outputEdges.ToArray();
 			SimplifiedIntensities = outputIntensities.ToArray();
 
-			Console.WriteLine(
+			ConsoleLogger.Info(
 				$"Simplified Vertices: {SimplifiedVertices.Length} (From {a_vertices.Length}) Edges: {SimplifiedEdges.Length} (From {a_edges.Length}) Intensities: {SimplifiedIntensities.Length} (From {a_intensities.Length})");
 		}
 

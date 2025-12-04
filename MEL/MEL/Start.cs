@@ -16,7 +16,7 @@ namespace MEL
 			//   this allows the programmer to attach a debugger to the process
 			if (File.Exists("mel_wait.txt"))
 			{
-				Console.WriteLine("Please delete the file mel_wait.txt to continue...");
+				ConsoleLogger.Info("Please delete the file mel_wait.txt to continue...");
 			}
 			while (File.Exists("mel_wait.txt"))
 			{
@@ -32,7 +32,7 @@ namespace MEL
 		        }
 		        catch (SessionApiGoneWebException ex)
 		        {
-			        Console.WriteLine("Session API gone, exiting...");
+			        ConsoleLogger.Warning("Session API gone, exiting...", ex);
 			        Environment.Exit(0);
 		        }				
 			}
@@ -40,7 +40,7 @@ namespace MEL
 
         static void CurrentDomain_UnhandledException(object aSender, UnhandledExceptionEventArgs aException)
         {
-	        ConsoleLogger.Error(((Exception) aException.ExceptionObject).Message);
+	        ConsoleLogger.Error(((Exception) aException.ExceptionObject).Message, aException);
         }
 	}
 }

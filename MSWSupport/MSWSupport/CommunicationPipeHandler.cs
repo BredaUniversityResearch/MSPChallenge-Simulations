@@ -22,9 +22,9 @@ namespace MSWSupport
 		public CommunicationPipeHandler(string targetPipeName, string simulationTypeName, string targetServer)
 		{
 			m_communicationPipe = new NamedPipeClientStream(".", targetPipeName, PipeDirection.In);
-			Console.WriteLine("MSWPipe | Trying to connect to pipe " + targetPipeName);
+			ConsoleLogger.Info("MSWPipe | Trying to connect to pipe " + targetPipeName);
 			m_communicationPipe.Connect();
-			Console.WriteLine("MSWPipe | Connected");
+			ConsoleLogger.Info("MSWPipe | Connected");
 
 			m_readerThread = new Thread(CommunicationPipeHandlerThreadFunction);
 			m_readerThread.Start(this);
@@ -56,14 +56,14 @@ namespace MSWSupport
 				if (line.StartsWith(TOKEN_PRELUDE))
 				{
 					m_currentToken = line.Substring(line.IndexOf('=') + 1);
-					Console.WriteLine("MSWPipe | Received new API token " + m_currentToken.Substring(0, 10) + "...");
+					ConsoleLogger.Info("MSWPipe | Received new API token " + m_currentToken.Substring(0, 10) + "...");
 					m_tokenReceiver?.UpdateAccessToken(m_currentToken);
 					continue;
 				}
 				if (!line.StartsWith(MONTH_PRELUDE))
 					continue;
 				m_currentMonth = int.Parse(line.AsSpan(line.IndexOf('=') + 1));
-				Console.WriteLine("MSWPipe | Received new month " + m_currentMonth + "...");
+				ConsoleLogger.Info("MSWPipe | Received new month " + m_currentMonth + "...");
 				m_updateMonthReceiver?.UpdateMonth(m_currentMonth);
 			} while (!reader.EndOfStream);
 		}

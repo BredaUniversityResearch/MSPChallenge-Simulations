@@ -21,7 +21,7 @@ namespace REL.API
 				return result;
 			}
 
-			Console.WriteLine($"API Request to {a_apiEndpoint} failed");
+			ConsoleLogger.Warning($"API Request to {a_apiEndpoint} failed");
 			return default;
 		}
 
@@ -51,7 +51,7 @@ namespace REL.API
 			postData.Set("image_data", Convert.ToBase64String(a_rasterImageData));
 			if (!HttpSet("/api/layer/UpdateRaster", postData, logServerResponseLogs: true))
 			{
-				Console.WriteLine("API Request to UpdateRaster failed");
+				ConsoleLogger.Warning("API Request to UpdateRaster failed");
 			}
 		}
 	}

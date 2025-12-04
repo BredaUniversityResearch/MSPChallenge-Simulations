@@ -74,7 +74,7 @@ namespace MEL
 		public MEL()
 		{
 			/* Create a ConsoleTraceListener and add it to the trace listeners. */
-			var myWriter = new ConsoleTraceListener();
+			var myWriter = new CustomConsoleTraceListener();
 			Trace.Listeners.Add(myWriter); // this will output all writes to "Debug."
 
 			string? docker = Environment.GetEnvironmentVariable("DOCKER");
@@ -289,7 +289,7 @@ namespace MEL
 		public void Tick()
 		{
 			Stopwatch watch = Stopwatch.StartNew();
-			//Console.WriteLine("Trying tick");
+			//ConsoleLogger.Info("Trying tick");
 			int currentGameMonth = ApiConnector.GetCurrentGameMonth();
 			// do not allow to go back in time.
 			if (currentGameMonth <= lastupdatedmonth)
@@ -482,7 +482,7 @@ namespace MEL
 			}
 
 			//watch.Stop();
-			//Console.WriteLine("RasterizeLayers: " + watch.ElapsedMilliseconds);
+			//ConsoleLogger.Info("RasterizeLayers: " + watch.ElapsedMilliseconds);
 		}
 
 		private void AddBackgroundTask(Action task)

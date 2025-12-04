@@ -21,12 +21,12 @@ namespace SEL
 			//   this allows the programmer to attach a debugger to the process
 			if (File.Exists("sel_wait.txt"))
 			{
-				Console.WriteLine("Please delete the file sel_wait.txt to continue...");
+				ConsoleLogger.Info("Please delete the file sel_wait.txt to continue...");
 			}
 			while (File.Exists("sel_wait.txt"))
 			{
 				Thread.Sleep(1000);
-				Console.WriteLine("Please delete the file sel_wait.txt to continue...");
+				ConsoleLogger.Info("Please delete the file sel_wait.txt to continue...");
 			}			
 			
 			ShippingModel model = new ShippingModel();
@@ -44,7 +44,7 @@ namespace SEL
 			        }
 			        catch (SessionApiGoneWebException ex)
 			        {
-				        Console.WriteLine("Session API gone, exiting...");
+				        ConsoleLogger.Warning("Session API gone, exiting...", ex);
 				        Environment.Exit(0);
 			        }					
 				}

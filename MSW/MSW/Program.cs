@@ -40,7 +40,7 @@ firewallPolicy.Rules.Add(firewallRule);*/
 				}
 				catch (Exception e)
 				{
-					Console.WriteLine(e);
+					ConsoleLogger.Error(e.Message, e);
 					throw;
 				}
 				Stopwatch localTickStopwatch = new Stopwatch();
@@ -62,7 +62,7 @@ firewallPolicy.Rules.Add(firewallRule);*/
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine(e.Message + "\n" + e.StackTrace);
+				ConsoleLogger.Warning(e.Message, e);
 			}
 		}
 
