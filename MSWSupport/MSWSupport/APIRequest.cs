@@ -126,7 +126,7 @@ namespace MSWSupport
 					throw new SessionApiGoneWebException(ex); // allow child code to handle this one
 				}
 
-				ConsoleLogger.Error($"ApiRequest::Perform for {fullServerUrl} failed with exception: {ex.Message}");
+				ConsoleLogger.Warning($"ApiRequest::Perform for {fullServerUrl} failed with exception: {ex.Message}", ex);
 				responsePayload = null;
 				return false;
 			}

@@ -65,7 +65,7 @@ namespace MEL
 					}
 					catch (Exception e)
 					{
-						ConsoleLogger.Error($"{name} could not be loaded. Pressure layers will not be generated accurately! \nException: {e.Message}");
+						ConsoleLogger.Warning($"{name} could not be loaded. Pressure layers will not be generated accurately! \nException: {e.Message}", e);
 					}
 
 					break;

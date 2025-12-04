@@ -240,7 +240,7 @@ namespace MEL
 				{
 					break;
 				}
-				ConsoleLogger.Error($"Found unloaded pressure layers, retrying in {NEXT_RASTER_LOAD_WAITING_TIME_SEC} sec, attempt: {attempt} of {MAX_RASTER_LOAD_ATTEMPTS}");
+				ConsoleLogger.Warning($"Found unloaded pressure layers, retrying in {NEXT_RASTER_LOAD_WAITING_TIME_SEC} sec, attempt: {attempt} of {MAX_RASTER_LOAD_ATTEMPTS}");
 				Thread.Sleep(TimeSpan.FromSeconds(NEXT_RASTER_LOAD_WAITING_TIME_SEC));
 				++attempt;
 			}
