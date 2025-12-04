@@ -32,7 +32,7 @@ namespace MSWSupport
 	        }
 	        catch (ApiUnauthorizedWebException ex)
 	        {
-				Console.WriteLine(messageFormat, sleepSec);
+				ConsoleLogger.Warning(string.Format(messageFormat, sleepSec), ex);
 				Thread.Sleep(sleepSec * 1000);
 				return true; // we are sleeping
 	        }
@@ -91,7 +91,7 @@ namespace MSWSupport
 			{
 				if (jsonResult != null && jsonResult.Type != JTokenType.Null)
 				{
-					Console.WriteLine($"ApiRequest::Perform for {serverUrl}/{apiUrl} got response when none was expected. Response: {jsonResult}");
+					ConsoleLogger.Info($"ApiRequest::Perform for {serverUrl}/{apiUrl} got response when none was expected. Response: {jsonResult}");
 					success = false;
 				}
 			}
@@ -186,10 +186,12 @@ namespace MSWSupport
 			}
 			catch (JsonReaderException ex)
 			{
-				Console.WriteLine("Error deserializing JSON String.");
-				Console.WriteLine("Exception: " + ex.Message);
-				Console.WriteLine("InputData: ");
-				Console.WriteLine(jsonData);
+				var context = new
+				{
+					exception = ConsoleLogger.SerializeException(ex),
+					inputData = jsonData
+				};
+				ConsoleLogger.Warning("Error deserializing JSON String.", context);
 				return default;
 			}
 		}

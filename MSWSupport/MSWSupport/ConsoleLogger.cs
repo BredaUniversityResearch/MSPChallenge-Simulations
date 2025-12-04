@@ -1,35 +1,78 @@
 using System;
+using System.Text.Json;
+using System.Collections.Generic;
 
 namespace MSWSupport
 {
     public static class ConsoleLogger
     {
-        private static void Write(string aMessage)
+        public static void Write(string? aMessage)
         {
-            Console.WriteLine(aMessage);
+            Console.Write(aMessage);
+        }        
+        
+        private static void WriteLine(string aMessage)
+        {
+            Console.WriteLine(aMessage!);
         }
 
-        private static void WriteWithColor(string aMessage, ConsoleColor aColor)
+        private static void WriteLineWithColor(string aMessage, ConsoleColor aColor)
         {
-            ConsoleColor orgColor = Console.ForegroundColor;
+            var orgColor = Console.ForegroundColor;
             Console.ForegroundColor = aColor;
-            Console.Error.WriteLine(aMessage);
+            Console.Error.WriteLine(aMessage!);
             Console.ForegroundColor = orgColor;
         }
 
-        public static void Error(string aMessage)
+        private static void WriteLineStructured(string message, string levelName, ConsoleColor color, object? context)
         {
-            WriteWithColor(aMessage, ConsoleColor.Red);
+            var logEntry = new Dictionary<string, object>
+            {
+                { "message", message },
+                { "level_name", levelName }
+            };
+            if (context is Exception ex) {
+                logEntry["context"] = SerializeException(ex);
+            } else if (context != null) {
+                logEntry["context"] = context;
+            }
+            string json = JsonSerializer.Serialize(logEntry);
+            WriteLineWithColor(json, color);
         }
 
-        public static void Warning(string aMessage)
+        public static object SerializeException(Exception ex, bool isRoot = true)
         {
-            WriteWithColor(aMessage, ConsoleColor.Yellow);
+            var exceptionObj = new Dictionary<string, object>
+            {
+                { "exception", ex.Message }
+            };
+
+            if (isRoot && ex.StackTrace != null)
+            {
+                exceptionObj["stackTrace"] = ex.StackTrace;
+            }
+
+            if (ex.InnerException != null)
+            {
+                exceptionObj["innerException"] = SerializeException(ex.InnerException, false);
+            }
+
+            return exceptionObj;
+        }
+
+        public static void Error(string aMessage, object? context = null)
+        {
+            WriteLineStructured(aMessage, "ERROR", ConsoleColor.Red, context);
+        }
+
+        public static void Warning(string aMessage, object? context = null)
+        {
+            WriteLineStructured(aMessage, "WARNING", ConsoleColor.Yellow, context);
         }
 
         public static void Info(string aMessage)
         {
-            Write(aMessage);
+            WriteLine(aMessage);
         }
     }
 }

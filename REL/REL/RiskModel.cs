@@ -80,12 +80,12 @@ namespace REL
 			if (a_messageType == SELOutputData.MessageIdentifier)
 			{
 				SELOutputData data = JsonConvert.DeserializeObject<SELOutputData>(a_messageData);
-				Console.WriteLine("".PadRight(10)+$"| Received input data for month {data.m_simulatedMonth}. Processing...");
+				ConsoleLogger.Info("".PadRight(10)+$"| Received input data for month {data.m_simulatedMonth}. Processing...");
 				PerformUpdate(data);
 
 
 				//Debug
-				Console.WriteLine("".PadRight(10)+"| Using dummy response from marin api ...");
+				ConsoleLogger.Info("".PadRight(10)+"| Using dummy response from marin api ...");
 				MarinAPIProcessResponse response = m_marinApiConnector.TryGetProcessResponse();
 				if (response != null)
 				{
@@ -123,7 +123,7 @@ namespace REL
 
 			m_marinApiConnector.SubmitInput(input);
 
-			Console.WriteLine("".PadRight(10)+"| Submitted input data to Marin API... Processing the response is TODO at this point...");
+			ConsoleLogger.Info("".PadRight(10)+"| Submitted input data to Marin API... Processing the response is TODO at this point...");
 		}
 
 		private MarinAPIPoint[] TransformPoints(APIRouteGraphVertex[] a_points)

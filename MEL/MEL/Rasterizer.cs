@@ -221,7 +221,7 @@ namespace MEL {
 				}
 			}
 
-			//Console.WriteLine(total);
+			//ConsoleLogger.Info(total);
 
 			return output;
 		}

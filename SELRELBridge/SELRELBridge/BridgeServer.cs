@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using MSWSupport;
 using Newtonsoft.Json;
 using SELRELBridge.API;
 
@@ -42,10 +43,10 @@ namespace SELRELBridge
 				return;
 			}
 
-			Console.WriteLine("SELRELBridge\t| Client connected");
+			ConsoleLogger.Info("SELRELBridge\t| Client connected");
 			if (m_currentConnectedBridge != null)
 			{
-				Console.WriteLine("Client not properly disconnected before new connection appeared");
+				ConsoleLogger.Warning("Client not properly disconnected before new connection appeared");
 				m_currentConnectedBridge.CloseConnection();
 			}
 
@@ -62,7 +63,7 @@ namespace SELRELBridge
 
 		private void OnClientDisconnected()
 		{
-			Console.WriteLine("SELRELBridge\t| Client disconnected");
+			ConsoleLogger.Info("SELRELBridge\t| Client disconnected");
 			m_currentConnectedBridge = null;
 
 			m_tcpListener.Start(1);

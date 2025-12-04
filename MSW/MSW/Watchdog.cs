@@ -269,7 +269,7 @@ namespace MSW
 			{
 				return;
 			}
-			Console.WriteLine("Setting month to " + a_request.Month);
+			ConsoleLogger.Info("Setting month to " + a_request.Month);
 			existingData.SetMonth(a_request.Month);
 		}
 

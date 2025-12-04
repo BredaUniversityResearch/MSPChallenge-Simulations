@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using MSWSupport;
 using Newtonsoft.Json;
 using SELRELBridge.API;
 
@@ -78,19 +79,19 @@ namespace SELRELBridge
 		{
 			if (m_currentConnection != null)
 			{
-				Console.WriteLine("SELRELBridge\t| Connected to server, but there's already a bridge connection active!");
+				ConsoleLogger.Warning("SELRELBridge\t| Connected to server, but there's already a bridge connection active!");
 				return;
 			}
 
 			TcpClient client = (TcpClient) a_ar.AsyncState;
-			Console.WriteLine("SELRELBridge\t| Success Connecting to server");
+			ConsoleLogger.Info("SELRELBridge\t| Success Connecting to server");
 			client.EndConnect(a_ar);
 			m_currentConnection = new BridgeConnection(client, OnBridgeDisconnected);
 		}
 
 		private void OnBridgeDisconnected()
 		{
-			Console.WriteLine("SELRELBridge\t| Disconnected from server");
+			ConsoleLogger.Info("SELRELBridge\t| Disconnected from server");
 			m_currentConnection = null;
 		}
 	}

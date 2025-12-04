@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using MSWSupport;
 using ProjNet.CoordinateSystems.Transformations;
 using REL.API;
 
@@ -41,7 +42,7 @@ namespace REL
 				}
 				else
 				{
-					Console.WriteLine(
+					ConsoleLogger.Info(
 						$"Failed to find geometry with id {data.geometry_id} from Marin response in original data set.");
 				}
 			}

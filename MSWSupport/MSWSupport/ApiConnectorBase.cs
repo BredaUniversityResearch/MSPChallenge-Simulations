@@ -59,7 +59,7 @@ abstract public class ApiConnectorBase: IApiConnector
 			m_currentMonth = ApiRequestCurrentMonth();
 			if (currentMonth != m_currentMonth)
 			{
-				Console.WriteLine("----> Requested and detected a month change to " + m_currentMonth + " <----");
+				ConsoleLogger.Info("----> Requested and detected a month change to " + m_currentMonth + " <----");
 			}
 		}
 		return m_currentMonth;
