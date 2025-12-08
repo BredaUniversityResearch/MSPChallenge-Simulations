@@ -47,7 +47,7 @@ namespace MSWSupport
             var prefix = ConsoleTextWriter.Instance.GetMessageParameter("prefix");
             if (prefix != null)
             {
-                logEntry["prefix"] = prefix;
+                contextDict.Add("prefix", prefix);
             }
             logEntry.Add("context", contextDict);
             string json = JsonSerializer.Serialize(logEntry);
