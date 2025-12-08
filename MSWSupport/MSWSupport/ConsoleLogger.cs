@@ -31,11 +31,25 @@ namespace MSWSupport
                 { "message", message },
                 { "level_name", levelName }
             };
-            if (context is Exception ex) {
-                logEntry["context"] = SerializeException(ex);
-            } else if (context != null) {
-                logEntry["context"] = context;
+            var contextDict = new Dictionary<string, object>();
+            switch (context)
+            {
+                case Dictionary<string, object> objects:
+                    contextDict = objects;
+                    break;
+                case Exception ex:
+                    contextDict.Add("exception", SerializeException(ex));
+                    break;
+                default:
+                    if (context != null) contextDict.Add("context", context);
+                    break;
             }
+            var prefix = ConsoleTextWriter.Instance.GetMessageParameter("prefix");
+            if (prefix != null)
+            {
+                logEntry["prefix"] = prefix;
+            }
+            logEntry.Add("context", contextDict);
             string json = JsonSerializer.Serialize(logEntry);
             WriteLineWithColor(json, color);
         }
