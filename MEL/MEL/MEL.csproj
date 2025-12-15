@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -13,9 +13,6 @@
       <Reference Include="EwECore">
         <HintPath>..\..\DLLs\EwECore.dll</HintPath>
       </Reference>
-      <Reference Include="EwELicense">
-        <HintPath>..\..\DLLs\EwELicense.dll</HintPath>
-      </Reference>
       <Reference Include="EwEMSPLink">
         <HintPath>..\..\DLLs\EwEMSPLink.dll</HintPath>
       </Reference>
@@ -24,9 +21,6 @@
       </Reference>
       <Reference Include="EwEUtils">
         <HintPath>..\..\DLLs\EwEUtils.dll</HintPath>
-      </Reference>
-      <Reference Include="MSWSupport, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-        <HintPath>..\..\DLLs\MSWSupport.dll</HintPath>
       </Reference>
     </ItemGroup>
 
@@ -58,12 +52,17 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
       <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
     </ItemGroup>
 
     <ItemGroup>
       <Folder Include="DebugData\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\MSWSupport\MSWSupport\MSWSupport.csproj" />
     </ItemGroup>
 
 </Project>
