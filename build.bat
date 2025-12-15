@@ -11,7 +11,7 @@ echo * To skip the Start? confirmation:
 echo   build.bat "start=Y"
 echo.
 
-set ecopath_dir=..\Ecopath6_multitarget
+set ecopath_dir=..\Eii.Ecopath
 set ecopath_source_dir="%ecopath_dir%\Sources"
 if not exist "%ecopath_source_dir%" (
     echo Directory "%ecopath_source_dir%" does not exist. Please checkout the svn repo: https://sources.ecopath.org/svn/Ecopath/branches/Ecopath6_multitarget to "%ecopath_dir%"
@@ -44,7 +44,7 @@ if not exist "%ewemsplink_dir%" (
 )
 
 set cwd=%cd%
-set donetversion=net6.0
+set donetversion=net8.0
 if "%configuration%" == "" (
     set configuration=Release
 )
