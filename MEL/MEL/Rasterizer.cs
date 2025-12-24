@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using ClipperLib;
 using System.Drawing;
-using System.Drawing.Imaging;
+using SkiaSharp;
 
 namespace MEL {
 	/// <summary>
@@ -201,30 +201,19 @@ namespace MEL {
             return output;
         }
 
-		public static double[,] PNGToArray(Bitmap bitmap, float influence, int width, int height) {
-			double[,] output = new double[width, height];
-
-			//double total = 0;
-
-			for(int x = 0; x < width; x++) {
-				for(int y = 0; y < height; y++) {
-					Color tmp = bitmap.GetPixel(x, y);
-
-					//genuinely not sure if this is the right way to get the value
-					float val = tmp.GetBrightness() * influence;
-					if(val > 1)
-						val = 1;
-
-					//total += val;
-
-					output[x, y] = val;
-				}
-			}
-
-			//ConsoleLogger.Info(total);
-
-			return output;
-		}
+		public static double[,] PNGToArray(SKBitmap bitmap, float influence, int width, int height) {
+            double[,] output = new double[width, height];
+            for(int x = 0; x < width; x++) {
+                for(int y = 0; y < height; y++) {
+                    SKColor tmp = bitmap.GetPixel(x, y);
+                    float val = tmp.GetBrightness() * influence;
+                    if(val > 1)
+                        val = 1;
+                    output[x, y] = val;
+                }
+            }
+            return output;
+        }
 
 		/// <summary>
 		/// Gets the bounds of a polygon. Returned rect is non-rotated.
@@ -320,50 +309,42 @@ namespace MEL {
             return result > 0;
         }
 
-        public static unsafe Bitmap ToBitmap(double[,] rawImage) {
-			int width = rawImage.GetLength(0);
-			int height = rawImage.GetLength(1);
-
-			Bitmap Image = new Bitmap(width, height);
-			BitmapData bitmapData = Image.LockBits(
-				new Rectangle(0, 0, width, height),
-				ImageLockMode.ReadWrite,
-				PixelFormat.Format32bppArgb
-			);
-			ColorARGB* startingPosition = (ColorARGB*)bitmapData.Scan0;
-
-
-			for(int i = 0; i < width; i++)
-				for(int j = 0; j < height; j++) {
-					double color = rawImage[i, j];
-					byte rgb = (byte)(color * 255f);
-
-					ColorARGB* position = startingPosition + i + (height - j - 1) * width;
-					position->A = 255;
-					position->R = rgb;
-					position->G = rgb;
-					position->B = rgb;
-				}
-
-			Image.UnlockBits(bitmapData);
-			return Image;
-		}
-
-        public static Bitmap ToBitmapSlow(double[,] rawImage)
+        public static unsafe SKBitmap ToBitmap(double[,] rawImage)
         {
             int width = rawImage.GetLength(0);
             int height = rawImage.GetLength(1);
+            SKBitmap bitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
+            IntPtr ptr = bitmap.GetPixels(); // access data directly
+            byte* basePtr = (byte*)ptr;
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    int pixelIndex = y * width + x; 
+                    int offset = pixelIndex * 4; // byte offset
+                    double color = rawImage[x, y];
+                    byte val = (byte)(color * 255f);
+                    basePtr[offset + 0] = val; // B
+                    basePtr[offset + 1] = val; // G
+                    basePtr[offset + 2] = val; // R
+                    basePtr[offset + 3] = 255; // A
+                }
+            }
+            return bitmap;
+        }        
 
-            Bitmap newimage = new Bitmap(width, height);
+        public static SKBitmap ToBitmapSlow(double[,] rawImage)
+        {
+            int width = rawImage.GetLength(0);
+            int height = rawImage.GetLength(1);
+            SKBitmap newimage = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
             for (int i = 0; i < width; i++)
             {
                 for (int j = 0; j < height; j++)
                 {
                     int val = Math.Min(255, (int)(rawImage[i, j] * 255f));
-
-					//newimage.SetPixel(i, height-j-1, Color.FromArgb(val, val, val));
-					newimage.SetPixel(i, j, Color.FromArgb(val, val, val));
-				}
+                    newimage.SetPixel(i, j, new SKColor((byte)val, (byte)val, (byte)val, 255));
+                }
             }
 
             return newimage;
@@ -413,4 +394,36 @@ namespace MEL {
 			this.ymax = ymax;
 		}
 	}
+
+    public static class SKColorExtensions
+    {
+	    // The first parameter is written as this SKColor color, which tells the compiler to treat it as an extension method for the SKColor type.
+        public static float GetBrightness(this SKColor color)
+        {
+            int r = color.Red;
+            int g = color.Green;
+            int b = color.Blue;
+            int min, max;
+            if (r > g)
+            {
+                max = r;
+                min = g;
+            }
+            else
+            {
+                max = g;
+                min = r;
+            }
+            if (b > max)
+            {
+                max = b;
+            }
+            else if (b < min)
+            {
+                min = b;
+            }
+            return (max + min) / (byte.MaxValue * 2f);
+        }
+    }
 }
+

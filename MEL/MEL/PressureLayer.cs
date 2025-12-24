@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using EwEMSPLink;
 using MSWSupport;
+using SkiaSharp;
 
 namespace MEL
 {
@@ -107,7 +107,7 @@ namespace MEL
 			}
 			
 			ConsoleLogger.Info($"rasterizing {name}, submitting raster data");
-			using Bitmap bitmap = Rasterizer.ToBitmapSlow(rawData);
+			using SKBitmap bitmap = Rasterizer.ToBitmap(rawData);
 			mel.ApiConnector.SubmitRasterLayerData(name, bitmap);
 		}
 

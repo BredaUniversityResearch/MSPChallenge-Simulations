@@ -93,7 +93,7 @@ call :build %eweplugin_dir%
 call :build %ewecore_dir%
 call :build %ewemsplink_dir%
 rem prepare required dlls for MEL
-copy /y %ewemsplink_dir%\bin\%configuration%\%donetversion%\EwEMSPLink.dll DLLs\
+copy /y %ewemsplink_dir%\bin\%configuration%\%donetversion%\EwEMSPLinkPlugin.dll DLLs\
 copy /y %ewemsplink_dir%\bin\%configuration%\%donetversion%\EwELicense.dll DLLs\
 copy /y %ewemsplink_dir%\bin\%configuration%\%donetversion%\*.pdb DLLs\
 copy /y %ewecore_dir%\bin\%configuration%\%donetversion%\EwECore.dll DLLs\

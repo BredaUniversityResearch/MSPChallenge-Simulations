@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -11,6 +10,7 @@ using EwEMSPLink;
 using MSWSupport;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SkiaSharp;
 
 namespace MEL
 {
@@ -444,7 +444,7 @@ namespace MEL
 
 		private void SubmitBitmapForStorage(cGrid grid)
 		{
-			using (Bitmap bitmap = Rasterizer.ToBitmapSlow(grid.Cell))
+			using (SKBitmap bitmap = Rasterizer.ToBitmap(grid.Cell))
 			{
 				ApiConnector.SubmitRasterLayerData(grid.Name, bitmap);
 			}
