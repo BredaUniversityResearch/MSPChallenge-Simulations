@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -125,8 +127,29 @@ namespace MSWSupport
 				{
 					throw new SessionApiGoneWebException(ex); // allow child code to handle this one
 				}
+				string? responseBody = null;
+				if (null != ex.Response)
+				{
+					using var stream = ex.Response.GetResponseStream();
+					using var reader = new StreamReader(stream);
+					responseBody = reader.ReadToEnd();
+				}
 
-				ConsoleLogger.Warning($"ApiRequest::Perform for {fullServerUrl} failed with exception: {ex.Message}", ex);
+				string? responseMessage = null;
+			    // To get the message field from the JSON response:
+			    if (!string.IsNullOrEmpty(responseBody))
+			    {
+			        var json = JObject.Parse(responseBody);
+			        responseMessage = json["message"]?.ToString();
+			    }
+
+				var contextDict = new Dictionary<string, object>();
+				contextDict.Add("exception", ConsoleLogger.SerializeException(ex));
+			    if (!string.IsNullOrEmpty(responseMessage))
+			    {
+				    contextDict.Add("message", responseMessage);
+			    }
+				ConsoleLogger.Warning($"ApiRequest::Perform for {fullServerUrl} failed with exception: {ex.Message}", contextDict);
 				responsePayload = null;
 				return false;
 			}
