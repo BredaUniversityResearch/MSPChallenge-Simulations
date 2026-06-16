@@ -320,7 +320,7 @@ namespace MEL {
             {
                 for (int y = 0; y < height; y++)
                 {
-                    int pixelIndex = y * width + x; 
+                    int pixelIndex = y * width + x;
                     int offset = pixelIndex * 4; // byte offset
                     double color = rawImage[x, y];
                     byte val = (byte)(color * 255f);
@@ -331,7 +331,7 @@ namespace MEL {
                 }
             }
             return bitmap;
-        }        
+        }
 
         public static SKBitmap ToBitmapSlow(double[,] rawImage)
         {
