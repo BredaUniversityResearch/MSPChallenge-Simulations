@@ -27,11 +27,6 @@ if not exist "%eweutils_dir%" (
     echo Directory "%eweutils_dir%" does not exist.
     exit /b 1
 )
-set ewemsplink_dir=%ecopath_source_dir%\EwECustomPlugins\EwEMSPChallengeIntegration\EwEMSPLink
-if not exist "%ewemsplink_dir%" (
-    echo Directory "%ewemsplink_dir%" does not exist.
-    exit /b 1
-)
 
 @(
   setlocal
@@ -94,14 +89,7 @@ call :build %ewecore_dir%
 IF %ERRORLEVEL% NEQ 0 (
     exit /b %ERRORLEVEL%
 )
-call :build %ewemsplink_dir%
-IF %ERRORLEVEL% NEQ 0 (
-    exit /b %ERRORLEVEL%
-)
 rem prepare required dlls for MEL
-copy /y %ewemsplink_dir%\bin\%configuration%\%donetversion%\EwEMSPLinkPlugin.dll DLLs\
-copy /y %ewemsplink_dir%\bin\%configuration%\%donetversion%\EwELicense.dll DLLs\
-copy /y %ewemsplink_dir%\bin\%configuration%\%donetversion%\*.pdb DLLs\
 copy /y %ewecore_dir%\bin\%configuration%\%donetversion%\EwECore.dll DLLs\
 copy /y %ewecore_dir%\bin\%configuration%\%donetversion%\*.pdb DLLs\
 copy /y %eweutils_dir%\bin\%configuration%\%donetversion%\EwEUtils.dll DLLs\
@@ -113,11 +101,6 @@ IF %ERRORLEVEL% NEQ 0 (
     exit /b %ERRORLEVEL%
 )
 cd %eweutils_dir%
-call :publish .
-IF %ERRORLEVEL% NEQ 0 (
-    exit /b %ERRORLEVEL%
-)
-cd %ewemsplink_dir%
 call :publish .
 IF %ERRORLEVEL% NEQ 0 (
     exit /b %ERRORLEVEL%

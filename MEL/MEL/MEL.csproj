@@ -14,9 +14,7 @@
       <Reference Include="EwECore">
         <HintPath>..\..\DLLs\EwECore.dll</HintPath>
       </Reference>
-      <Reference Include="EwEMSPLinkPlugin">
-        <HintPath>..\..\DLLs\EwEMSPLinkPlugin.dll</HintPath>
-      </Reference>
+      <PackageReference Include="Eii.Ecopath.EwEMSPLink" Version="1.0.2" />
       <Reference Include="EwEUtils">
         <HintPath>..\..\DLLs\EwEUtils.dll</HintPath>
       </Reference>
