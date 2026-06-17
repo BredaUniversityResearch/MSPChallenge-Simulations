@@ -12,27 +12,22 @@ echo   build.bat "start=Y"
 echo.
 
 set ecopath_dir=..\Eii.Ecopath
-set ecopath_source_dir="%ecopath_dir%\Sources"
+set ecopath_source_dir=%ecopath_dir%\Sources
 if not exist "%ecopath_source_dir%" (
-    echo Directory "%ecopath_source_dir%" does not exist. Please checkout the svn repo: https://sources.ecopath.org/svn/Ecopath/branches/Ecopath6_multitarget to "%ecopath_dir%"
+    echo Directory "%ecopath_source_dir%" does not exist. Please checkout the svn repo: https://github.com/Official-EwE/Eii.Ecopath/tree/cEwEEFDatabase to "%ecopath_dir%"
     exit /b 1
 )
-set ewecore_dir="%ecopath_source_dir%\EwECore"
+set ewecore_dir=%ecopath_source_dir%\EwECore
 if not exist "%ewecore_dir%" (
     echo Directory "%ewecore_dir%" does not exist.
     exit /b 1
 )
-set eweutils_dir="%ecopath_source_dir%\EwEUtils"
+set eweutils_dir=%ecopath_source_dir%\EwEUtils
 if not exist "%eweutils_dir%" (
     echo Directory "%eweutils_dir%" does not exist.
     exit /b 1
 )
-set eweplugin_dir="%ecopath_source_dir%\EwEPlugin"
-if not exist "%eweplugin_dir%" (
-    echo Directory "%eweplugin_dir%" does not exist.
-    exit /b 1
-)
-set ewemsplink_dir="%ecopath_source_dir%\EwECustomPlugins\EwEMSPChallengeIntegration\EwEMSPLink"
+set ewemsplink_dir=%ecopath_source_dir%\EwECustomPlugins\EwEMSPChallengeIntegration\EwEMSPLink
 if not exist "%ewemsplink_dir%" (
     echo Directory "%ewemsplink_dir%" does not exist.
     exit /b 1
@@ -44,7 +39,7 @@ if not exist "%ewemsplink_dir%" (
 )
 
 set cwd=%cd%
-set donetversion=net8.0
+set donetversion=net10.0
 if "%configuration%" == "" (
     set configuration=Release
 )
@@ -63,6 +58,9 @@ if "%output_path:~0,2%" == ".." (
 )
 echo Output paths:
 call :show_output
+echo Configuration: %configuration%
+echo Target framework: %donetversion%
+echo Ecopath source: %ecopath_source_dir%
 echo Start? (Y/N)
 if /i "%start%" neq "Y" (
     >nul choice /c YN /n
@@ -89,17 +87,23 @@ copy /y SELRELBridge\SELRELBridge\bin\%configuration%\%donetversion%\SELRELBridg
 copy /y SELRELBridge\SELRELBridge\bin\%configuration%\%donetversion%\*.pdb DLLs\
 rem build referenced dlls, in right order
 call :build %eweutils_dir%
-call :build %eweplugin_dir%
+IF %ERRORLEVEL% NEQ 0 (
+    exit /b %ERRORLEVEL%
+)
 call :build %ewecore_dir%
+IF %ERRORLEVEL% NEQ 0 (
+    exit /b %ERRORLEVEL%
+)
 call :build %ewemsplink_dir%
+IF %ERRORLEVEL% NEQ 0 (
+    exit /b %ERRORLEVEL%
+)
 rem prepare required dlls for MEL
 copy /y %ewemsplink_dir%\bin\%configuration%\%donetversion%\EwEMSPLinkPlugin.dll DLLs\
 copy /y %ewemsplink_dir%\bin\%configuration%\%donetversion%\EwELicense.dll DLLs\
 copy /y %ewemsplink_dir%\bin\%configuration%\%donetversion%\*.pdb DLLs\
 copy /y %ewecore_dir%\bin\%configuration%\%donetversion%\EwECore.dll DLLs\
 copy /y %ewecore_dir%\bin\%configuration%\%donetversion%\*.pdb DLLs\
-copy /y %eweplugin_dir%\bin\%configuration%\%donetversion%\EwEPlugin.dll DLLs\
-copy /y %eweplugin_dir%\bin\%configuration%\%donetversion%\*.pdb DLLs\
 copy /y %eweutils_dir%\bin\%configuration%\%donetversion%\EwEUtils.dll DLLs\
 copy /y %eweutils_dir%\bin\%configuration%\%donetversion%\*.pdb DLLs\
 
@@ -109,11 +113,6 @@ IF %ERRORLEVEL% NEQ 0 (
     exit /b %ERRORLEVEL%
 )
 cd %eweutils_dir%
-call :publish .
-IF %ERRORLEVEL% NEQ 0 (
-    exit /b %ERRORLEVEL%
-)
-cd %eweplugin_dir%
 call :publish .
 IF %ERRORLEVEL% NEQ 0 (
     exit /b %ERRORLEVEL%
@@ -162,19 +161,38 @@ exit /b 0
 rem ======= all functions below =======
 
 :build
+echo.
+echo ===== build: %~1 =====
 if not exist "%1" (
-    echo Could not find "%1/"
+    echo Could not find "%1"
     set ERRORLEVEL=1
     goto eof
 )
-cd "%1"
+cd /d "%1"
+if %ERRORLEVEL% NEQ 0 (
+    echo Failed to change directory to "%1"
+    exit /b %ERRORLEVEL%
+)
+echo Working directory: %cd%
+
 for %%A in (%1) do set "project_basename=%%~nxA"
 set vbproj_file=%project_basename%_dotnet.vbproj
+set "project_file="
 if exist "%vbproj_file%" (
-    dotnet build %vbproj_file% -c %configuration% -f %donetversion%
+    set "project_file=%vbproj_file%"
 ) else (
-    dotnet build -c %configuration% -f %donetversion%
+    for %%F in (*.vbproj *.csproj *.sln) do (
+        if not defined project_file set "project_file=%%F"
+    )
 )
+
+if not defined project_file (
+    echo No .vbproj/.csproj/.sln file found in "%cd%".
+    exit /b 1
+)
+
+echo Project selected: %project_file%
+call :run_dotnet_checked build "%project_file%" -c %configuration% -f %donetversion%
 IF %ERRORLEVEL% NEQ 0 (
     exit /b %ERRORLEVEL%
 )
@@ -184,7 +202,7 @@ exit /b 0
 :publish
 
 if not exist "%1" (
-    echo Could not find "%1/"
+    echo Could not find "%1"
     set ERRORLEVEL=1
     goto eof
 )
@@ -218,9 +236,9 @@ echo Publishing to %target%...
 for %%A in (%cd%) do set "project_basename=%%~nxA"
 set vbproj_file=%project_basename%_dotnet.vbproj
 if exist "%vbproj_file%" (
-    dotnet publish %vbproj_file% -c %configuration% -r %target% -f %donetversion% --self-contained
+    call :run_dotnet_checked publish %vbproj_file% -c %configuration% -r %target% -f %donetversion% --self-contained
 ) else (
-    dotnet publish -c %configuration% -r %target% -f %donetversion% --self-contained
+    call :run_dotnet_checked publish -c %configuration% -r %target% -f %donetversion% --self-contained
 )
 
 IF %ERRORLEVEL% NEQ 0 (
@@ -295,4 +313,48 @@ set target_dir=%output_path%\%target%\
 echo %target_dir%
 SET /a "x+=1"
 goto :show_output_targets_loop
+
+rem ── Runs a dotnet command, captures output, detects 401 and fixes credentials ──
+rem    Usage: call :run_dotnet_checked <dotnet args...>
+:run_dotnet_checked
+
+set "_dotnet_log=%TEMP%\msp_dotnet_%RANDOM%_%RANDOM%.log"
+set "_dotnet_retried=0"
+
+:run_dotnet_checked_exec
+dotnet %* > "%_dotnet_log%" 2>&1
+set "_dotnet_exit=%ERRORLEVEL%"
+type "%_dotnet_log%"
+
+if %_dotnet_exit% EQU 0 (
+    del /q "%_dotnet_log%" > nul 2> nul
+    exit /b 0
+)
+
+findstr /i /c:"NU1301" /c:"401 (Unauthorized)" /c:"NU1100" "%_dotnet_log%" > nul
+if %ERRORLEVEL% NEQ 0 (
+    rem Not a 401 — pass the error through
+    del /q "%_dotnet_log%" > nul 2> nul
+    exit /b %_dotnet_exit%
+)
+
+if "%_dotnet_retried%" == "1" (
+    echo Still getting 401 after credential update. Aborting.
+    del /q "%_dotnet_log%" > nul 2> nul
+    exit /b %_dotnet_exit%
+)
+
+echo.
+echo Detected 401 Unauthorized. Launching credential fix...
+powershell -NoProfile -ExecutionPolicy Bypass -File "%cwd%\fix-nuget-auth.ps1" -ErrorLog "%_dotnet_log%"
+if %ERRORLEVEL% NEQ 0 (
+    echo Credential fix failed or was cancelled.
+    del /q "%_dotnet_log%" > nul 2> nul
+    exit /b %_dotnet_exit%
+)
+
+set "_dotnet_retried=1"
+echo.
+echo Retrying dotnet command...
+goto :run_dotnet_checked_exec
 

@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -16,9 +16,6 @@
       </Reference>
       <Reference Include="EwEMSPLinkPlugin">
         <HintPath>..\..\DLLs\EwEMSPLinkPlugin.dll</HintPath>
-      </Reference>
-      <Reference Include="EwEPlugin">
-        <HintPath>..\..\DLLs\EwEPlugin.dll</HintPath>
       </Reference>
       <Reference Include="EwEUtils">
         <HintPath>..\..\DLLs\EwEUtils.dll</HintPath>
@@ -54,10 +51,9 @@
 
     <ItemGroup>
       <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
-      <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-      <PackageReference Include="SkiaSharp" Version="3.119.1" />
-      <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.119.1" />
-      <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+      <PackageReference Include="SkiaSharp" Version="3.119.4" />
+      <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.119.4" />
     </ItemGroup>
 
     <ItemGroup>
