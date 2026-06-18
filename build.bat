@@ -1,12 +1,10 @@
 @echo off
 echo Example usage:
-echo * Just call build.bat to output to subdir .\output for all platforms and Release
+echo * Just call build.bat to output to .\output\linux-x64 with Release
 echo * To change the output path (Can be a relative starting with .. or a full path):
 echo   build.bat "output_path=..\MSPChallenge-Server\simulations"
-echo * To build with the Debug configuration and only for platform alpine:
-echo   build.bat "publish_targets[0]=linux-x64" "configuration=Debug"
-echo * To filter on multiple platforms:
-echo   build.bat "publish_targets[0]=linux-x64 publish_targets[1]=win-x64"
+echo * To build with the Debug configuration:
+echo   build.bat "configuration=Debug"
 echo * To skip the Start? confirmation:
 echo   build.bat "start=Y"
 echo.
@@ -41,10 +39,7 @@ if "%configuration%" == "" (
 if "%api_version%" == "" (
     set api_version=2.0.0
 )
-if "%publish_targets[0]%" == "" (
-    set publish_targets[0]=linux-x64
-rem    set publish_targets[1]=win-x64
-)
+set publish_target=linux-x64
 if "%output_path%" == "" (
     set output_path=%cwd%\output
 )
@@ -132,6 +127,12 @@ IF %ERRORLEVEL% NEQ 0 (
     exit /b %ERRORLEVEL%
 )
 
+cd "%cwd%"
+call :docker_build_all
+IF %ERRORLEVEL% NEQ 0 (
+    exit /b %ERRORLEVEL%
+)
+
 :eof
 cd "%cwd%"
 endlocal
@@ -189,27 +190,7 @@ if not exist "%1" (
     set ERRORLEVEL=1
     goto eof
 )
-call :publish_targets_loop_start %1 %2
-IF %ERRORLEVEL% NEQ 0 (
-    exit /b %ERRORLEVEL%
-)
-cd "%cwd%"
-exit /b 0
-
-:publish_targets_loop_start
-
-set "x=0"
-call :publish_targets_loop %1 %2
-IF %ERRORLEVEL% NEQ 0 (
-    exit /b %ERRORLEVEL%
-)
-exit /b 0
-
-:publish_targets_loop
-
-if not defined publish_targets[%x%] exit /b 0
-
-call set target=%%publish_targets[%x%]%%
+set "target=%publish_target%"
 set target_dir=%output_path%\%target%
 set source_dir=%1\bin\%configuration%\%donetversion%\%target%\publish
 set target_data_dir=%target_dir%\%1data
@@ -239,63 +220,65 @@ if "%1" NEQ "." (
 		copy /y %source_data_dir%\* %target_data_dir%
 	)
 )
-SET /a "x+=1"
-goto :publish_targets_loop
+cd "%cwd%"
+exit /b 0
 
 :cleanup
 
-call :cleanup_targets_loop_start
-IF %ERRORLEVEL% NEQ 0 (
-    exit /b %ERRORLEVEL%
-)
-cd "%cwd%"
-exit /b 0
-
-:cleanup_targets_loop_start
-
-set "x=0"
-call :cleanup_targets_loop
-IF %ERRORLEVEL% NEQ 0 (
-    exit /b %ERRORLEVEL%
-)
-exit /b 0
-
-:cleanup_targets_loop
-
-if not defined publish_targets[%x%] exit /b 0
-call set target=%%publish_targets[%x%]%%
+set "target=%publish_target%"
 set target_dir=%output_path%\%target%\
 echo Removing: %target_dir%
 rmdir /q /s "%target_dir%" > nul 2> nul
-SET /a "x+=1"
-goto :cleanup_targets_loop
-
-:show_output
-
-call :show_output_targets_loop_start
-IF %ERRORLEVEL% NEQ 0 (
-    exit /b %ERRORLEVEL%
-)
 cd "%cwd%"
 exit /b 0
 
-:show_output_targets_loop_start
+:show_output
 
-set "x=0"
-call :show_output_targets_loop
-IF %ERRORLEVEL% NEQ 0 (
-    exit /b %ERRORLEVEL%
-)
-exit /b 0
-
-:show_output_targets_loop
-
-if not defined publish_targets[%x%] exit /b 0
-call set target=%%publish_targets[%x%]%%
+set "target=%publish_target%"
 set target_dir=%output_path%\%target%\
 echo %target_dir%
-SET /a "x+=1"
-goto :show_output_targets_loop
+cd "%cwd%"
+exit /b 0
+
+rem ── Builds the Docker image for the fixed linux-x64 publish target ──
+:docker_build_all
+
+for /f "delims=" %%B in ('git -C "%cwd%" branch --show-current 2^>nul') do set "_git_branch=%%B"
+if "%_git_branch%" == "" (
+    echo Warning: could not detect git branch, defaulting Docker tag to "dev".
+    set "_git_branch=other"
+)
+if /i "%_git_branch%" == "main" (
+    set "_docker_tag=main"
+) else (
+    set "_docker_tag=dev"
+)
+echo.
+echo ===== Docker build ^(tag: %_docker_tag%^) =====
+
+set "target=%publish_target%"
+set "_docker_dir=%output_path%\%target%"
+
+if not exist "%_docker_dir%\Dockerfile" (
+    echo Skipping Docker build for %target%: no Dockerfile found in %_docker_dir%
+    exit /b 0
+)
+
+echo.
+echo Building Docker image for target %target% from %_docker_dir% ...
+pushd "%_docker_dir%"
+docker build -t docker-hub.mspchallenge.info/cradlewebmaster/msp-challenge-simulations:%_docker_tag% -f Dockerfile .
+set "_docker_exit=%ERRORLEVEL%"
+popd
+
+IF %_docker_exit% NEQ 0 (
+    echo Docker build failed for target %target% with exit code %_docker_exit%.
+    exit /b %_docker_exit%
+)
+echo Docker image built successfully: docker-hub.mspchallenge.info/cradlewebmaster/msp-challenge-simulations:%_docker_tag%
+
+cd "%cwd%"
+exit /b 0
 
 rem ── Runs a dotnet command, captures output, detects 401 and fixes credentials ──
 rem    Usage: call :run_dotnet_checked <dotnet args...>
