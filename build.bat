@@ -64,25 +64,25 @@ call :cleanup
 rem prepare required dlls for MSW
 call :build MSWSupport
 IF %ERRORLEVEL% NEQ 0 (
-    exit /b %ERRORLEVEL%
+    goto :eof
 )
 copy /y MSWSupport\MSWSupport\bin\%configuration%\%donetversion%\*.dll DLLs\
 copy /y MSWSupport\MSWSupport\bin\%configuration%\%donetversion%\*.pdb DLLs\
 rem prepare required dlls for SEL/REL
 call :build SELRELBridge
 IF %ERRORLEVEL% NEQ 0 (
-    exit /b %ERRORLEVEL%
+    goto :eof
 )
 copy /y SELRELBridge\SELRELBridge\bin\%configuration%\%donetversion%\SELRELBridge.dll DLLs\
 copy /y SELRELBridge\SELRELBridge\bin\%configuration%\%donetversion%\*.pdb DLLs\
 rem build referenced dlls, in right order
 call :build %eweutils_dir%
 IF %ERRORLEVEL% NEQ 0 (
-    exit /b %ERRORLEVEL%
+    goto :eof
 )
 call :build %ewecore_dir%
 IF %ERRORLEVEL% NEQ 0 (
-    exit /b %ERRORLEVEL%
+    goto :eof
 )
 rem prepare required dlls for MEL
 copy /y %ewecore_dir%\bin\%configuration%\%donetversion%\EwECore.dll DLLs\
@@ -93,54 +93,51 @@ copy /y %eweutils_dir%\bin\%configuration%\%donetversion%\*.pdb DLLs\
 cd %ewecore_dir%
 call :publish .
 IF %ERRORLEVEL% NEQ 0 (
-    exit /b %ERRORLEVEL%
+    goto :eof
 )
 cd %eweutils_dir%
 call :publish .
 IF %ERRORLEVEL% NEQ 0 (
-    exit /b %ERRORLEVEL%
+    goto :eof
 )
 
 cd CEL
 call :publish CEL
 IF %ERRORLEVEL% NEQ 0 (
-    exit /b %ERRORLEVEL%
+    goto :eof
 )
 cd MEL
 call :publish MEL
 IF %ERRORLEVEL% NEQ 0 (
-    exit /b %ERRORLEVEL%
+    goto :eof
 )
 cd REL
 call :publish REL
 IF %ERRORLEVEL% NEQ 0 (
-    exit /b %ERRORLEVEL%
+    goto :eof
 )
 cd SEL
 call :publish SEL
 IF %ERRORLEVEL% NEQ 0 (
-    exit /b %ERRORLEVEL%
+    goto :eof
 )
 cd MSW
 call :publish MSW
 IF %ERRORLEVEL% NEQ 0 (
-    exit /b %ERRORLEVEL%
+    goto :eof
 )
 
 cd "%cwd%"
 call :docker_build_all
 IF %ERRORLEVEL% NEQ 0 (
-    exit /b %ERRORLEVEL%
+    goto :eof
 )
 
 :eof
-cd "%cwd%"
-endlocal
-IF %ERRORLEVEL% NEQ 0 (
-    exit /b %ERRORLEVEL%
-)
+set "_final_exit=%ERRORLEVEL%"
+cd /d "%cwd%"
 echo Build stopped
-exit /b 0
+endlocal & exit /b %_final_exit%
 
 rem ======= all functions below =======
 
