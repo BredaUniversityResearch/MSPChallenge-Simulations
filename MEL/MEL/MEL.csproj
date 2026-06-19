@@ -11,13 +11,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Reference Include="EwECore">
-        <HintPath>..\..\DLLs\EwECore.dll</HintPath>
-      </Reference>
-      <PackageReference Include="Eii.Ecopath.EwEMSPLink" Version="1.0.2" />
-      <Reference Include="EwEUtils">
-        <HintPath>..\..\DLLs\EwEUtils.dll</HintPath>
-      </Reference>
+      <PackageReference Include="Eii.Ecopath.EwEMSPLink" Version="1.0.3-cEwEEFDatabase.*" />
     </ItemGroup>
 
     <ItemGroup>
@@ -48,7 +42,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
       <PackageReference Include="SkiaSharp" Version="3.119.4" />
       <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.119.4" />

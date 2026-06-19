@@ -9,23 +9,6 @@ echo * To skip the Start? confirmation:
 echo   build.bat "start=Y"
 echo.
 
-set ecopath_dir=..\Eii.Ecopath
-set ecopath_source_dir=%ecopath_dir%\Sources
-if not exist "%ecopath_source_dir%" (
-    echo Directory "%ecopath_source_dir%" does not exist. Please checkout the svn repo: https://github.com/Official-EwE/Eii.Ecopath/tree/cEwEEFDatabase to "%ecopath_dir%"
-    exit /b 1
-)
-set ewecore_dir=%ecopath_source_dir%\EwECore
-if not exist "%ewecore_dir%" (
-    echo Directory "%ewecore_dir%" does not exist.
-    exit /b 1
-)
-set eweutils_dir=%ecopath_source_dir%\EwEUtils
-if not exist "%eweutils_dir%" (
-    echo Directory "%eweutils_dir%" does not exist.
-    exit /b 1
-)
-
 @(
   setlocal
   for %%_ in (%*) do set "%%~_"
@@ -50,7 +33,6 @@ echo Output paths:
 call :show_output
 echo Configuration: %configuration%
 echo Target framework: %donetversion%
-echo Ecopath source: %ecopath_source_dir%
 echo Start? (Y/N)
 if /i "%start%" neq "Y" (
     >nul choice /c YN /n
@@ -61,68 +43,37 @@ if /i "%start%" neq "Y" (
 
 call :cleanup
 
-rem prepare required dlls for MSW
-call :build MSWSupport
-IF %ERRORLEVEL% NEQ 0 (
-    goto :eof
-)
-copy /y MSWSupport\MSWSupport\bin\%configuration%\%donetversion%\*.dll DLLs\
-copy /y MSWSupport\MSWSupport\bin\%configuration%\%donetversion%\*.pdb DLLs\
-rem prepare required dlls for SEL/REL
-call :build SELRELBridge
-IF %ERRORLEVEL% NEQ 0 (
-    goto :eof
-)
-copy /y SELRELBridge\SELRELBridge\bin\%configuration%\%donetversion%\SELRELBridge.dll DLLs\
-copy /y SELRELBridge\SELRELBridge\bin\%configuration%\%donetversion%\*.pdb DLLs\
-rem build referenced dlls, in right order
-call :build %eweutils_dir%
-IF %ERRORLEVEL% NEQ 0 (
-    goto :eof
-)
-call :build %ewecore_dir%
-IF %ERRORLEVEL% NEQ 0 (
-    goto :eof
-)
-rem prepare required dlls for MEL
-copy /y %ewecore_dir%\bin\%configuration%\%donetversion%\EwECore.dll DLLs\
-copy /y %ewecore_dir%\bin\%configuration%\%donetversion%\*.pdb DLLs\
-copy /y %eweutils_dir%\bin\%configuration%\%donetversion%\EwEUtils.dll DLLs\
-copy /y %eweutils_dir%\bin\%configuration%\%donetversion%\*.pdb DLLs\
-
-cd %ewecore_dir%
-call :publish .
-IF %ERRORLEVEL% NEQ 0 (
-    goto :eof
-)
-cd %eweutils_dir%
-call :publish .
+rem build entire solution
+echo.
+echo ===== Building solution =====
+call :run_dotnet_checked build "%cwd%\MSPChallenge-Simulations.sln" -c %configuration% -f %donetversion%
 IF %ERRORLEVEL% NEQ 0 (
     goto :eof
 )
 
-cd CEL
-call :publish CEL
+rem publish each project with its data files
+cd CEL\CEL
+call :publish .
 IF %ERRORLEVEL% NEQ 0 (
     goto :eof
 )
-cd MEL
-call :publish MEL
+cd %cwd%\MEL\MEL
+call :publish .
 IF %ERRORLEVEL% NEQ 0 (
     goto :eof
 )
-cd REL
-call :publish REL
+cd %cwd%\REL\REL
+call :publish .
 IF %ERRORLEVEL% NEQ 0 (
     goto :eof
 )
-cd SEL
-call :publish SEL
+cd %cwd%\SEL\SEL
+call :publish .
 IF %ERRORLEVEL% NEQ 0 (
     goto :eof
 )
-cd MSW
-call :publish MSW
+cd %cwd%\MSW\MSW
+call :publish .
 IF %ERRORLEVEL% NEQ 0 (
     goto :eof
 )
@@ -141,57 +92,22 @@ endlocal & exit /b %_final_exit%
 
 rem ======= all functions below =======
 
-:build
-echo.
-echo ===== build: %~1 =====
-if not exist "%1" (
-    echo Could not find "%1"
-    set ERRORLEVEL=1
-    goto eof
-)
-cd /d "%1"
-if %ERRORLEVEL% NEQ 0 (
-    echo Failed to change directory to "%1"
-    exit /b %ERRORLEVEL%
-)
-echo Working directory: %cd%
-
-for %%A in (%1) do set "project_basename=%%~nxA"
-set vbproj_file=%project_basename%_dotnet.vbproj
-set "project_file="
-if exist "%vbproj_file%" (
-    set "project_file=%vbproj_file%"
-) else (
-    for %%F in (*.vbproj *.csproj *.sln) do (
-        if not defined project_file set "project_file=%%F"
-    )
-)
-
-if not defined project_file (
-    echo No .vbproj/.csproj/.sln file found in "%cd%".
-    exit /b 1
-)
-
-echo Project selected: %project_file%
-call :run_dotnet_checked build "%project_file%" -c %configuration% -f %donetversion%
-IF %ERRORLEVEL% NEQ 0 (
-    exit /b %ERRORLEVEL%
-)
-cd "%cwd%"
-exit /b 0
 
 :publish
 
-if not exist "%1" (
-    echo Could not find "%1"
-    set ERRORLEVEL=1
-    goto eof
-)
 set "target=%publish_target%"
 set target_dir=%output_path%\%target%
-set source_dir=%1\bin\%configuration%\%donetversion%\%target%\publish
-set target_data_dir=%target_dir%\%1data
-set source_data_dir=%source_dir%\%1data
+
+rem Extract project name from current directory if %1 is "."
+if "%1" == "." (
+    for %%A in (%cd%) do set "project_name=%%~nxA"
+) else (
+    set "project_name=%1"
+)
+
+set source_dir=%cd%\bin\%configuration%\%donetversion%\%target%\publish
+set target_data_dir=%target_dir%\%project_name%data
+set source_data_dir=%source_dir%\%project_name%data
 
 echo Publishing to %target%...
 for %%A in (%cd%) do set "project_basename=%%~nxA"
@@ -209,13 +125,11 @@ mkdir %target_dir% > nul 2> nul
 echo %cd%
 echo copy /y %source_dir%\* %target_dir%
 copy /y %source_dir%\* %target_dir%
-if "%1" NEQ "." (
-	echo %target_data_dir%
-	mkdir %target_data_dir% > nul 2> nul
-	echo %api_version% > %target_data_dir%\version.txt
-	if exist "%source_data_dir%" (
-		copy /y %source_data_dir%\* %target_data_dir%
-	)
+echo %target_data_dir%
+mkdir %target_data_dir% > nul 2> nul
+echo %api_version% > %target_data_dir%\version.txt
+if exist "%source_data_dir%" (
+	copy /y %source_data_dir%\* %target_data_dir%
 )
 cd "%cwd%"
 exit /b 0
