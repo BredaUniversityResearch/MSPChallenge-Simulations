@@ -496,7 +496,21 @@ namespace MEL
 		{
 			while (backgroundTasks.Count > 0)
 			{
-				backgroundTasks[0].Wait();
+				try
+				{
+					backgroundTasks[0].Wait();
+				}
+				catch (AggregateException ex)
+				{
+					ConsoleLogger.Error(
+						$"Background task failed with {ex.InnerExceptions.Count} error(s). " +
+						$"Errors: {string.Join("; ", ex.InnerExceptions.Select(e => e.Message))}",
+						ex);
+				}
+				catch (Exception ex)
+				{
+					ConsoleLogger.Error("Background task failed with unexpected exception", ex);
+				}
 				backgroundTasks.RemoveAt(0);
 			}
 		}

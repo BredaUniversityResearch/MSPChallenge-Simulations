@@ -30,7 +30,7 @@ namespace REL.API
 			NameValueCollection data = new NameValueCollection {
 				{"simulated_month", a_simulatedMonth.ToString()}
 			};
-			return RequestAndDeserialize<MSPAPIDate>("/api/Game/GetActualDateForSimulatedMonth", data);
+			return RequestAndDeserialize<MSPAPIDate>("/api/game/GetActualDateForSimulatedMonth", data);
 		}
 
 		public MSPAPIGeometry[] GetGeometry()

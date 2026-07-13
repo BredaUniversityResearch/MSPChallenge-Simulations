@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Drawing;
 using System.IO;
 using SEL.SpatialMapping;
 using SEL.Util;
+using SkiaSharp;
 
 namespace SEL
 {
@@ -28,19 +28,19 @@ namespace SEL
 			m_fullWorldBounds = fullWorldBounds;
 		}
 
-		public Point WorldToRasterSpace(Vector2D position, bool flipY = true)
+		public SKPointI WorldToRasterSpace(Vector2D position, bool flipY = true)
 		{
 			double x = (position.x - m_fullWorldBounds.min.x) * m_drawScaleX;
 			double y = (position.y - m_fullWorldBounds.min.y) * m_drawScaleY;
-			Point result;
+			SKPointI result;
 			if (flipY)
 			{
-				result = new Point((int)Math.Floor(x), (int)Math.Round(m_resolutionY - y));
+				result = new SKPointI((int)Math.Floor(x), (int)Math.Round(m_resolutionY - y));
 			}
 			else
 			{
 				//I'm not entirely sure why we need different rounding modes on the X axis but this works. If we don't round this differently we are off-by-one with the raster alignments.
-				result = new Point((int)Math.Ceiling(x), (int)Math.Round(y));
+				result = new SKPointI((int)Math.Ceiling(x), (int)Math.Round(y));
 			}
 
 			return result;
@@ -64,7 +64,7 @@ namespace SEL
 		}
 
 		public abstract void Clear();
-		protected abstract void RenderLine(Point from, Point to, int intensityValue);
+		protected abstract void RenderLine(SKPointI from, SKPointI to, int intensityValue);
 
 		public void RenderEdge(GeometryEdge edge, int edgeIntensityInShipCalls)
 		{

@@ -13,6 +13,7 @@ namespace MSW
 	{
 		private readonly AvailableSimulationVersion m_simulationVersion = null;
 		private readonly string m_targetApiEndpoint;
+		private readonly int m_mswPort;
 		private Process m_runningProcess = null;
 		private string m_pipeName;
 		private NamedPipeServerStream m_communicationPipeServer;
@@ -21,7 +22,7 @@ namespace MSW
 
 		private ApiAccessToken m_currentApiAccessToken;
 
-		public RunningSimulation(AvailableSimulationVersion a_config, string a_apiEndpoint, ApiAccessToken a_currentApiAccessToken)
+		public RunningSimulation(AvailableSimulationVersion a_config, string a_apiEndpoint, ApiAccessToken a_currentApiAccessToken, int a_mswPort)
 		{
 			m_pipeName = $"MSW_Pipe_{a_config.SimulationType}_${Guid.NewGuid()}";
 			m_communicationPipeServer = new NamedPipeServerStream(m_pipeName, PipeDirection.Out);
@@ -29,16 +30,27 @@ namespace MSW
 			m_simulationVersion = a_config;
 			m_targetApiEndpoint = a_apiEndpoint;
 			m_currentApiAccessToken = a_currentApiAccessToken;
+			m_mswPort = a_mswPort;
 			StartSimulation();
 		}
 
 		private void StartSimulation()
 		{
+			if (m_communicationPipeServer == null)
+			{
+				m_communicationPipeServer = new NamedPipeServerStream(m_pipeName, PipeDirection.Out);
+			}
+
 			StringBuilder arguments = new StringBuilder(128);
 			arguments.Append("MSWPipe=");
 			arguments.Append(m_pipeName);
 			arguments.Append(" APIEndpoint=");
 			arguments.Append(m_targetApiEndpoint);
+			arguments.Append(" ");
+			arguments.Append(MSWSupport.MSWConstants.MSWEndpointCommandLineArgument);
+			arguments.Append("=http://localhost:");
+			arguments.Append(m_mswPort);
+			arguments.Append("/Watchdog/");
 
 			string executable = Path.GetFullPath(m_simulationVersion.TargetExecutableFullPath);
 			string workingDirectory = Path.GetDirectoryName(executable);
@@ -48,7 +60,7 @@ namespace MSW
 			ProcessStartInfo startInfo = new ProcessStartInfo(executable, arguments.ToString())
 			{
 				WorkingDirectory = workingDirectory,
-				UseShellExecute = true
+				UseShellExecute = false
 			};
 
 			// Pass all environment variables to the child process
@@ -67,7 +79,28 @@ namespace MSW
 			if (m_runningProcess == null || m_runningProcess.HasExited)
 			{
 				ConsoleLogger.Info($"Simulation {m_simulationVersion.GetSimulationTypeAndVersion()} should be running but is not. Restarting...");
+				CleanupPipeServer();
 				StartSimulation();
+			}
+		}
+
+		private void CleanupPipeServer()
+		{
+			try
+			{
+				if (m_communicationPipeServer != null)
+				{
+					if (m_communicationPipeServer.IsConnected)
+					{
+						m_communicationPipeServer.Disconnect();
+					}
+					m_communicationPipeServer.Dispose();
+					m_communicationPipeServer = null;
+				}
+			}
+			catch (Exception ex)
+			{
+				ConsoleLogger.Warning($"Error cleaning up pipe server for {m_pipeName}", ex);
 			}
 		}
 

@@ -16,7 +16,8 @@
 
     <ItemGroup>
       <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-      <PackageReference Include="System.Security.Permissions" Version="5.0.0" />
+      <PackageReference Include="SkiaSharp" Version="3.119.4" />
+      <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.119.4" />
     </ItemGroup>
 
     <ItemGroup>

@@ -16,6 +16,16 @@ namespace MSWSupport
 	{
 		private const int DEFAULT_API_UNAUTHORIZED_SLEEP_SEC = 4;
 		private const string DEFAULT_API_UNAUTHORIZED_MESSAGE_FORMAT = "API refused access... Waiting {0} sec and retrying";
+		private const int DEFAULT_TRANSIENT_HTTP_MAX_ATTEMPTS = 4;
+		private const int DEFAULT_TRANSIENT_HTTP_BASE_DELAY_MS = 500;
+		private const int DEFAULT_TRANSIENT_HTTP_MAX_DELAY_MS = 8000;
+
+		/// <summary>
+		/// Fired whenever an API call receives a 401 Unauthorized response.
+		/// The string parameter is the server base URL that returned the 401.
+		/// Subscribers (e.g. MswClientNotifier) use this to notify MSW for immediate token renewal.
+		/// </summary>
+		public static event Action<string>? OnUnauthorizedAccess;
 
 		[SuppressMessage("ReSharper", "InconsistentNaming")]
 		public class ApiResponseWrapper
@@ -109,47 +119,91 @@ namespace MSWSupport
 			NameValueCollection? postValues = null,
 			bool logServerResponseLogs = false
 		) {
-			string fullServerUrl = $"{serverUrl}{apiUrl}";
+			string fullServerUrl = BuildFullApiUrl(serverUrl, apiUrl);
 			string response = null;
 			try
 			{
-				response = HttpGet(fullServerUrl, currentAccessToken, postValues);
+				int attempt = 1;
+				while (true)
+				{
+					try
+					{
+						response = HttpGet(fullServerUrl, currentAccessToken, postValues);
+						break;
+					}
+					catch (WebException ex)
+					{
+						if (!ShouldRetryWebException(ex, attempt, out int delayMs, out string retryReason))
+						{
+							throw;
+						}
+						ConsoleLogger.Warning(
+							$"ApiRequest::Perform transient failure for {fullServerUrl} ({retryReason}). Retrying in {delayMs} ms (attempt {attempt + 1}/{DEFAULT_TRANSIENT_HTTP_MAX_ATTEMPTS})",
+							ex
+						);
+						Thread.Sleep(delayMs);
+						attempt++;
+					}
+				}
 			}
 			catch (WebException ex)
 			{
-				if (null != ex.Response &&
-					((HttpWebResponse)ex.Response).StatusCode == HttpStatusCode.Unauthorized)
+				HttpWebResponse? httpResponse = ex.Response as HttpWebResponse;
+				if (httpResponse != null && httpResponse.StatusCode == HttpStatusCode.Unauthorized)
 				{
+					OnUnauthorizedAccess?.Invoke(serverUrl);
 					throw new ApiUnauthorizedWebException(ex); // allow child code to handle this one
 				}
-				if (null != ex.Response &&
-					((HttpWebResponse)ex.Response).StatusCode == HttpStatusCode.Gone)
+				if (httpResponse != null && httpResponse.StatusCode == HttpStatusCode.Gone)
 				{
 					throw new SessionApiGoneWebException(ex); // allow child code to handle this one
 				}
+
 				string? responseBody = null;
-				if (null != ex.Response)
+				if (ex.Response != null)
 				{
-					using var stream = ex.Response.GetResponseStream();
-					using var reader = new StreamReader(stream);
-					responseBody = reader.ReadToEnd();
+					try
+					{
+						using var stream = ex.Response.GetResponseStream();
+						if (stream != null)
+						{
+							using var reader = new StreamReader(stream);
+							responseBody = reader.ReadToEnd();
+						}
+					}
+					catch (Exception responseReadException)
+					{
+						ConsoleLogger.Warning($"ApiRequest::Perform for {fullServerUrl} failed to read error response body", responseReadException);
+					}
 				}
 
-				string? responseMessage = null;
-			    // To get the message field from the JSON response:
-			    if (!string.IsNullOrEmpty(responseBody))
-			    {
-			        var json = JObject.Parse(responseBody);
-			        responseMessage = json["message"]?.ToString();
-			    }
+				string? responseMessage = TryExtractMessageFromJsonResponse(responseBody);
+				string statusCode = httpResponse != null ? ((int)httpResponse.StatusCode).ToString() : "unknown";
+				string statusDescription = httpResponse?.StatusDescription ?? "n/a";
+				string contentType = ex.Response?.ContentType ?? "unknown";
 
 				var contextDict = new Dictionary<string, object>();
 				contextDict.Add("exception", ConsoleLogger.SerializeException(ex));
-			    if (!string.IsNullOrEmpty(responseMessage))
-			    {
-				    contextDict.Add("message", responseMessage);
-			    }
-				ConsoleLogger.Warning($"ApiRequest::Perform for {fullServerUrl} failed with exception: {ex.Message}", contextDict);
+				contextDict.Add("statusCode", statusCode);
+				contextDict.Add("statusDescription", statusDescription);
+				contextDict.Add("contentType", contentType);
+				if (!string.IsNullOrEmpty(responseMessage))
+				{
+					contextDict.Add("message", responseMessage);
+				}
+				if (!string.IsNullOrEmpty(responseBody))
+				{
+					contextDict.Add("responseBodySnippet", ClipForLog(responseBody));
+				}
+				ConsoleLogger.Warning($"ApiRequest::Perform for {fullServerUrl} failed with HTTP error: {ex.Message}", contextDict);
+				responsePayload = null;
+				return false;
+			}
+			catch (Exception ex)
+			{
+				var contextDict = new Dictionary<string, object>();
+				contextDict.Add("exception", ConsoleLogger.SerializeException(ex));
+				ConsoleLogger.Warning($"ApiRequest::Perform for {fullServerUrl} failed with unexpected exception", contextDict);
 				responsePayload = null;
 				return false;
 			}
@@ -178,7 +232,7 @@ namespace MSWSupport
 			ConsoleLogger.Info(
 				"Server response logs for " + fullServerUrl +
 					(
-						postValues.Count  == 0 ? "" : " with post values\n" +
+						postValues == null || postValues.Count == 0 ? "" : " with post values\n" +
 						    JsonConvert.SerializeObject(
 							    postValues.AllKeys.Take(5).ToDictionary(
 								    k => k,
@@ -201,6 +255,130 @@ namespace MSWSupport
 			}
 			return true;
 		}
+
+		private static string BuildFullApiUrl(string serverUrl, string apiUrl)
+		{
+			if (string.IsNullOrWhiteSpace(serverUrl))
+			{
+				return apiUrl ?? string.Empty;
+			}
+			if (string.IsNullOrWhiteSpace(apiUrl))
+			{
+				return serverUrl;
+			}
+			return serverUrl.TrimEnd('/') + "/" + apiUrl.TrimStart('/');
+		}
+
+		private static bool ShouldRetryWebException(WebException ex, int attempt, out int delayMs, out string retryReason)
+		{
+			delayMs = 0;
+			retryReason = "";
+			if (attempt >= DEFAULT_TRANSIENT_HTTP_MAX_ATTEMPTS)
+			{
+				return false;
+			}
+
+			if (ex.Response is HttpWebResponse httpResponse)
+			{
+				if (!IsTransientStatusCode(httpResponse.StatusCode))
+				{
+					return false;
+				}
+				retryReason = $"HTTP {(int)httpResponse.StatusCode} {httpResponse.StatusDescription}";
+			}
+			else
+			{
+				if (!IsTransientWebExceptionStatus(ex.Status))
+				{
+					return false;
+				}
+				retryReason = $"WebExceptionStatus.{ex.Status}";
+			}
+
+			delayMs = ComputeRetryDelayMs(attempt);
+			return true;
+		}
+
+		private static bool IsTransientStatusCode(HttpStatusCode statusCode)
+		{
+			return statusCode switch
+			{
+				HttpStatusCode.RequestTimeout => true,
+				HttpStatusCode.BadGateway => true,
+				HttpStatusCode.ServiceUnavailable => true,
+				HttpStatusCode.GatewayTimeout => true,
+				(HttpStatusCode)429 => true,
+				_ => false
+			};
+		}
+
+		private static bool IsTransientWebExceptionStatus(WebExceptionStatus status)
+		{
+			return status == WebExceptionStatus.Timeout ||
+			       status == WebExceptionStatus.ConnectFailure ||
+			       status == WebExceptionStatus.NameResolutionFailure ||
+			       status == WebExceptionStatus.ProxyNameResolutionFailure ||
+			       status == WebExceptionStatus.ConnectionClosed ||
+			       status == WebExceptionStatus.ReceiveFailure ||
+			       status == WebExceptionStatus.SendFailure ||
+			       status == WebExceptionStatus.KeepAliveFailure;
+		}
+
+		private static int ComputeRetryDelayMs(int attempt)
+		{
+			int exponent = Math.Max(0, attempt - 1);
+			int backoffMs = DEFAULT_TRANSIENT_HTTP_BASE_DELAY_MS * (1 << Math.Min(exponent, 5));
+			return Math.Min(backoffMs, DEFAULT_TRANSIENT_HTTP_MAX_DELAY_MS);
+		}
+
+		private static string? TryExtractMessageFromJsonResponse(string? responseBody)
+		{
+			if (string.IsNullOrWhiteSpace(responseBody))
+			{
+				return null;
+			}
+
+			string trimmed = responseBody.TrimStart();
+			if (trimmed.StartsWith("<"))
+			{
+				ConsoleLogger.Warning(
+					"ApiRequest received a non-JSON error response body (looks like HTML/XML).",
+					new Dictionary<string, object>
+					{
+						{ "responseBodySnippet", ClipForLog(responseBody) }
+					}
+				);
+				return null;
+			}
+
+			try
+			{
+				var json = JObject.Parse(responseBody);
+				return json["message"]?.ToString();
+			}
+			catch (JsonReaderException ex)
+			{
+				ConsoleLogger.Warning(
+					"ApiRequest received an error response body that is not valid JSON.",
+					new Dictionary<string, object>
+					{
+						{ "exception", ConsoleLogger.SerializeException(ex) },
+						{ "responseBodySnippet", ClipForLog(responseBody) }
+					}
+				);
+				return null;
+			}
+		}
+
+		private static string ClipForLog(string data, int maxLength = 400)
+		{
+			if (string.IsNullOrEmpty(data) || data.Length <= maxLength)
+			{
+				return data;
+			}
+			return data.Substring(0, maxLength) + "...";
+		}
+
 		private static TOutputType DeserializeJson<TOutputType>(string jsonData)
 		{
 			try

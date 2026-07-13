@@ -24,6 +24,7 @@ namespace MEL
 			}
 
             MEL mel = new MEL();
+            MswClientNotifier.Initialize();
             mel.WaitForApiAccess();
             while(true) {
 				System.Threading.Thread.Sleep(MEL.TICK_DELAY_MS);

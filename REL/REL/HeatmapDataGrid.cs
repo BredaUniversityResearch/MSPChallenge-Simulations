@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
-using System.Runtime.InteropServices;
+using SkiaSharp;
 
 namespace REL
 {
@@ -43,36 +41,20 @@ namespace REL
 
 		public void WriteImageAsPngToStream(Stream a_targetStream)
 		{
-			int stride = (m_width + 3) & ~0x3; //Round up to a multiple of 4
-			byte[] colourBits = new byte[stride * m_height];
-			GCHandle colourBitsHandle = GCHandle.Alloc(colourBits, GCHandleType.Pinned);
-
-			using (Bitmap image = new(m_width, m_height, stride, PixelFormat.Format8bppIndexed, colourBitsHandle.AddrOfPinnedObject()))
+			using SKBitmap image = new(m_width, m_height, SKColorType.Bgra8888, SKAlphaType.Opaque);
+			for (int y = 0; y < m_height; ++y)
 			{
-				//Build a grayscale colour palette.
-				ColorPalette palette = image.Palette;
-				for (int i = 0; i < 255; ++i)
+				for (int x = 0; x < m_width; ++x)
 				{
-					palette.Entries[i] = Color.FromArgb(255, i, i, i);
+					float mappedValue = m_outputData[x + (y * m_width)];
+					byte mappedColourValue = (byte)(mappedValue * 255.0f);
+					image.SetPixel(x, y, new SKColor(mappedColourValue, mappedColourValue, mappedColourValue, 255));
 				}
-				image.Palette = palette;
-
-				for (int y = 0; y < m_height; ++y)
-				{
-					for (int x = 0; x < m_width; ++x)
-					{
-						//float mappedValue = Math.Max(0.0f, Math.Min(valueMapper.Map(m_intensityRaster[x + (y * Width)]), 1.0f));
-						float mappedValue = m_outputData[x + (y * m_width)];
-						byte mappedColourValue = (byte)(mappedValue * 255.0f);
-						colourBits[x + (y * stride)] = mappedColourValue;
-					}
-				}
-
-
-				image.Save(a_targetStream, ImageFormat.Png);
 			}
 
-			colourBitsHandle.Free();
+			using SKImage skImage = SKImage.FromBitmap(image);
+			using SKData encoded = skImage.Encode(SKEncodedImageFormat.Png, 100);
+			encoded.SaveTo(a_targetStream);
 		}
 
 		public void PlotLine(Vector2D a_from, Vector2D a_to, float a_value)

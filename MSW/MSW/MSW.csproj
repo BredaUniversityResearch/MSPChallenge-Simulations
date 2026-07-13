@@ -8,15 +8,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="System.Security.Permissions" Version="5.0.0" />
-        <!-- added to match EwE and to prevent this missing -->
-        <PackageReference Include="System.Text.Json" Version="10.0.8">
-          <ExcludeAssets>none</ExcludeAssets>
-          <IncludeAssets>all</IncludeAssets>
-        </PackageReference>
-    </ItemGroup>
-
-    <ItemGroup>
         <None Update="MSWdata\MSW_config.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>

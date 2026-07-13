@@ -15,7 +15,14 @@ namespace MSW
 	{
 		private class ServerData
 		{
+			/// <summary>Full token renewal interval (proactive keep-alive).</summary>
 			private const long TokenCheckIntervalSec = 900;
+
+			/// <summary>
+			/// Lightweight token validity probe interval.
+			/// If the token is invalid at probe time MSW renews immediately.
+			/// </summary>
+			private const long TokenHealthCheckIntervalSec = 60;
 
 			public readonly string ServerApiRoot;
 			public readonly string ServerWatchdogToken;
@@ -26,6 +33,12 @@ namespace MSW
 			private ApiAccessToken m_recoveryToken;
 			private Task m_checkTokenTask = null;
 			private DateTime m_lastTokenCheckTime;
+			private DateTime m_lastHealthCheckTime = DateTime.MinValue;
+
+			/// <summary>Set to true by TriggerImmediateTokenRenewal to request out-of-schedule renewal.</summary>
+			private volatile bool m_immediateRenewalRequested = false;
+
+			private readonly int m_mswPort;
 
 			public EGameState CurrentState
 			{
@@ -39,13 +52,14 @@ namespace MSW
 				private set;
 			}
 
-			public ServerData(string a_serverApiRoot, string a_serverWatchdogToken, AvailableSimulationVersion[] a_configuredSimulations, ApiAccessToken a_currentAccessToken, ApiAccessToken a_recoveryToken)
+			public ServerData(string a_serverApiRoot, string a_serverWatchdogToken, AvailableSimulationVersion[] a_configuredSimulations, ApiAccessToken a_currentAccessToken, ApiAccessToken a_recoveryToken, int a_mswPort)
 			{
 				ServerApiRoot = a_serverApiRoot;
 				ServerWatchdogToken = a_serverWatchdogToken;
 				ConfiguredSimulations = a_configuredSimulations;
 				m_currentAccessToken = a_currentAccessToken;
 				m_recoveryToken = a_recoveryToken;
+				m_mswPort = a_mswPort;
 
 				m_lastTokenCheckTime = DateTime.Now;
 			}
@@ -57,7 +71,7 @@ namespace MSW
 
 			private void StartSimulationOfType(AvailableSimulationVersion a_simulationVersion)
 			{
-				RunningSimulation simulation = new RunningSimulation(a_simulationVersion, ServerApiRoot, m_currentAccessToken);
+				RunningSimulation simulation = new RunningSimulation(a_simulationVersion, ServerApiRoot, m_currentAccessToken, m_mswPort);
 				RunningSimulations.Add(simulation);
 			}
 
@@ -119,16 +133,46 @@ namespace MSW
 				m_recoveryToken.SetToken(token);
 			}
 
+			/// <summary>
+			/// Signals MSW to renew the token on the next UpdateAccessTokens tick instead of waiting
+			/// for the regular 900-second interval. Called when a simulation reports a 401.
+			/// </summary>
+			public void TriggerImmediateTokenRenewal(string reason)
+			{
+				ConsoleLogger.Warning($"Immediate token renewal requested for {ServerApiRoot}: {reason}");
+				m_immediateRenewalRequested = true;
+			}
+
 			public void UpdateAccessTokens()
 			{
+				// Skip if a task is already in progress
+				if (m_checkTokenTask != null && !m_checkTokenTask.IsCompleted)
+					return;
+
+				// Highest priority: immediate renewal requested by a simulation reporting 401
+				if (m_immediateRenewalRequested)
+				{
+					m_immediateRenewalRequested = false;
+					ConsoleLogger.Info($"Executing immediate token renewal for {ServerApiRoot}");
+					m_lastTokenCheckTime = DateTime.Now; // reset regular timer
+					m_lastHealthCheckTime = DateTime.Now; // reset health-check timer
+					m_checkTokenTask = Task.Run(CheckTokenTask);
+					return;
+				}
+
+				// Scheduled 900-second full renewal
 				if ((DateTime.Now - m_lastTokenCheckTime).TotalSeconds > TokenCheckIntervalSec)
 				{
-					if (m_checkTokenTask == null || m_checkTokenTask.IsCompleted)
-					{
-						m_checkTokenTask = Task.Run(CheckTokenTask);
-					}
-
 					m_lastTokenCheckTime = DateTime.Now;
+					m_checkTokenTask = Task.Run(CheckTokenTask);
+					return;
+				}
+
+				// Proactive 60-second health probe – renews only if the token is actually invalid
+				if ((DateTime.Now - m_lastHealthCheckTime).TotalSeconds > TokenHealthCheckIntervalSec)
+				{
+					m_lastHealthCheckTime = DateTime.Now;
+					m_checkTokenTask = Task.Run(HealthCheckTask);
 				}
 			}
 
@@ -139,6 +183,58 @@ namespace MSW
 					simulation.PingCommunicationPipe();
 				}
 				RenewToken();
+			}
+
+			/// <summary>
+			/// Calls a lightweight API endpoint to verify the current token.
+			/// If a 401 is received the token has expired and is renewed immediately.
+			/// Other errors (network, server down) are logged but do not trigger renewal.
+			/// </summary>
+			private void HealthCheckTask()
+			{
+				foreach (RunningSimulation simulation in RunningSimulations)
+				{
+					simulation.PingCommunicationPipe();
+				}
+
+				bool tokenValid = true;
+				try
+				{
+					bool isOnline = APIRequest.Perform(
+						ServerApiRoot,
+						"api/game/IsOnline",
+						out string _,
+						m_currentAccessToken.GetTokenAsString(),
+						new NameValueCollection()
+					);
+					if (isOnline)
+					{
+						ConsoleLogger.Info($"Token health check OK for {ServerApiRoot}");
+					}
+					else
+					{
+						ConsoleLogger.Warning($"Token health check: API not online for {ServerApiRoot}");
+					}
+				}
+				catch (ApiUnauthorizedWebException)
+				{
+					ConsoleLogger.Warning($"Token health check received 401 Unauthorized for {ServerApiRoot} – renewing token immediately");
+					tokenValid = false;
+				}
+				catch (Exception ex)
+				{
+					// Network error or server down – don't renew, wait for next probe
+					ConsoleLogger.Warning($"Token health check failed for {ServerApiRoot}: {ex.Message}");
+				}
+
+				if (!tokenValid)
+				{
+					RenewToken();
+				}
+				else
+				{
+					m_checkTokenTask = null;
+				}
 			}
 
 			private void RenewToken()
@@ -180,12 +276,15 @@ namespace MSW
 		private RestApiController m_restApiController;
 		private RestEndpointUpdateState m_updateStateEndpoint;
 		private RestEndpointSetMonth m_setMonthEndpoint;
+		private RestEndpointReportUnauthorized m_reportUnauthorizedEndpoint;
 		private List<AvailableSimulation> m_availableSimulations = new List<AvailableSimulation>(8);
+		private readonly int m_restApiPort;
 
 		private MSWPipeDebugConnector m_debugConnector = null;
 
 		public Watchdog(int a_restApiPort = RestApiController.DEFAULT_PORT)
 		{
+			m_restApiPort = a_restApiPort;
 			m_restApiController = new RestApiController(a_restApiPort);
 			m_debugConnector = new MSWPipeDebugConnector(FindServerSimulationPipeNameByWatchdogToken);
 			foreach (SimulationConfig config in MswConfig.Instance.GetAllSimulationConfig())
@@ -195,8 +294,10 @@ namespace MSW
 
 			m_updateStateEndpoint = new RestEndpointUpdateState(m_availableSimulations.ToArray());
 			m_setMonthEndpoint = new RestEndpointSetMonth();
+			m_reportUnauthorizedEndpoint = new RestEndpointReportUnauthorized(HandleReportUnauthorized);
 			m_restApiController.AddEndpoint(m_updateStateEndpoint);
 			m_restApiController.AddEndpoint(m_setMonthEndpoint);
+			m_restApiController.AddEndpoint(m_reportUnauthorizedEndpoint);
 		}
 
 		public void Tick()
@@ -312,7 +413,7 @@ namespace MSW
 						}
 					}
 
-					ServerData data = new ServerData(a_request.GameSessionApi, a_request.GameSessionToken, targetSimulationVersions, a_request.AccessToken, a_request.RecoveryToken);
+					ServerData data = new ServerData(a_request.GameSessionApi, a_request.GameSessionToken, targetSimulationVersions, a_request.AccessToken, a_request.RecoveryToken, m_restApiPort);
 					m_activeServers.Add(data);
 					data.EnsureSimulationsRunning();
 					data.SetCurrentState(a_request.GameState);
@@ -327,6 +428,26 @@ namespace MSW
 		private ServerData? FindServerDataForSessionToken(string a_sessionToken)
 		{
 			return m_activeServers.Find(a_obj => a_obj.ServerWatchdogToken == a_sessionToken);
+		}
+
+		/// <summary>
+		/// Called by RestEndpointReportUnauthorized when a simulation has received a 401 from
+		/// the game server. Triggers immediate token renewal for the matching server session.
+		/// </summary>
+		private void HandleReportUnauthorized(string gameSessionApi)
+		{
+			ServerData data = m_activeServers.Find(s =>
+				string.Equals(s.ServerApiRoot, gameSessionApi, StringComparison.OrdinalIgnoreCase) ||
+				gameSessionApi.StartsWith(s.ServerApiRoot, StringComparison.OrdinalIgnoreCase));
+
+			if (data != null)
+			{
+				data.TriggerImmediateTokenRenewal($"simulation reported 401 for {gameSessionApi}");
+			}
+			else
+			{
+				ConsoleLogger.Warning($"ReportUnauthorized: no active server session found matching {gameSessionApi}");
+			}
 		}
 
 		private string FindServerSimulationPipeNameByWatchdogToken(string a_watchdogToken, string a_simulationType)

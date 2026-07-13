@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using MSWSupport;
+using SkiaSharp;
 
 namespace SEL
 {
@@ -28,9 +27,9 @@ namespace SEL
 				return (float)m_graphicSize - (float)((pos.y - m_originY) * m_drawScale);
 			}
 
-			public PointF TransformPoint(Vector2D position)
+			public SKPoint TransformPoint(Vector2D position)
 			{
-				return new PointF(TransformX(position), TransformY(position));
+				return new SKPoint(TransformX(position), TransformY(position));
 			}
 		}
 
@@ -44,32 +43,30 @@ namespace SEL
 			ConsoleLogger.Info("Creating Edge Map...");
 			DrawParameters parameters = CreateDrawParameters(routeManager.GetVertices(), dimensionsInPixels);
 
-			using (Bitmap debugMap = new Bitmap(dimensionsInPixels, dimensionsInPixels))
+			using (SKBitmap debugMap = new SKBitmap(dimensionsInPixels, dimensionsInPixels, SKColorType.Bgra8888, SKAlphaType.Premul))
 			{
-				using (Graphics graphic = Graphics.FromImage(debugMap))
+				using (SKCanvas graphic = new SKCanvas(debugMap))
 				{
-					graphic.Clear(Color.White);
+					graphic.Clear(SKColors.White);
 
-					RenderLaneVertices(routeManager, graphic, parameters, Color.Red, true);
+					RenderLaneVertices(routeManager, graphic, parameters, SKColors.Red, true);
 					RenderRestrictionEdges(routeManager, graphic, parameters);
 
-					Pen persistentEdge = new Pen(Color.Blue, 1.0f);
-					Pen implicitEdge = new Pen(Color.FromArgb(255, 0, 0, 0), 1.0f);
+					using SKPaint persistentEdge = new SKPaint { Color = SKColors.Blue, StrokeWidth = 1.0f, Style = SKPaintStyle.Stroke, IsAntialias = true };
+					using SKPaint implicitEdge = new SKPaint { Color = SKColors.Black, StrokeWidth = 1.0f, Style = SKPaintStyle.Stroke, IsAntialias = true };
 					foreach (LaneEdge edge in routeManager.GetEdges())
 					{
-						Pen edgePen = (edge.m_laneType == ELaneEdgeType.Implicit) ? implicitEdge : persistentEdge;
-						Color edgeColor = Color.FromArgb(edgePen.Color.A, edgePen.Color.R, (int)(255.0f * edge.GetRestrictionOverlapAmount()), edgePen.Color.B);
-						Pen drawPen = new Pen(edgeColor, 1.0f);
+						SKPaint edgePaint = (edge.m_laneType == ELaneEdgeType.Implicit) ? implicitEdge : persistentEdge;
+						byte restricted = (byte)Math.Clamp((int)(255.0f * edge.GetRestrictionOverlapAmount()), 0, 255);
+						SKColor edgeColor = new SKColor(edgePaint.Color.Red, restricted, edgePaint.Color.Blue, edgePaint.Color.Alpha);
+						using SKPaint drawPaint = new SKPaint { Color = edgeColor, StrokeWidth = 1.0f, Style = SKPaintStyle.Stroke, IsAntialias = true };
 
-						graphic.DrawLine(drawPen, parameters.TransformX(edge.m_from.position), parameters.TransformY(edge.m_from.position), parameters.TransformX(edge.m_to.position), parameters.TransformY(edge.m_to.position));
+						graphic.DrawLine(parameters.TransformX(edge.m_from.position), parameters.TransformY(edge.m_from.position), parameters.TransformX(edge.m_to.position), parameters.TransformY(edge.m_to.position), drawPaint);
 					}
 				}
 
 				Directory.CreateDirectory("Output/");
-				using (FileStream stream = new FileStream("Output/EdgeMap.png", FileMode.Create))
-				{
-					debugMap.Save(stream, ImageFormat.Png);
-				}
+				SaveBitmap(debugMap, "Output/EdgeMap.png");
 			}
 
 			ConsoleLogger.Info("Finished Edge Map");
@@ -84,29 +81,26 @@ namespace SEL
 			{
 				ConsoleLogger.Info($"Creating Route Map {routeCounter} / {routeManager.GetAvailableRouteCount()}");
 				++routeCounter;
-				using (Bitmap debugMap = new Bitmap(dimensionsInPixels, dimensionsInPixels))
+				using (SKBitmap debugMap = new SKBitmap(dimensionsInPixels, dimensionsInPixels, SKColorType.Bgra8888, SKAlphaType.Premul))
 				{
-					using (Graphics graphic = Graphics.FromImage(debugMap))
+					using (SKCanvas graphic = new SKCanvas(debugMap))
 					{
-						graphic.Clear(Color.White);
-						RenderLaneVertices(routeManager, graphic, parameters, Color.Red, true);
+						graphic.Clear(SKColors.White);
+						RenderLaneVertices(routeManager, graphic, parameters, SKColors.Red, true);
 						RenderRestrictionEdges(routeManager, graphic, parameters);
-						Pen routePen = new Pen(Color.Magenta, 1.0f);
+						using SKPaint routePen = new SKPaint { Color = SKColors.Magenta, StrokeWidth = 1.0f, Style = SKPaintStyle.Stroke, IsAntialias = true };
 						foreach (LaneEdge edge in route.GetRouteEdges())
 						{
-							graphic.DrawLine(routePen, parameters.TransformX(edge.m_from.position), parameters.TransformY(edge.m_from.position), parameters.TransformX(edge.m_to.position), parameters.TransformY(edge.m_to.position));
+							graphic.DrawLine(parameters.TransformX(edge.m_from.position), parameters.TransformY(edge.m_from.position), parameters.TransformX(edge.m_to.position), parameters.TransformY(edge.m_to.position), routePen);
 						}
 
-						Font shipTypeInfoFont = new Font(FontFamily.GenericSansSerif, 12);
-						SolidBrush shipTypeInfoBrush = new SolidBrush(Color.Black);
-						graphic.DrawString(route.ShipTypeInfo.GetDebugInfo(), shipTypeInfoFont, shipTypeInfoBrush, 4.0f, 4.0f);
+						using SKPaint shipTypeInfoPaint = new SKPaint { Color = SKColors.Black, IsAntialias = true };
+						using SKFont shipTypeInfoFont = new SKFont(SKTypeface.Default, 12.0f);
+						graphic.DrawText(route.ShipTypeInfo.GetDebugInfo(), 4.0f, 16.0f, SKTextAlign.Left, shipTypeInfoFont, shipTypeInfoPaint);
 					}
 
 					Directory.CreateDirectory("Output/");
-					using (FileStream stream = new FileStream("Output/RouteMap_from_" + route.FromVertex.vertexId + "_to_" + route.ToVertex.vertexId + ".png", FileMode.Create))
-					{
-						debugMap.Save(stream, ImageFormat.Png);
-					}
+					SaveBitmap(debugMap, "Output/RouteMap_from_" + route.FromVertex.vertexId + "_to_" + route.ToVertex.vertexId + ".png");
 				}
 			}
 			ConsoleLogger.Info("Creating Route Map Done...");
@@ -116,44 +110,41 @@ namespace SEL
 		{
 			DrawParameters parameters = CreateDrawParameters(ms_routeManager.GetVertices(), dimensionsInPixels);
 
-			using (Bitmap debugMap = new Bitmap(dimensionsInPixels, dimensionsInPixels))
+			using (SKBitmap debugMap = new SKBitmap(dimensionsInPixels, dimensionsInPixels, SKColorType.Bgra8888, SKAlphaType.Premul))
 			{
-				using (Graphics graphic = Graphics.FromImage(debugMap))
+				using (SKCanvas graphic = new SKCanvas(debugMap))
 				{
-					graphic.Clear(Color.White);
+					graphic.Clear(SKColors.White);
 					RenderRestrictionEdges(ms_routeManager, graphic, parameters);
-					RenderLaneVertices(ms_routeManager, graphic, parameters, Color.DodgerBlue, false);
-					Pen routePen = new Pen(Color.Lime, 3.0f);
-					Pen connectionPen = new Pen(Color.DarkGray, 1.0f);
+					RenderLaneVertices(ms_routeManager, graphic, parameters, SKColors.DodgerBlue, false);
+					using SKPaint routePen = new SKPaint { Color = SKColors.Lime, StrokeWidth = 3.0f, Style = SKPaintStyle.Stroke, IsAntialias = true };
+					using SKPaint connectionPen = new SKPaint { Color = SKColors.DarkGray, StrokeWidth = 1.0f, Style = SKPaintStyle.Stroke, IsAntialias = true };
 					foreach (LaneVertex closedVertex in closedVertices)
 					{
 						float x = parameters.TransformX(closedVertex.position);
 						float y = parameters.TransformY(closedVertex.position);
 						float size = 5.0f;
 
-						graphic.DrawEllipse(routePen, x - (size * 0.5f), y - (size * 0.5f), size, size);
+						graphic.DrawOval(SKRect.Create(x - (size * 0.5f), y - (size * 0.5f), size, size), routePen);
 						foreach (LaneEdge edge in closedVertex.GetConnections())
 						{
-							graphic.DrawLine(connectionPen, parameters.TransformX(edge.m_from.position), parameters.TransformY(edge.m_from.position), parameters.TransformX(edge.m_to.position), parameters.TransformY(edge.m_to.position));
+							graphic.DrawLine(parameters.TransformX(edge.m_from.position), parameters.TransformY(edge.m_from.position), parameters.TransformX(edge.m_to.position), parameters.TransformY(edge.m_to.position), connectionPen);
 						}
 					}
 
 					foreach (LaneEdge edge in closedEdges)
 					{
-						graphic.DrawLine(routePen, parameters.TransformX(edge.m_from.position), parameters.TransformY(edge.m_from.position), parameters.TransformX(edge.m_to.position), parameters.TransformY(edge.m_to.position));
+						graphic.DrawLine(parameters.TransformX(edge.m_from.position), parameters.TransformY(edge.m_from.position), parameters.TransformX(edge.m_to.position), parameters.TransformY(edge.m_to.position), routePen);
 					}
 
-					Pen sourcePen = new Pen(Color.Fuchsia, 4.0f);
-					graphic.DrawEllipse(sourcePen, parameters.TransformX(from.position), parameters.TransformY(from.position), 7.5f, 7.5f);
-					Pen destinationPen = new Pen(Color.Black, 4.0f);
-					graphic.DrawEllipse(destinationPen, parameters.TransformX(to.position), parameters.TransformY(to.position), 7.5f, 7.5f);
+					using SKPaint sourcePen = new SKPaint { Color = SKColors.Fuchsia, StrokeWidth = 4.0f, Style = SKPaintStyle.Stroke, IsAntialias = true };
+					graphic.DrawOval(SKRect.Create(parameters.TransformX(from.position), parameters.TransformY(from.position), 7.5f, 7.5f), sourcePen);
+					using SKPaint destinationPen = new SKPaint { Color = SKColors.Black, StrokeWidth = 4.0f, Style = SKPaintStyle.Stroke, IsAntialias = true };
+					graphic.DrawOval(SKRect.Create(parameters.TransformX(to.position), parameters.TransformY(to.position), 7.5f, 7.5f), destinationPen);
 				}
 
 				Directory.CreateDirectory("Output/");
-				using (FileStream stream = new FileStream("Output/RouteFinder_from_" + from.vertexId + "_to_" + to.vertexId + ".png", FileMode.Create))
-				{
-					debugMap.Save(stream, ImageFormat.Png);
-				}
+				SaveBitmap(debugMap, "Output/RouteFinder_from_" + from.vertexId + "_to_" + to.vertexId + ".png");
 			}
 		}
 
@@ -198,32 +189,40 @@ namespace SEL
 			return result;
 		}
 
-		private static void RenderLaneVertices(RouteManager routeManager, Graphics graphic, DrawParameters parameters, Color vertexColor, bool displayNodeId)
+		private static void RenderLaneVertices(RouteManager routeManager, SKCanvas graphic, DrawParameters parameters, SKColor vertexColor, bool displayNodeId)
 		{
-			Pen vertexPen = new Pen(vertexColor, 2.0f);
-			Font vertexFont = new Font(FontFamily.GenericSansSerif, 12);
-			SolidBrush vertexBrush = new SolidBrush(Color.Black);
+			using SKPaint vertexPen = new SKPaint { Color = vertexColor, StrokeWidth = 2.0f, Style = SKPaintStyle.Stroke, IsAntialias = true };
+			using SKPaint vertexTextPaint = new SKPaint { Color = SKColors.Black, IsAntialias = true };
+			using SKFont vertexFont = new SKFont(SKTypeface.Default, 12.0f);
 
 			foreach (LaneVertex vertex in routeManager.GetVertices())
 			{
 				float x = parameters.TransformX(vertex.position);
 				float y = parameters.TransformY(vertex.position);
 				float size = 3.0f;
-				graphic.DrawEllipse(vertexPen, x - (size * 0.5f), y - (size * 0.5f), size, size);
+				graphic.DrawOval(SKRect.Create(x - (size * 0.5f), y - (size * 0.5f), size, size), vertexPen);
 				if (displayNodeId)
 				{
-					graphic.DrawString(vertex.vertexId.ToString(), vertexFont, vertexBrush, x, y);
+					graphic.DrawText(vertex.vertexId.ToString(), x, y, SKTextAlign.Left, vertexFont, vertexTextPaint);
 				}
 			}
 		}
 
-		private static void RenderRestrictionEdges(RouteManager routeManager, Graphics graphic, DrawParameters parameters)
+		private static void RenderRestrictionEdges(RouteManager routeManager, SKCanvas graphic, DrawParameters parameters)
 		{
-			Pen restrictionPen = new Pen(Color.Red);
+			using SKPaint restrictionPen = new SKPaint { Color = SKColors.Red, StrokeWidth = 1.0f, Style = SKPaintStyle.Stroke, IsAntialias = true };
 			foreach (RestrictionEdge edge in routeManager.GetRestrictionEdges())
 			{
-				graphic.DrawLine(restrictionPen, parameters.TransformPoint(edge.m_from.position), parameters.TransformPoint(edge.m_to.position));
+				graphic.DrawLine(parameters.TransformPoint(edge.m_from.position), parameters.TransformPoint(edge.m_to.position), restrictionPen);
 			}
+		}
+
+		private static void SaveBitmap(SKBitmap bitmap, string filePath)
+		{
+			using SKImage image = SKImage.FromBitmap(bitmap);
+			using SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
+			using FileStream stream = new FileStream(filePath, FileMode.Create);
+			data.SaveTo(stream);
 		}
 	}
 }

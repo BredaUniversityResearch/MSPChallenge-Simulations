@@ -44,7 +44,7 @@ abstract public class ApiConnectorBase: IApiConnector
 
 	public int ApiRequestCurrentMonth()
 	{
-		if (!HttpGet("/api/Game/GetCurrentMonth", out ApiMonthContainer result))
+		if (!HttpGet("/api/game/GetCurrentMonth", out ApiMonthContainer result))
 			return m_currentMonth;
 		m_currentMonth = result.game_currentmonth;
 		m_currentMonthUpdateTime = DateTime.Now;
