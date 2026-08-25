@@ -149,8 +149,29 @@ namespace MSWSupport
 			catch (WebException ex)
 			{
 				HttpWebResponse? httpResponse = ex.Response as HttpWebResponse;
+				string? responseBody = TryReadErrorResponseBody(ex, fullServerUrl);
+				string? responseMessage = TryExtractMessageFromJsonResponse(responseBody);
+				string statusCode = httpResponse != null ? ((int)httpResponse.StatusCode).ToString() : "unknown";
+				string statusDescription = httpResponse?.StatusDescription ?? "n/a";
+				string contentType = ex.Response?.ContentType ?? "unknown";
+
 				if (httpResponse != null && httpResponse.StatusCode == HttpStatusCode.Unauthorized)
 				{
+					var contextDict = new Dictionary<string, object>();
+					contextDict.Add("exception", ConsoleLogger.SerializeException(ex));
+					contextDict.Add("statusCode", statusCode);
+					contextDict.Add("statusDescription", statusDescription);
+					contextDict.Add("contentType", contentType);
+					if (!string.IsNullOrEmpty(responseMessage))
+					{
+						contextDict.Add("message", responseMessage);
+					}
+					if (!string.IsNullOrEmpty(responseBody))
+					{
+						// Intentionally not logging raw response body; message field is sufficient.
+					}
+					ConsoleLogger.Warning($"ApiRequest::Perform for {fullServerUrl} got HTTP 401 Unauthorized", contextDict);
+
 					OnUnauthorizedAccess?.Invoke(serverUrl);
 					throw new ApiUnauthorizedWebException(ex); // allow child code to handle this one
 				}
@@ -159,43 +180,20 @@ namespace MSWSupport
 					throw new SessionApiGoneWebException(ex); // allow child code to handle this one
 				}
 
-				string? responseBody = null;
-				if (ex.Response != null)
-				{
-					try
-					{
-						using var stream = ex.Response.GetResponseStream();
-						if (stream != null)
-						{
-							using var reader = new StreamReader(stream);
-							responseBody = reader.ReadToEnd();
-						}
-					}
-					catch (Exception responseReadException)
-					{
-						ConsoleLogger.Warning($"ApiRequest::Perform for {fullServerUrl} failed to read error response body", responseReadException);
-					}
-				}
-
-				string? responseMessage = TryExtractMessageFromJsonResponse(responseBody);
-				string statusCode = httpResponse != null ? ((int)httpResponse.StatusCode).ToString() : "unknown";
-				string statusDescription = httpResponse?.StatusDescription ?? "n/a";
-				string contentType = ex.Response?.ContentType ?? "unknown";
-
-				var contextDict = new Dictionary<string, object>();
-				contextDict.Add("exception", ConsoleLogger.SerializeException(ex));
-				contextDict.Add("statusCode", statusCode);
-				contextDict.Add("statusDescription", statusDescription);
-				contextDict.Add("contentType", contentType);
+				var errorContextDict = new Dictionary<string, object>();
+				errorContextDict.Add("exception", ConsoleLogger.SerializeException(ex));
+				errorContextDict.Add("statusCode", statusCode);
+				errorContextDict.Add("statusDescription", statusDescription);
+				errorContextDict.Add("contentType", contentType);
 				if (!string.IsNullOrEmpty(responseMessage))
 				{
-					contextDict.Add("message", responseMessage);
+					errorContextDict.Add("message", responseMessage);
 				}
 				if (!string.IsNullOrEmpty(responseBody))
 				{
-					contextDict.Add("responseBodySnippet", ClipForLog(responseBody));
+					// Intentionally not logging raw response body; message field is sufficient.
 				}
-				ConsoleLogger.Warning($"ApiRequest::Perform for {fullServerUrl} failed with HTTP error: {ex.Message}", contextDict);
+				ConsoleLogger.Warning($"ApiRequest::Perform for {fullServerUrl} failed with HTTP error: {ex.Message}", errorContextDict);
 				responsePayload = null;
 				return false;
 			}
@@ -341,13 +339,7 @@ namespace MSWSupport
 			string trimmed = responseBody.TrimStart();
 			if (trimmed.StartsWith("<"))
 			{
-				ConsoleLogger.Warning(
-					"ApiRequest received a non-JSON error response body (looks like HTML/XML).",
-					new Dictionary<string, object>
-					{
-						{ "responseBodySnippet", ClipForLog(responseBody) }
-					}
-				);
+				ConsoleLogger.Warning("ApiRequest received a non-JSON error response body (looks like HTML/XML).");
 				return null;
 			}
 
@@ -362,10 +354,28 @@ namespace MSWSupport
 					"ApiRequest received an error response body that is not valid JSON.",
 					new Dictionary<string, object>
 					{
-						{ "exception", ConsoleLogger.SerializeException(ex) },
-						{ "responseBodySnippet", ClipForLog(responseBody) }
+						{ "exception", ConsoleLogger.SerializeException(ex) }
 					}
 				);
+				return null;
+			}
+		}
+
+		private static string? TryReadErrorResponseBody(WebException ex, string fullServerUrl)
+		{
+			if (ex.Response == null)
+			{
+				return null;
+			}
+
+			try
+			{
+				using var reader = new StreamReader(ex.Response.GetResponseStream());
+				return reader.ReadToEnd();
+			}
+			catch (Exception responseReadException)
+			{
+				ConsoleLogger.Warning($"ApiRequest::Perform for {fullServerUrl} failed to read error response body", responseReadException);
 				return null;
 			}
 		}
