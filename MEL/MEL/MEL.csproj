@@ -11,10 +11,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Eii.Ecopath.EwEMSPLink" Version="1.0.3-cEwEEFDatabase.*" />
-    </ItemGroup>
-
-    <ItemGroup>
       <None Update="MELdata\*.eiixml">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
@@ -30,6 +26,7 @@
       <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
       <PackageReference Include="SkiaSharp" Version="3.119.4" />
       <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.119.4" />
+      <PackageReference Include="Eii.Ecopath.EwEMSPLink" Version="1.0.0-cEwEEFDatabase.*" />
     </ItemGroup>
 
     <ItemGroup>
