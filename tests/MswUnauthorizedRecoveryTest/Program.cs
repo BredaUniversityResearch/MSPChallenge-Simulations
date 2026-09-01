@@ -65,11 +65,11 @@ try
         timeout: TimeSpan.FromSeconds(20),
         onTimeoutMessage: "Simulation did not recover and call IsOnline successfully with renewed token");
 
-     VerifyTransientRetryAndBackoff(apiServer, gameSessionApi);
+    VerifyTransientRetryAndBackoff(apiServer, gameSessionApi);
 
-     VerifySimulationCrashAndRestartWithTokenRecovery(runRoot, fakeSimOutDir);
+    VerifySimulationCrashAndRestartWithTokenRecovery(runRoot, fakeSimOutDir);
 
-     bool sawInitialUnauthorized = apiServer.IsOnlineUnauthorizedCount > 0;
+    bool sawInitialUnauthorized = apiServer.IsOnlineUnauthorizedCount > 0;
     bool sawImmediateRenewalMessage = mswOutput.ToString().Contains("Immediate token renewal requested", StringComparison.OrdinalIgnoreCase);
     bool sawHealthCheckRenewalMessage = mswOutput.ToString().Contains("Token health check received 401 Unauthorized", StringComparison.OrdinalIgnoreCase);
 
