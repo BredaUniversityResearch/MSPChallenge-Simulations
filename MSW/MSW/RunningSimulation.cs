@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Diagnostics;
 using System.IO;
@@ -21,6 +21,7 @@ namespace MSW
 		public string SimulationType => m_simulationVersion.SimulationType;
 
 		private ApiAccessToken m_currentApiAccessToken;
+		private int m_lastKnownMonth = -1;
 
 		public RunningSimulation(AvailableSimulationVersion a_config, string a_apiEndpoint, ApiAccessToken a_currentApiAccessToken, int a_mswPort)
 		{
@@ -120,6 +121,15 @@ namespace MSW
 
 		public void SetMonth(int a_month)
 		{
+			m_lastKnownMonth = a_month;
+			if (m_communicationPipeServer.IsConnected)
+			{
+				CommunicateMonth(a_month);
+			}
+		}
+
+		private void CommunicateMonth(int a_month)
+		{
 			if (m_communicationPipeServer.IsConnected)
 			{
 				try
@@ -133,8 +143,7 @@ namespace MSW
 				catch (IOException e)
 				{
 					ConsoleLogger.Warning($"Communication pipe {m_pipeName} reported IO Exception. Did the other application exit?", e);
-					m_communicationPipeServer.Disconnect();
-					m_communicationPipeServer.WaitForConnectionAsync().ContinueWith((a_task) => { OnPipeConnected(); });
+					EnsureSimulationRunning();
 				}
 			}
 		}
@@ -154,8 +163,7 @@ namespace MSW
 				catch (IOException)
 				{
 					ConsoleLogger.Error($"Communication pipe {m_pipeName} reported IO Exception. Did the other application exit?");
-					m_communicationPipeServer.Disconnect();
-					m_communicationPipeServer.WaitForConnectionAsync().ContinueWith((a_task) => { OnPipeConnected(); });
+					EnsureSimulationRunning();
 				}
 			}
 		}
@@ -164,6 +172,10 @@ namespace MSW
 		{
 			ConsoleLogger.Info("Pipe connected " + m_pipeName);
 			CommunicateUpdatedApiAccessToken();
+			if (m_lastKnownMonth >= 0)
+			{
+				CommunicateMonth(m_lastKnownMonth);
+			}
 		}
 
 		public string GetCommunicationPipeName()
@@ -186,8 +198,7 @@ namespace MSW
 			catch (IOException)
 			{
 				ConsoleLogger.Error($"Communication pipe {m_pipeName} reported IO Exception. Did the other application exit?");
-				m_communicationPipeServer.Disconnect();
-				m_communicationPipeServer.WaitForConnectionAsync().ContinueWith((a_task) => { OnPipeConnected(); });
+				EnsureSimulationRunning();
 			}
 		}
 	}
