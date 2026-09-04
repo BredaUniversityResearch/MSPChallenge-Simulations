@@ -13,6 +13,7 @@ namespace REL
 			ConsoleLogger.Info("Starting Samson Integration for MSP (REL)...");
 
 			RiskModel model = new RiskModel();
+			MswClientNotifier.Initialize();
 			model.WaitForApiAccess();
 			model.Run();
 		}

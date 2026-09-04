@@ -27,6 +27,7 @@ class Program
         
         ConsoleLogger.Info("Starting CEL");
         EnergyDistribution distribution = new EnergyDistribution();
+        MswClientNotifier.Initialize();
         distribution.WaitForApiAccess();
         while (true)
         {

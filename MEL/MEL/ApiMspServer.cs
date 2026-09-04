@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using EwEMSPLink;
 using MSWSupport;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SkiaSharp;
 
 namespace MEL
 {
@@ -118,16 +117,18 @@ namespace MEL
 				return null;
 			byte[] imageBytes = Convert.FromBase64String(apiResponse.image_data);
 			using Stream stream = new MemoryStream(imageBytes);
-			using Bitmap bitmap = new(stream);
+			using SKBitmap bitmap = SKBitmap.Decode(stream);
 			return Rasterizer.PNGToArray(bitmap, 1.0f, MEL.x_res, MEL.y_res);
 		}
 
-		public void SubmitRasterLayerData(string layerName, Bitmap rasterImage)
+		public void SubmitRasterLayerData(string layerName, SKBitmap rasterImage)
 		{
 			using MemoryStream stream = new(16384);
- #pragma warning disable CA1416 // Validate platform compatibility
-			rasterImage.Save(stream, ImageFormat.Png);
- #pragma warning restore CA1416
+			using (var skImage = SKImage.FromBitmap(rasterImage))
+			using (var data = skImage.Encode(SKEncodedImageFormat.Png, 100))
+			{
+				data.SaveTo(stream);
+			}
 			NameValueCollection postData = new NameValueCollection(2);
 			postData.Set("layer_name", MEL.ConvertLayerName(layerName));
 			postData.Set("image_data", Convert.ToBase64String(stream.ToArray()));

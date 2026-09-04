@@ -2,68 +2,39 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+        <WarningsAsErrors>CA1416</WarningsAsErrors>
     </PropertyGroup>
 
     <ItemGroup>
-      <Reference Include="EwECore">
-        <HintPath>..\..\DLLs\EwECore.dll</HintPath>
-      </Reference>
-      <Reference Include="EwELicense">
-        <HintPath>..\..\DLLs\EwELicense.dll</HintPath>
-      </Reference>
-      <Reference Include="EwEMSPLink">
-        <HintPath>..\..\DLLs\EwEMSPLink.dll</HintPath>
-      </Reference>
-      <Reference Include="EwEPlugin">
-        <HintPath>..\..\DLLs\EwEPlugin.dll</HintPath>
-      </Reference>
-      <Reference Include="EwEUtils">
-        <HintPath>..\..\DLLs\EwEUtils.dll</HintPath>
-      </Reference>
-      <Reference Include="MSWSupport, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-        <HintPath>..\..\DLLs\MSWSupport.dll</HintPath>
-      </Reference>
-    </ItemGroup>
-
-    <ItemGroup>
-      <None Update="MELdata\North Sea model for MSP.eiixml">
+      <None Update="MELdata\*.eiixml">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
-      <None Update="MELdata\North Sea model for MSP DT copy.eiixml">
+      <None Update="MELdata\*.sqlite">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="MELdata\Clyde model for MSP.eiixml">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="MELdata\Baltic sea model for MSP.eiixml">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="MELdata\EasternMed Sea model 5km.eiixml">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="MELdata\EasternMed Sea model 10km.eiixml">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="MELdata\WesternBaltic_National_Fleets.eiixml">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
+      </None>        
       <None Update="DebugData\NS_Basic.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-      <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+      <PackageReference Include="SkiaSharp" Version="3.119.4" />
+      <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.119.4" />
+      <PackageReference Include="Eii.Ecopath.EwEMSPLink" Version="1.0.0-cEwEEFDatabase.*" />
     </ItemGroup>
 
     <ItemGroup>
       <Folder Include="DebugData\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\MSWSupport\MSWSupport\MSWSupport.csproj" />
     </ItemGroup>
 
 </Project>

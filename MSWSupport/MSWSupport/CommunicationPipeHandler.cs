@@ -12,8 +12,9 @@ namespace MSWSupport
 		public const string MONTH_PRELUDE = "Month=";
 
 		private NamedPipeClientStream m_communicationPipe;
-		private string m_currentToken;
+		private string m_currentToken = string.Empty;
 		private int m_currentMonth = -1;
+		private readonly object m_stateLock = new();
 
 		private Thread m_readerThread;
 		private ITokenReceiver? m_tokenReceiver;
@@ -32,12 +33,33 @@ namespace MSWSupport
 
 		public void SetTokenReceiver(ITokenReceiver tokenReceiver)
 		{
-			m_tokenReceiver = tokenReceiver;
+			string tokenToReplay;
+			lock (m_stateLock)
+			{
+				m_tokenReceiver = tokenReceiver;
+				tokenToReplay = m_currentToken;
+			}
+
+			// If token arrived before receiver registration, replay it immediately.
+			if (!string.IsNullOrEmpty(tokenToReplay))
+			{
+				tokenReceiver.UpdateAccessToken(tokenToReplay);
+			}
 		}
 
 		public void SetUpdateMonthReceiver(IUpdateMonthReceiver updateMonthReceiver)
 		{
-			m_updateMonthReceiver = updateMonthReceiver;
+			int monthToReplay;
+			lock (m_stateLock)
+			{
+				m_updateMonthReceiver = updateMonthReceiver;
+				monthToReplay = m_currentMonth;
+			}
+
+			if (monthToReplay >= 0)
+			{
+				updateMonthReceiver.UpdateMonth(monthToReplay);
+			}
 		}
 
 		private static void CommunicationPipeHandlerThreadFunction(object handlerObject)
@@ -53,18 +75,33 @@ namespace MSWSupport
 			{
 				string? line = reader.ReadLine();
 				if (line == null) continue;
-				if (line.StartsWith(TOKEN_PRELUDE))
+				string normalizedLine = line.TrimStart('\uFEFF');
+				if (normalizedLine.StartsWith(TOKEN_PRELUDE))
 				{
-					m_currentToken = line.Substring(line.IndexOf('=') + 1);
-					ConsoleLogger.Info("MSWPipe | Received new API token " + m_currentToken.Substring(0, 10) + "...");
-					m_tokenReceiver?.UpdateAccessToken(m_currentToken);
+					ITokenReceiver? tokenReceiver;
+					string token;
+					lock (m_stateLock)
+					{
+						token = normalizedLine.Substring(normalizedLine.IndexOf('=') + 1);
+						m_currentToken = token;
+						tokenReceiver = m_tokenReceiver;
+					}
+					ConsoleLogger.Info("MSWPipe | Received new API token " + token.Substring(0, Math.Min(10, token.Length)) + "...");
+					tokenReceiver?.UpdateAccessToken(token);
 					continue;
 				}
-				if (!line.StartsWith(MONTH_PRELUDE))
+				if (!normalizedLine.StartsWith(MONTH_PRELUDE))
 					continue;
-				m_currentMonth = int.Parse(line.AsSpan(line.IndexOf('=') + 1));
-				ConsoleLogger.Info("MSWPipe | Received new month " + m_currentMonth + "...");
-				m_updateMonthReceiver?.UpdateMonth(m_currentMonth);
+				IUpdateMonthReceiver? monthReceiver;
+				int month;
+				lock (m_stateLock)
+				{
+					month = int.Parse(normalizedLine.AsSpan(normalizedLine.IndexOf('=') + 1));
+					m_currentMonth = month;
+					monthReceiver = m_updateMonthReceiver;
+				}
+				ConsoleLogger.Info("MSWPipe | Received new month " + month + "...");
+				monthReceiver?.UpdateMonth(month);
 			} while (!reader.EndOfStream);
 		}
 

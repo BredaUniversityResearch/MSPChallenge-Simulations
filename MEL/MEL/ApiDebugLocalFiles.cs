@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using EwEMSPLink;
 using Newtonsoft.Json.Linq;
+using SkiaSharp;
 
 namespace MEL
 {
@@ -132,13 +132,13 @@ namespace MEL
 			throw new System.NotImplementedException();
 		}
 
-		public void SubmitRasterLayerData(string layerName, Bitmap rasterImage)
+		public void SubmitRasterLayerData(string layerName, SKBitmap rasterImage)
 		{
 			using Stream fs = File.OpenWrite(Path.Combine(DebugDataFolder, m_ConfigFileName,
 				MEL.ConvertLayerName(layerName) + ".tif"));
-#pragma warning disable CA1416 // Validate platform compatibility
-			rasterImage.Save(fs, System.Drawing.Imaging.ImageFormat.Png);
- #pragma warning restore CA1416
+			using var image = SKImage.FromBitmap(rasterImage);
+			using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+			data.SaveTo(fs);
 		}
 
 		public APILayerGeometryData? GetLayerData(
@@ -154,11 +154,8 @@ namespace MEL
 		{
 			double[,]? result = null;
 			using Stream stream = File.OpenRead(Path.Combine(DebugDataFolder, m_ConfigFileName, MEL.ConvertLayerName(name)+".tif"));
- #pragma warning disable CA1416 // Validate platform compatibility
-			using Bitmap bitmap = new (stream);
- #pragma warning restore CA1416
+			using SKBitmap bitmap = SKBitmap.Decode(stream);
 			result = Rasterizer.PNGToArray(bitmap, 1.0f, MEL.x_res, MEL.y_res);
-
 			return result;
 		}
 

@@ -2,10 +2,8 @@
 using SEL.API;
 using SEL.SpatialMapping;
 using SEL.Util;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
-using System.Runtime.InteropServices;
+using SkiaSharp;
 
 namespace SEL
 {
@@ -46,7 +44,7 @@ namespace SEL
 			}
 		}
 
-		protected override void RenderLine(Point from, Point to, int intensityValue)
+		protected override void RenderLine(SKPointI from, SKPointI to, int intensityValue)
 		{
 			if (LineClipping.ClipLinePoints(ref from, ref to, m_outputBounds))
 			{
@@ -270,64 +268,45 @@ namespace SEL
 
 		public override void SaveFile(Stream targetStream, RasterOutputConfig outputConfig, IValueMapper<int, float> valueMapper)
 		{
-            int stride = (Width + 3) & ~0x3; //Round up to a multiple of 4
-			byte[] colourBits = new byte[stride * Height];
-			GCHandle colourBitsHandle = GCHandle.Alloc(colourBits, GCHandleType.Pinned);
-
-			using (Bitmap image = new Bitmap(Width, Height, stride, PixelFormat.Format8bppIndexed, colourBitsHandle.AddrOfPinnedObject()))
+			using SKBitmap image = new SKBitmap(Width, Height, SKColorType.Bgra8888, SKAlphaType.Opaque);
+			for (int y = 0; y < Height; ++y)
 			{
-				//Build a grayscale colour palette.
-				ColorPalette palette = image.Palette;
-				for (int i = 0; i < 255; ++i)
+				for (int x = 0; x < Width; ++x)
 				{
-					palette.Entries[i] = Color.FromArgb(255, i, i, i);
-				}
-				image.Palette = palette;
-
-				for (int y = 0; y < Height; ++y)
-				{
-					for (int x = 0; x < Width; ++x)
-					{
-						float mappedValue = Math.Max(0.0f, Math.Min(valueMapper.Map(m_intensityRaster[x + (y * Width)]), 1.0f));
-						byte mappedColourValue = (byte)(mappedValue * 255.0f);
-						colourBits[x + (y * stride)] = mappedColourValue;
-					}
-				}
-
-				if (outputConfig.m_outputResolutionX != -1 && outputConfig.m_outputResolutionY != -1)
-				{
-					//need to resize to output_size_x & y
-					using (Bitmap resizedImage = new Bitmap(outputConfig.m_outputResolutionX, outputConfig.m_outputResolutionY, PixelFormat.Format32bppArgb))
-					{
-						using (Graphics resizedGraphic = Graphics.FromImage(resizedImage))
-						{
-							//We need to do a weird transformation to swap the offsets since our coordinate systems are mismatching.
-							Point transformedMin = m_rasterBounds.WorldToRasterSpace(outputConfig.m_subBounds.min, false);
-							Point transformedMax = m_rasterBounds.WorldToRasterSpace(outputConfig.m_subBounds.max, false);
-
-							Size originalSize = new Size(Width, Height);
-							Size deltaSizeMax = originalSize - new Size(transformedMin);
-							Size deltaSizeMin = originalSize - new Size(transformedMax);
-
-							Size sourceSize = deltaSizeMax - deltaSizeMin;
-							Rectangle sourceRect = new Rectangle(new Point(transformedMin.X, deltaSizeMin.Height), sourceSize);
-
-							resizedGraphic.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBilinear;
-							resizedGraphic.DrawImage(image,
-								new Rectangle(0, 0, outputConfig.m_outputResolutionX, outputConfig.m_outputResolutionY), sourceRect,
-								GraphicsUnit.Pixel);
-						}
-
-						resizedImage.Save(targetStream, ImageFormat.Png);
-					}
-				}
-				else
-				{
-					image.Save(targetStream, ImageFormat.Png);
+					float mappedValue = Math.Max(0.0f, Math.Min(valueMapper.Map(m_intensityRaster[x + (y * Width)]), 1.0f));
+					byte mappedColourValue = (byte)(mappedValue * 255.0f);
+					image.SetPixel(x, y, new SKColor(mappedColourValue, mappedColourValue, mappedColourValue, 255));
 				}
 			}
 
-			colourBitsHandle.Free();
+			if (outputConfig.m_outputResolutionX != -1 && outputConfig.m_outputResolutionY != -1)
+			{
+				using SKBitmap resizedImage = new SKBitmap(outputConfig.m_outputResolutionX, outputConfig.m_outputResolutionY, SKColorType.Bgra8888, SKAlphaType.Premul);
+				using SKCanvas resizedCanvas = new SKCanvas(resizedImage);
+
+				// We need to swap Y offsets because raster and output coordinate systems differ.
+				SKPointI transformedMin = m_rasterBounds.WorldToRasterSpace(outputConfig.m_subBounds.min, false);
+				SKPointI transformedMax = m_rasterBounds.WorldToRasterSpace(outputConfig.m_subBounds.max, false);
+
+				int sourceX = transformedMin.X;
+				int sourceY = Height - transformedMax.Y;
+				int sourceWidth = transformedMax.X - transformedMin.X;
+				int sourceHeight = transformedMax.Y - transformedMin.Y;
+
+				SKRectI sourceRect = new SKRectI(sourceX, sourceY, sourceX + sourceWidth, sourceY + sourceHeight);
+				SKRect destinationRect = new SKRect(0, 0, outputConfig.m_outputResolutionX, outputConfig.m_outputResolutionY);
+				resizedCanvas.DrawBitmap(image, sourceRect, destinationRect);
+
+				using SKImage outputImage = SKImage.FromBitmap(resizedImage);
+				using SKData encodedResized = outputImage.Encode(SKEncodedImageFormat.Png, 100);
+				encodedResized.SaveTo(targetStream);
+			}
+			else
+			{
+				using SKImage outputImage = SKImage.FromBitmap(image);
+				using SKData encoded = outputImage.Encode(SKEncodedImageFormat.Png, 100);
+				encoded.SaveTo(targetStream);
+			}
 		}
 	}
 }

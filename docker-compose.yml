@@ -1,15 +1,29 @@
-version: '3.8'
+name: mspchallenge-dev
 
 services:
-  mspchallenge-simulations:
+  simulations:
     build:
-      context: output/debian.11-x64
-    image: mspchallenge-simulations  
+      context: output/linux-x64
+      dockerfile: Dockerfile
     ports:
       - "${WATCHDOG_PORT:-45000}:${WATCHDOG_PORT:-45000}"
     restart: always
     environment:
+      DOCKER: 1
       WATCHDOG_PORT: ${WATCHDOG_PORT:-45000}
       MSP_MEL_EWE_DUMP_ENABLED: "${MSP_MEL_EWE_DUMP_ENABLED:-0}"
     logging:
-      driver: "local"
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    volumes:
+        - simulations_data:/app:rw
+    networks:
+      - msp_network
+
+volumes:
+    simulations_data:
+
+networks:
+  msp_network:

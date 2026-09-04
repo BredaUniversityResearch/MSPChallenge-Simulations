@@ -1,0 +1,4 @@
+# Local/integration test run artifacts
+_artifacts/
+_tmp_msw_start/
+

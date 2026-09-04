@@ -30,6 +30,7 @@ namespace SEL
 			}			
 			
 			ShippingModel model = new ShippingModel();
+			MswClientNotifier.Initialize();
 			model.WaitForApiAccess();
 			while (true)
 			{

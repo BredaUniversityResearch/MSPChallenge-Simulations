@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using System.Drawing;
 using EwEMSPLink;
 using Newtonsoft.Json.Linq;
+using SkiaSharp;
 
 namespace MEL
 {
@@ -20,7 +20,7 @@ namespace MEL
 		void NotifyTickDone();
 
 		double[,]? GetRasterLayerByName(string? layerName);
-		void SubmitRasterLayerData(string layerName, Bitmap rasterImage);
+		void SubmitRasterLayerData(string layerName, SKBitmap rasterImage);
 
 		APILayerGeometryData? GetLayerData(
 			string? layerName,

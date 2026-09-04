@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Drawing;
 using SEL.SpatialMapping;
 using System.Numerics;
+using SkiaSharp;
 
 namespace SEL.Util
 {
@@ -26,17 +26,15 @@ namespace SEL.Util
 		/// <param name="from"></param>
 		/// <param name="to"></param>
 		/// <param name="bounds"></param>
-		public static bool ClipLinePoints(ref Point from, ref Point to, AABB bounds)
+		public static bool ClipLinePoints(ref SKPointI from, ref SKPointI to, AABB bounds)
 		{
 			Vector2 fromVec = new Vector2((float)from.X, (float)from.Y);
 			Vector2 toVec = new Vector2((float)to.X, (float)to.Y);
 
 			bool isValidLine = ClipLinePoints(ref fromVec, ref toVec, bounds);
 
-			from.X = (int)fromVec.X;
-			from.Y = (int)fromVec.Y;
-			to.X = (int)toVec.X;
-			to.Y = (int)toVec.Y;
+			from = new SKPointI((int)fromVec.X, (int)fromVec.Y);
+			to = new SKPointI((int)toVec.X, (int)toVec.Y);
 
 			return isValidLine;
 		}

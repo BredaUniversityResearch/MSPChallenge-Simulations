@@ -13,6 +13,7 @@ namespace MSW
 		public const int DEFAULT_PORT = 45000;
 		private const string DEFAULT_SCHEME = "http://";
 		private const string API_URI_IDENTIFIER = "Watchdog/";
+		private const string REST_PREFIX_HOST_ENV = "MSW_REST_PREFIX_HOST";
 
 		private HttpListener m_updateGameStateListener = null;
 		private Thread m_backgroundProcessThread = null;
@@ -22,7 +23,12 @@ namespace MSW
 		public RestApiController(int a_port = DEFAULT_PORT)
 		{
 			m_updateGameStateListener = new HttpListener();
-			var prefixHost = DEFAULT_SCHEME + "+:" + a_port + "/";
+			string prefixHostTarget = Environment.GetEnvironmentVariable(REST_PREFIX_HOST_ENV);
+			if (string.IsNullOrWhiteSpace(prefixHostTarget))
+			{
+				prefixHostTarget = "+";
+			}
+			var prefixHost = DEFAULT_SCHEME + prefixHostTarget + ":" + a_port + "/";
 			m_updateGameStateListener.Prefixes.Add(prefixHost + API_URI_IDENTIFIER);
 			m_updateGameStateListener.Start();
 			ConsoleLogger.Info("Starting REST API at " + prefixHost + API_URI_IDENTIFIER);
