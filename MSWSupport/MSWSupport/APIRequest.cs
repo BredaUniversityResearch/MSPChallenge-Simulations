@@ -26,6 +26,12 @@ namespace MSWSupport
 		/// Subscribers (e.g. MswClientNotifier) use this to notify MSW for immediate token renewal.
 		/// </summary>
 		public static event Action<string>? OnUnauthorizedAccess;
+		/// <summary>
+		/// Fired whenever an API call receives a 410 Gone response.
+		/// The string parameter is the server base URL that returned the 410.
+		/// Subscribers can notify MSW so it can clean up session-owned simulations.
+		/// </summary>
+		public static event Action<string>? OnSessionApiGone;
 
 		[SuppressMessage("ReSharper", "InconsistentNaming")]
 		public class ApiResponseWrapper
@@ -177,6 +183,7 @@ namespace MSWSupport
 				}
 				if (httpResponse != null && httpResponse.StatusCode == HttpStatusCode.Gone)
 				{
+					OnSessionApiGone?.Invoke(serverUrl);
 					throw new SessionApiGoneWebException(ex); // allow child code to handle this one
 				}
 

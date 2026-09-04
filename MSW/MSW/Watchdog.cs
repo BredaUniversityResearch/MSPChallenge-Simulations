@@ -277,6 +277,7 @@ namespace MSW
 		private RestEndpointUpdateState m_updateStateEndpoint;
 		private RestEndpointSetMonth m_setMonthEndpoint;
 		private RestEndpointReportUnauthorized m_reportUnauthorizedEndpoint;
+		private RestEndpointReportSessionGone m_reportSessionGoneEndpoint;
 		private List<AvailableSimulation> m_availableSimulations = new List<AvailableSimulation>(8);
 		private readonly int m_restApiPort;
 
@@ -295,9 +296,11 @@ namespace MSW
 			m_updateStateEndpoint = new RestEndpointUpdateState(m_availableSimulations.ToArray());
 			m_setMonthEndpoint = new RestEndpointSetMonth();
 			m_reportUnauthorizedEndpoint = new RestEndpointReportUnauthorized(HandleReportUnauthorized);
+			m_reportSessionGoneEndpoint = new RestEndpointReportSessionGone();
 			m_restApiController.AddEndpoint(m_updateStateEndpoint);
 			m_restApiController.AddEndpoint(m_setMonthEndpoint);
 			m_restApiController.AddEndpoint(m_reportUnauthorizedEndpoint);
+			m_restApiController.AddEndpoint(m_reportSessionGoneEndpoint);
 		}
 
 		public void Tick()
@@ -316,6 +319,14 @@ namespace MSW
 				foreach (RestEndpointUpdateState.RequestData request in requests)
 				{
 					HandleUpdateStateRequest(request);
+				}
+			}
+			// report session gone
+			{
+				RestEndpointReportSessionGone.RequestData[] requests = m_reportSessionGoneEndpoint.GetPendingRequestData();
+				foreach (RestEndpointReportSessionGone.RequestData request in requests)
+				{
+					HandleReportSessionGoneRequest(request);
 				}
 			}
 
@@ -447,6 +458,24 @@ namespace MSW
 			else
 			{
 				ConsoleLogger.Warning($"ReportUnauthorized: no active server session found matching {gameSessionApi}");
+			}
+		}
+
+		private void HandleReportSessionGoneRequest(RestEndpointReportSessionGone.RequestData request)
+		{
+			ServerData data = m_activeServers.Find(s =>
+				string.Equals(s.ServerApiRoot, request.GameSessionApi, StringComparison.OrdinalIgnoreCase) ||
+				request.GameSessionApi.StartsWith(s.ServerApiRoot, StringComparison.OrdinalIgnoreCase));
+
+			if (data != null)
+			{
+				ConsoleLogger.Warning($"Simulation reported HTTP 410 Gone for {request.GameSessionApi}. Stopping simulations and removing this session from watchdog state.");
+				data.StopAllSimulations();
+				m_activeServers.Remove(data);
+			}
+			else
+			{
+				ConsoleLogger.Warning($"ReportSessionGone: no active server session found matching {request.GameSessionApi}");
 			}
 		}
 
