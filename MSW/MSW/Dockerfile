@@ -2,11 +2,11 @@
 #   docker build -t docker-hub.mspchallenge.info/cradlewebmaster/msp-challenge-simulations:latest -f Dockerfile .
 
 # Use a minimal Debian-based image for the runtime
-FROM debian:11-slim
+FROM debian:13-slim
 
 # Install necessary dependencies for running .NET
 RUN apt-get update && apt-get install -y --no-install-recommends \
-		libicu67 \
+		libicu76 \
 		git \
         libgdiplus \
         bash \
